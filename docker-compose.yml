@@ -1,0 +1,69 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+
+  backend-api:
+    build: ./backend-api
+    ports:
+      - '8000:8000'
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${DB_USER}:${DB_PASS}@postgres/${DB_NAME}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend-api:/app
+
+  ai-engine:
+    build: ./ai-engine
+    ports:
+      - '8002:8002'
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${DB_USER}:${DB_PASS}@postgres/${DB_NAME}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    depends_on:
+      - postgres
+
+  collector:
+    build: ./collector
+    environment:
+      AI_ENGINE_URL: http://ai-engine:8002
+    depends_on:
+      - ai-engine
+      - postgres
+
+  frontend:
+    build: ./frontend
+    ports:
+      - '3000:3000'
+    environment:
+      VITE_API_URL: http://localhost:8000/api/v1
+    depends_on:
+      - backend-api
+
+volumes:
+  postgres_data:

@@ -1,0 +1,1 @@
+print("Collector service started")
