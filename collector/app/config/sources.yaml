@@ -1,0 +1,53 @@
+sources:
+  linkedin:
+    enabled: true
+    base_url: "https://www.linkedin.com/jobs/search"
+    search_queries:
+      - "software engineer intern India"
+      - "backend developer fresher India"
+      - "frontend developer fresher India"
+      - "data analyst intern India"
+      - "full stack developer fresher India"
+    max_pages: 3
+    delay_seconds: 2
+
+  naukri:
+    enabled: true
+    base_url: "https://www.naukri.com"
+    search_queries:
+      - "fresher software engineer"
+      - "python developer fresher"
+      - "react developer fresher"
+      - "java developer fresher"
+      - "data analyst fresher"
+    max_pages: 3
+    delay_seconds: 2
+
+  indeed:
+    enabled: true
+    base_url: "https://in.indeed.com/jobs"
+    search_queries:
+      - "software engineer intern"
+      - "backend developer fresher"
+      - "frontend developer intern"
+      - "data analyst intern"
+    max_pages: 2
+    delay_seconds: 2
+
+  careers_pages:
+    enabled: true
+    companies:
+      - name: "TCS"
+        url: "https://www.tcs.com/careers/india/current-openings"
+
+      - name: "Infosys"
+        url: "https://career.infosys.com/joblist"
+
+      - name: "Wipro"
+        url: "https://careers.wipro.com/careers-home/"
+
+      - name: "HCL"
+        url: "https://www.hcltech.com/careers"
+
+      - name: "Accenture"
+        url: "https://www.accenture.com/in-en/careers/jobsearch"
