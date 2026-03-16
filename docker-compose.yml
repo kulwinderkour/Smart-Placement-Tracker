@@ -32,6 +32,11 @@ services:
       DATABASE_URL: postgresql+asyncpg://${DB_USER}:${DB_PASS}@postgres/${DB_NAME}
       REDIS_URL: redis://redis:6379/0
       JWT_SECRET: ${JWT_SECRET}
+    healthcheck:
+      test: ['CMD-SHELL', "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health').read()\"" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     depends_on:
       postgres:
         condition: service_healthy
@@ -50,11 +55,21 @@ services:
 
   collector:
     build: ./collector
+    ports:
+      - '8001:8001'
     environment:
+      DATABASE_URL: postgresql://postgres:${DB_PASS}@postgres/${DB_NAME}
       AI_ENGINE_URL: http://ai-engine:8002
+      SCRAPE_INTERVAL_MINUTES: 60
+      MAX_JOBS_PER_RUN: 100
     depends_on:
-      - ai-engine
-      - postgres
+      postgres:
+        condition: service_healthy
+      backend-api:
+        condition: service_healthy
+      ai-engine:
+        condition: service_started
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
