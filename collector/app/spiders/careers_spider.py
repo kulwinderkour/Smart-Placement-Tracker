@@ -9,7 +9,7 @@ from app.spiders.base_spider import BaseJobSpider
 logger = logging.getLogger(__name__)
 
 SOURCES_FILE = os.path.normpath(
-    os.path.join(os.path.dirname(__file__), "..", "config", "sources.yaml")
+    os.path.join(os.path.dirname(__file__), "..", "sources.yaml")
 )
 
 
