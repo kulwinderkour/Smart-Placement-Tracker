@@ -1,7 +1,20 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.routers import internal, interview, recommend, resume, skill_gap
 
-app = FastAPI(title="AI Engine", version="1.0.0")
+app = FastAPI(
+    title="Student Placement Tracker — AI Engine",
+    version="1.0.0",
+    docs_url="/docs",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://backend-api:8000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(resume.router)
 app.include_router(recommend.router)
