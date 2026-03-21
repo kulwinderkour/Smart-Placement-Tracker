@@ -114,7 +114,7 @@ export default function Login() {
           initial={{ opacity: 0, y: 20 }} 
           animate={{ opacity: 1, y: 0 }} 
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          className="relative z-10 max-w-4xl w-full text-center flex flex-col items-center mt-8 sm:mt-0"
+          className="relative z-10 max-w-4xl w-full flex flex-col items-center justify-center text-center gap-0 mt-8 sm:mt-0"
         >
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
@@ -129,35 +129,45 @@ export default function Login() {
             Land Your Dream Job
           </h1>
           
-          <p className="text-lg sm:text-xl text-white/70 leading-relaxed max-w-2xl mx-auto font-medium mb-12 drop-shadow-md">
+          <p className="text-lg sm:text-xl text-white/70 leading-relaxed max-w-2xl mx-auto font-medium drop-shadow-md">
             Your personalized AI-driven placement companion. Connect with recruiters and stand out from the crowd.
           </p>
 
-          <div className="flex flex-col md:flex-row gap-4 justify-center w-full max-w-3xl mb-12">
-            {features.map((feature, idx) => (
-              <motion.div 
-                key={idx}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 + idx * 0.1, ease: "easeOut" }}
-                className="flex items-center space-x-3 bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-5 py-3 text-left shadow-lg"
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10 w-full px-4">
+            {[
+              {
+                icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>,
+                text: "Access thousands of top-tier companies"
+              },
+              {
+                icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>,
+                text: "Track your application status in real-time"
+              },
+              {
+                icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>,
+                text: "Secure and verified placement opportunities"
+              }
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 px-5 py-3 rounded-2xl border border-white/15 bg-white/5 backdrop-blur-md w-full sm:w-auto sm:min-w-[200px] sm:max-w-[240px] text-left"
               >
-                <div className="flex-shrink-0 text-white/70">
-                  {feature.icon}
-                </div>
-                <span className="font-medium text-white/80 text-[13px] leading-tight">{feature.text}</span>
-              </motion.div>
+                <span className="text-white/70 flex-shrink-0">{item.icon}</span>
+                <span className="text-white/80 text-sm font-medium leading-snug">{item.text}</span>
+              </div>
             ))}
           </div>
-          
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => navigate('/login-form')}
-            className="bg-white text-[#1a1a2e] font-semibold px-8 py-3 rounded-full text-sm hover:bg-blue-50 shadow-xl transition-colors focus:outline-none focus:ring-4 focus:ring-white/30"
-          >
-            Start using Smart Placement
-          </motion.button>
+
+          <div className="mt-6 flex justify-center">
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => navigate('/login-form')}
+              className="bg-white text-[#1a1a2e] font-semibold px-8 py-3 rounded-full text-sm shadow-xl hover:bg-blue-50 transition-all focus:outline-none focus:ring-4 focus:ring-white/30"
+            >
+              Start using Smart Placement
+            </motion.button>
+          </div>
         </motion.div>
       </section>
 
