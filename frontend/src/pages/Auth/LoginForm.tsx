@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { authApi } from '../../api/auth'
 import { useAuthStore } from '../../store/authStore'
-import { Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 const schema = z.object({
   email: z.string().email('Invalid email address'),
@@ -32,242 +32,159 @@ export default function LoginForm() {
       const meRes = await authApi.me()
       setUser(meRes.data)
       navigate('/dashboard')
-    } catch {
-      setError('Invalid email or password')
+    } catch (err: any) {
+      if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
+        setError('Cannot connect to server. Is the backend running?')
+      } else {
+        setError('Invalid email or password')
+      }
     }
   }
 
   return (
-    <div 
-      className="min-h-screen w-full flex items-center justify-center relative overflow-hidden font-sans"
-      style={{ background: 'linear-gradient(135deg, #4169e1 0%, #5b4fcf 40%, #8b5cf6 70%, #9b59b6 100%)' }}
-    >
-      {/* Background soft circle */}
-      <div 
-        style={{ 
-          position: 'absolute', 
-          bottom: '-100px', 
-          right: '-100px', 
-          width: '500px', 
-          height: '500px', 
-          borderRadius: '50%', 
-          background: 'rgba(255,255,255,0.07)', 
-          pointerEvents: 'none' 
-        }} 
-      />
+    <div style={{
+      minHeight: '100vh',
+      width: '100%',
+      background: '#0a0a0f',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px',
+      boxSizing: 'border-box'
+    }}>
+      <style dangerouslySetInnerHTML={{__html: `
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Sora:wght@400;600;700;800&display=swap');
+        @media (max-width: 768px) {
+          .split-right-panel { display: none !important; }
+          .split-card-wrapper { maxWidth: 400px !important; }
+          .split-left-panel { padding: 32px 24px !important; }
+        }
+        input::placeholder { color: rgba(255,255,255,0.4); }
+      `}} />
 
-      {/* Back Button */}
-      <button 
-        onClick={() => navigate('/')} 
-        className="absolute top-6 left-6 sm:top-8 sm:left-8 text-white/80 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2.5 rounded-full backdrop-blur-sm z-20 flex items-center justify-center cursor-pointer"
-        aria-label="Go back"
-      >
-        <ArrowLeft className="w-5 h-5" />
-      </button>
 
-      {/* Form Card */}
-      <div 
-        className="relative z-10 w-[90%] max-w-[420px] bg-white mx-auto flex flex-col box-border"
-        style={{ 
-          borderRadius: '20px', 
-          padding: '48px 44px', 
-          boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-        }}
-      >
-        <style dangerouslySetInnerHTML={{__html: `
-          @media (max-width: 480px) {
-            .mobile-card-padding {
-              padding: 32px 20px !important;
-            }
-          }
-        `}} />
-        <div className="mobile-card-padding">
-          <h1 
-            style={{ 
-              fontSize: '28px', 
-              fontWeight: 700, 
-              color: '#1a1a2e', 
-              fontFamily: 'Sora, sans-serif',
-              margin: '0 0 4px 0'
-            }}
-          >
-            Welcome back
-          </h1>
-          <p 
-            style={{ 
-              fontSize: '14px', 
-              color: '#6b7280', 
-              marginBottom: '28px' 
-            }}
-          >
-            Sign in to your account
-          </p>
+      <div className="split-card-wrapper" style={{
+        width: '100%',
+        maxWidth: 860,
+        borderRadius: 16,
+        border: '1.5px solid #7c3aed',
+        boxShadow: '0 0 40px rgba(124,58,237,0.35), 0 0 80px rgba(124,58,237,0.15), inset 0 0 40px rgba(124,58,237,0.05)',
+        display: 'flex',
+        overflow: 'hidden',
+        minHeight: 420,
+        position: 'relative'
+      }}>
+        
+        {/* LEFT PANEL — FORM SIDE */}
+        <div className="split-left-panel" style={{
+          flex: 1,
+          background: '#0d0d14',
+          padding: '48px 44px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          position: 'relative',
+          zIndex: 2
+        }}>
+          <h1 style={{
+            fontFamily: 'Sora, sans-serif',
+            fontSize: 28,
+            fontWeight: 700,
+            color: '#ffffff',
+            marginBottom: 32,
+            marginTop: 0,
+            textAlign: 'center'
+          }}>Login</h1>
 
           <form onSubmit={handleSubmit(onSubmit)} style={{ width: '100%' }}>
             {/* Email Field */}
-            <div style={{ marginBottom: '16px', width: '100%' }}>
-              <label 
-                style={{ 
-                  display: 'block', 
-                  fontSize: '13px', 
-                  fontWeight: 600, 
-                  color: '#374151', 
-                  marginBottom: '6px' 
+            <div style={{ position: 'relative', marginBottom: 20, borderBottom: '1.5px solid rgba(255,255,255,0.2)' }}>
+              <input
+                {...register('email')}
+                type="email"
+                placeholder="Email Address"
+                style={{
+                  width: '100%',
+                  padding: '10px 36px 10px 0',
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: '#ffffff',
+                  fontSize: 14,
+                  fontFamily: 'DM Sans, sans-serif',
+                  boxSizing: 'border-box'
                 }}
-              >
-                Email Address
-              </label>
-              <div style={{ position: 'relative', width: '100%' }}>
-                <input
-                  {...register('email')}
-                  type="email"
-                  placeholder="example@domain.com"
-                  style={{
-                    boxSizing: 'border-box',
-                    width: '100%',
-                    padding: '13px 16px',
-                    border: '1.5px solid #e5e7eb',
-                    borderRadius: '10px',
-                    fontSize: '14px',
-                    background: '#fff',
-                    outline: 'none',
-                    transition: 'all 0.2s',
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#4169e1';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(65,105,225,0.12)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#e5e7eb';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                />
-              </div>
-              {errors.email && (
-                <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
-                  {errors.email.message}
-                </p>
-              )}
+                onFocus={(e) => { e.currentTarget.parentElement!.style.borderBottom = '1.5px solid #7c3aed'; }}
+                onBlur={(e) => { e.currentTarget.parentElement!.style.borderBottom = '1.5px solid rgba(255,255,255,0.2)'; }}
+              />
+              <svg style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', color:'rgba(255,255,255,0.4)', width:16, height:16, pointerEvents:'none' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
+            {errors.email && (
+              <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '-12px', marginBottom: '16px' }}>
+                {errors.email.message}
+              </p>
+            )}
 
             {/* Password Field */}
-            <div style={{ marginBottom: '8px', width: '100%' }}>
-              <label 
-                style={{ 
-                  display: 'block', 
-                  fontSize: '13px', 
-                  fontWeight: 600, 
-                  color: '#374151', 
-                  marginBottom: '6px' 
+            <div style={{ position: 'relative', marginBottom: 20, borderBottom: '1.5px solid rgba(255,255,255,0.2)' }}>
+              <input
+                {...register('password')}
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Password"
+                style={{
+                  width: '100%',
+                  padding: '10px 36px 10px 0',
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: '#ffffff',
+                  fontSize: 14,
+                  fontFamily: 'DM Sans, sans-serif',
+                  boxSizing: 'border-box'
                 }}
+                onFocus={(e) => { e.currentTarget.parentElement!.style.borderBottom = '1.5px solid #7c3aed'; }}
+                onBlur={(e) => { e.currentTarget.parentElement!.style.borderBottom = '1.5px solid rgba(255,255,255,0.2)'; }}
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', color:'rgba(255,255,255,0.4)', background:'none', border:'none', cursor:'pointer', padding:0, display:'flex' }}
+                title="Toggle password visibility"
               >
-                Password
-              </label>
-              <div style={{ position: 'relative', width: '100%' }}>
-                <input
-                  {...register('password')}
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  style={{
-                    boxSizing: 'border-box',
-                    width: '100%',
-                    padding: '13px 40px 13px 16px',
-                    border: '1.5px solid #e5e7eb',
-                    borderRadius: '10px',
-                    fontSize: '14px',
-                    background: '#fff',
-                    outline: 'none',
-                    transition: 'all 0.2s',
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#4169e1';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(65,105,225,0.12)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#e5e7eb';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    position: 'absolute',
-                    right: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: '#9ca3af',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-              {errors.password && (
-                <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
-                  {errors.password.message}
-                </p>
-              )}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </button>
             </div>
+            {errors.password && (
+              <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '-12px', marginBottom: '16px' }}>
+                {errors.password.message}
+              </p>
+            )}
 
-            {/* Forgot Link */}
-            <Link 
-              to="#" 
-              style={{ 
-                textAlign: 'right', 
-                display: 'block', 
-                marginTop: '6px', 
-                fontSize: '13px', 
-                color: '#4169e1',
-                textDecoration: 'none',
-                fontWeight: 500
-              }}
-            >
-              Forgot?
-            </Link>
-
-            {/* Error Message */}
             {error && (
-              <div style={{
-                background: '#fef2f2',
-                border: '1px solid #fee2e2',
-                color: '#dc2626',
-                padding: '12px',
-                borderRadius: '8px',
-                fontSize: '13px',
-                marginTop: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
+              <div style={{ background: '#fef2f2', border: '1px solid #fee2e2', color: '#dc2626', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', boxSizing: 'border-box' }}>
                 <div style={{width: '6px', height: '6px', borderRadius: '50%', background: '#dc2626'}}></div>
                 {error}
               </div>
             )}
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isSubmitting}
               style={{
-                boxSizing: 'border-box',
                 width: '100%',
-                padding: '14px',
-                marginTop: '20px',
-                background: '#3b5fe2',
-                color: 'white',
-                fontSize: '15px',
+                padding: '13px',
+                background: 'linear-gradient(135deg, #6d28d9, #7c3aed)',
+                color: '#fff',
+                fontSize: 15,
                 fontWeight: 700,
                 fontFamily: 'Sora, sans-serif',
-                borderRadius: '10px',
                 border: 'none',
+                borderRadius: 30,
                 cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s ease',
+                marginTop: 12,
+                boxShadow: '0 4px 20px rgba(124,58,237,0.4)',
+                transition: 'all 0.2s',
+                boxSizing: 'border-box',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -275,50 +192,72 @@ export default function LoginForm() {
               }}
               onMouseEnter={(e) => {
                 if (!isSubmitting) {
-                  e.currentTarget.style.background = '#2d4fd6';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(59,95,226,0.35)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #5b21b6, #6d28d9)';
+                  e.currentTarget.style.boxShadow = '0 6px 28px rgba(124,58,237,0.6)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isSubmitting) {
-                  e.currentTarget.style.background = '#3b5fe2';
-                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #6d28d9, #7c3aed)';
+                  e.currentTarget.style.boxShadow = '0 4px 20px rgba(124,58,237,0.4)';
                 }
               }}
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Signing in...
+                  Logging in...
                 </>
               ) : (
-                'Sign In'
+                'Login'
               )}
             </button>
           </form>
 
-          {/* Footer */}
-          <div 
-            style={{ 
-              textAlign: 'center', 
-              marginTop: '20px', 
-              fontSize: '13px', 
-              color: '#6b7280' 
-            }}
-          >
-            Don't have an account?{' '}
-            <Link 
-              to="/register" 
-              style={{ 
-                color: '#4169e1', 
-                textDecoration: 'none',
-                fontWeight: 600
-              }}
-            >
-              Create one now
-            </Link>
+          <div style={{ textAlign:'center', fontSize:13, color:'rgba(255,255,255,0.5)', marginTop:20 }}>
+            Don't have an account? <Link to="/register" style={{ color:'#a78bfa', fontWeight:600, cursor:'pointer', textDecoration: 'none' }}>Sign Up</Link>
           </div>
         </div>
+
+        {/* RIGHT PANEL — WELCOME SIDE */}
+        <div className="split-right-panel" style={{
+          width: 260,
+          flexShrink: 0,
+          background: 'linear-gradient(160deg, #4c1d95 0%, #6d28d9 40%, #7c3aed 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '48px 32px',
+          position: 'relative',
+          clipPath: 'polygon(18% 0%, 100% 0%, 100% 100%, 0% 100%)'
+        }}>
+          <div style={{ textAlign:'center', paddingLeft: 20 }}>
+            <h2 style={{
+              fontFamily: 'Sora, sans-serif',
+              fontSize: 32,
+              fontWeight: 800,
+              color: '#ffffff',
+              lineHeight: 1.1,
+              marginBottom: 16,
+              textTransform: 'uppercase',
+              letterSpacing: '-0.01em',
+              marginTop: 0
+            }}>
+              WELCOME<br/>BACK!
+            </h2>
+            <p style={{
+              fontSize: 13,
+              color: 'rgba(255,255,255,0.7)',
+              lineHeight: 1.65,
+              maxWidth: 160,
+              margin: '0 auto'
+            }}>
+              Your AI-powered placement companion awaits you.
+            </p>
+          </div>
+        </div>
+
       </div>
     </div>
   )
