@@ -12,9 +12,11 @@ import ResumeAnalyser from './pages/Student/ResumeAnalyser'
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <main>{children}</main>
+    <div className="min-h-screen bg-[#f4f4f8] font-sans">
+      <div className="max-w-[1100px] mx-auto w-full min-h-screen relative shadow-sm bg-[#f4f4f8] flex flex-col">
+        <Navbar />
+        <main className="flex-1">{children}</main>
+      </div>
     </div>
   )
 }
