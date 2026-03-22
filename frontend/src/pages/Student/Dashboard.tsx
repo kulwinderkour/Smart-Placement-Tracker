@@ -66,20 +66,21 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ fontFamily: 'Inter, system-ui, sans-serif', width: '100%', maxWidth: '100%' }}>
       {/* Hero Section */}
       <div 
         style={{
           background: '#1e3a5f',
           borderRadius: '14px',
-          margin: '16px 20px 0',
-          padding: '20px 24px 44px'
+          margin: '16px',
+          padding: '20px 24px 44px',
+          width: 'calc(100% - 32px)'
         }}
       >
         <h1 style={{ fontSize: '13px', fontWeight: 500, color: 'white', margin: 0, lineHeight: 1.2 }}>Welcome back, {initials} 👋</h1>
         <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.55)', margin: '4px 0 0 0' }}>Your placement overview</p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginTop: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginTop: '20px', width: '100%' }}>
           {[
             { label: 'Total applied', value: stats.total, dot: '#8b5cf6' }, // violet
             { label: 'In progress', value: stats.active, dot: '#eab308' },  // yellow
@@ -93,7 +94,8 @@ export default function Dashboard() {
               padding: '14px',
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              flex: 1
             }}>
               <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: stat.dot, marginBottom: '8px' }}></div>
               <div style={{ fontSize: '28px', color: 'white', fontWeight: 600, lineHeight: 1, marginBottom: '6px' }}>{stat.value}</div>
@@ -104,12 +106,12 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Action Cards */}
-      <div style={{ padding: '0 20px', marginTop: '-20px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+      <div style={{ padding: '0 16px', marginTop: '-20px', width: 'calc(100% - 32px)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', width: '100%' }}>
           {quickActions.map(action => (
             <Link to={action.to} key={action.title} 
               className={`bg-white transition-colors ${action.hoverBorder}`}
-              style={{ border: '0.5px solid #e2e0f0', borderRadius: '14px', padding: '18px', textDecoration: 'none', display: 'flex', flexDirection: 'column' }}
+              style={{ border: '0.5px solid #e2e0f0', borderRadius: '14px', padding: '18px', textDecoration: 'none', display: 'flex', flexDirection: 'column', flex: 1 }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                 <div className={`${action.iconBg} ${action.iconColor}`} style={{ width: '42px', height: '42px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -128,9 +130,9 @@ export default function Dashboard() {
       </div>
 
       {/* Bottom 2-column grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', padding: '12px 20px 24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', padding: '12px 16px 24px', width: 'calc(100% - 32px)' }}>
         {/* Left Panel */}
-        <div style={{ backgroundColor: 'white', border: '0.5px solid #e2e0f0', borderRadius: '14px', padding: '20px', minHeight: '180px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ backgroundColor: 'white', border: '0.5px solid #e2e0f0', borderRadius: '14px', padding: '20px', minHeight: '180px', display: 'flex', flexDirection: 'column', flex: 1 }}>
           <h3 style={{ fontSize: '14px', fontWeight: 500, color: '#111827', margin: '0 0 20px 0' }}>Recent applications</h3>
           {isLoading ? (
             <p style={{ color: '#6b7280', fontSize: '13px', margin: 0 }}>Loading...</p>
@@ -158,7 +160,7 @@ export default function Dashboard() {
         </div>
 
         {/* Right Panel */}
-        <div style={{ backgroundColor: 'white', border: '0.5px solid #e2e0f0', borderRadius: '14px', padding: '20px', minHeight: '180px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ backgroundColor: 'white', border: '0.5px solid #e2e0f0', borderRadius: '14px', padding: '20px', minHeight: '180px', display: 'flex', flexDirection: 'column', flex: 1 }}>
           <h3 style={{ fontSize: '14px', fontWeight: 500, color: '#111827', margin: '0 0 20px 0' }}>Getting started</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {[ 
