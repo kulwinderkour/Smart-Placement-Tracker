@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { GradientBlinds } from '../../components/common/GradientBlinds'
 import CurvedLoop from '../../components/common/CurvedLoop'
+import MagicBento from './MagicBento'
 
 function AnimatedCounter({ end, label, prefix = '', suffix = '' }: { end: number, label: string, prefix?: string, suffix?: string }) {
   const [count, setCount] = useState(0)
@@ -61,13 +62,13 @@ export default function Login() {
   const testimonialsRef = useRef<HTMLElement>(null)
   const ctaRef = useRef<HTMLElement>(null)
 
-  const scrollTo = (ref: React.RefObject<HTMLElement>, name: string) => {
+  const scrollTo = (ref: React.RefObject<HTMLElement | null>, name: string) => {
     setActiveNav(name)
     setMenuOpen(false)
     ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  const navLinks = [
+  const navLinks: { label: string, ref: React.RefObject<HTMLElement | null>, key: string }[] = [
     { label: 'About', ref: aboutRef, key: 'about' },
     { label: 'Features', ref: featuresRef, key: 'features' },
     { label: 'How it Works', ref: howItWorksRef, key: 'howitworks' },
@@ -111,14 +112,7 @@ export default function Login() {
     return () => observer.disconnect()
   }, [])
 
-  const featureGrid = [
-    { icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>, title: "AI Job Matching", desc: "Our algorithm finds the perfect roles based on your skills.", color: "text-purple-400 bg-purple-400/10" },
-    { icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /><line x1="16" x2="8" y1="13" y2="13" /><line x1="16" x2="8" y1="17" y2="17" /><line x1="10" x2="8" y1="9" y2="9" /></svg>, title: "Resume Builder", desc: "Create ATS-friendly resumes that get you noticed instantly.", color: "text-blue-400 bg-blue-400/10" },
-    { icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="18" y1="20" y2="10" /><line x1="12" x2="12" y1="20" y2="4" /><line x1="6" x2="6" y1="20" y2="14" /></svg>, title: "Application Tracker", desc: "Monitor all your applications in one centralized dashboard.", color: "text-teal-400 bg-teal-400/10" },
-    { icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" x2="12" y1="19" y2="22" /></svg>, title: "Interview Prep", desc: "Practice with AI-driven mock interviews and feedback.", color: "text-pink-400 bg-pink-400/10" },
-    { icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>, title: "Recruiter Connect", desc: "Message directly with recruiters actively looking to hire.", color: "text-indigo-400 bg-indigo-400/10" },
-    { icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>, title: "Real-time Alerts", desc: "Get instantly notified when top companies post new jobs.", color: "text-orange-400 bg-orange-400/10" }
-  ]
+
 
   const testimonials = [
     { quote: "SmartPlacement got me into my dream company! The AI resume tips completely transformed how I applied. Absolute lifesaver for passing ATS scans.", name: "Rahul S.", role: "Software Engineer at Google", rating: 5, color: "bg-blue-500" },
@@ -973,20 +967,6 @@ export default function Login() {
             position: 'relative',
             zIndex: 1
           }}>
-            {/* Badge */}
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              padding: '5px 14px', borderRadius: 100,
-              background: 'rgba(124,58,237,0.12)',
-              border: '1px solid rgba(124,58,237,0.25)',
-              fontSize: 11, fontWeight: 700, letterSpacing: '0.1em',
-              color: '#a78bfa', textTransform: 'uppercase',
-              fontFamily: 'DM Sans, sans-serif',
-              marginBottom: 16
-            }}>
-              <span style={{ width:5, height:5, borderRadius:'50%', background:'#a78bfa', display:'inline-block' }}/>
-              Powerful Features
-            </span>
 
             <h2 style={{
               fontFamily: 'Sora, sans-serif',
@@ -1015,87 +995,26 @@ export default function Login() {
             </p>
           </div>
 
-          <style dangerouslySetInnerHTML={{__html: `
-            @media (max-width: 1024px) { .feat-grid { grid-template-columns: repeat(2,1fr) !important; } }
-            @media (max-width: 640px)  { .feat-grid { grid-template-columns: 1fr !important; } }
-          `}} />
-          <div className="feat-grid" style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 16,
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
             width: '100%',
-            maxWidth: 960,
+            maxWidth: 1200,
             margin: '0 auto'
           }}>
-            {featureGrid.map((feat, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity:0, y:24 }}
-                whileInView={{ opacity:1, y:0 }}
-                viewport={{ once:true }}
-                transition={{ delay: i * 0.08 }}
-                style={{
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: 16,
-                  padding: '24px 22px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 10,
-                  cursor: 'default',
-                  transition: 'all 0.25s',
-                  position: 'relative'
-                }}
-                whileHover={{ y: -4, borderColor: 'rgba(255,255,255,0.16)', backgroundColor: 'rgba(255,255,255,0.07)' }}
-              >
-                <div style={{
-                  position: 'absolute',
-                  top: 0, left: '20%', right: '20%', height: 1,
-                  background: `linear-gradient(90deg, transparent, ${
-                    ['#a78bfa','#60a5fa','#2dd4bf','#f472b6','#818cf8','#fb923c'][i]
-                  }60, transparent)`,
-                  borderRadius: '0 0 4px 4px'
-                }}/>
-                {/* Icon box — smaller */}
-                <div style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 4,
-                  flexShrink: 0
-                }}
-                className={feat.color}
-                >
-                  {feat.icon}
-                </div>
-
-                {/* Title */}
-                <h3 style={{
-                  fontFamily: 'Sora, sans-serif',
-                  fontSize: 15,
-                  fontWeight: 700,
-                  color: '#fff',
-                  margin: 0,
-                  letterSpacing: '-0.01em'
-                }}>
-                  {feat.title}
-                </h3>
-
-                {/* Description */}
-                <p style={{
-                  fontSize: 13,
-                  color: 'rgba(255,255,255,0.5)',
-                  lineHeight: 1.6,
-                  margin: 0,
-                  fontFamily: 'DM Sans, sans-serif'
-                }}>
-                  {feat.desc}
-                </p>
-              </motion.div>
-            ))}
+            <MagicBento 
+              textAutoHide={true}
+              enableStars
+              enableSpotlight
+              enableBorderGlow={true}
+              enableTilt={true}
+              enableMagnetism={true}
+              clickEffect
+              spotlightRadius={500}
+              particleCount={16}
+              glowColor="59, 130, 246"
+              disableAnimations={false}
+            />
           </div>
         </div>
       </section>
