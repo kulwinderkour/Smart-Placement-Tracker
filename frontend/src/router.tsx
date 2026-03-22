@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
 import GoogleCallback from './pages/Auth/GoogleCallback'
 import Navbar from './components/layout/Navbar'
@@ -9,6 +9,7 @@ import JobBoard from './pages/Jobs/JobBoard'
 import Dashboard from './pages/Student/Dashboard'
 import Tracker from './pages/Student/Tracker'
 import ResumeAnalyser from './pages/Student/ResumeAnalyser'
+import Onboarding from './pages/Student/Onboarding'
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -23,7 +24,20 @@ function Layout({ children }: { children: React.ReactNode }) {
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore()
+  const location = useLocation()
+  
   if (!isAuthenticated) return <Navigate to="/login" replace />
+  
+  const onboardingComplete = localStorage.getItem('onboardingComplete') === 'true'
+  
+  if (!onboardingComplete && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />
+  }
+  
+  if (onboardingComplete && location.pathname === '/onboarding') {
+    return <Navigate to="/dashboard" replace />
+  }
+
   return <>{children}</>
 }
 
@@ -54,5 +68,9 @@ export const router = createBrowserRouter([
   {
     path: '/auth/callback',
     element: <GoogleCallback />
+  },
+  {
+    path: '/onboarding',
+    element: <ProtectedRoute><Onboarding /></ProtectedRoute>
   },
 ])
