@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { GradientBlinds } from '../../components/common/GradientBlinds'
+import CurvedLoop from '../../components/common/CurvedLoop'
 
 function AnimatedCounter({ end, label, prefix = '', suffix = '' }: { end: number, label: string, prefix?: string, suffix?: string }) {
   const [count, setCount] = useState(0)
@@ -134,6 +135,12 @@ export default function Login() {
           .nav-center-links { display: none !important; }
           .nav-wrapper { width: calc(100% - 24px) !important; padding: 10px 16px !important; }
           .mobile-menu-btn { display: flex !important; }
+          .curved-loop-wrap { margin-top: 24px !important; }
+          .curved-loop-wrap svg text { font-size: 28px !important; }
+        }
+        @media (max-width: 480px) {
+          .curved-loop-wrap { margin-top: 16px !important; }
+          .curved-loop-wrap svg text { font-size: 22px !important; }
         }
         .mobile-menu-btn { display: none; }
       `}} />
@@ -614,30 +621,47 @@ export default function Login() {
           ))}
         </div>
 
+        {/* Curved Marquee with centered label */}
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          className="curved-loop-wrap"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.6, duration: 0.9 }}
           style={{
-            marginTop: 64, display: 'flex', alignItems: 'center',
-            gap: 16, flexWrap: 'wrap', justifyContent: 'center'
+            marginTop: 64,
+            width: '100vw',
+            position: 'relative',
+            zIndex: 1,
+            marginLeft: 'calc(-50vw + 50%)',
           }}
         >
-          <span style={{ fontSize: 15, color: 'rgba(255,255,255,0.3)', fontFamily: 'DM Sans,sans-serif', marginRight: 8 }}>
-            Students placed at
-          </span>
-          {['Google', 'Amazon', 'Microsoft', 'Flipkart', 'Infosys', 'TCS'].map((co, i) => (
-            <span key={i} style={{
-              padding: '8px 24px', borderRadius: 100,
-              border: '1px solid rgba(255,255,255,0.1)',
-              background: 'rgba(255,255,255,0.04)',
-              fontSize: 15, fontWeight: 500,
-              color: 'rgba(255,255,255,0.45)',
-              fontFamily: 'DM Sans,sans-serif',
-              letterSpacing: '0.02em'
-            }}>{co}</span>
-          ))}
+          {/* "Students placed at" label above the curve */}
+          <div style={{
+            textAlign: 'center',
+            marginBottom: -12,
+          }}>
+            <span style={{
+              fontFamily: 'Sora, sans-serif',
+              fontSize: 32,
+              fontWeight: 700,
+              color: '#ffffff',
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+            }}>
+              Students placed at
+            </span>
+          </div>
+
+          <CurvedLoop
+            marqueeText="Google ✦ Amazon ✦ Microsoft ✦ Flipkart ✦ Infosys ✦ TCS ✦ Wipro ✦ Accenture ✦ Adobe ✦ Deloitte ✦ "
+            speed={1.5}
+            curveAmount={200}
+            direction="left"
+            interactive
+            fontSize={42}
+            gradientColors={['#818cf8', '#60a5fa']}
+          />
         </motion.div>
       </section>
 

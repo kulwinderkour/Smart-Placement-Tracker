@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -33,7 +33,15 @@ export default function LoginForm() {
       localStorage.setItem('refresh_token', res.data.refresh_token)
       const meRes = await authApi.me()
       setUser(meRes.data)
-      navigate('/dashboard')
+      
+      // Check onboarding status per-user so no stale data from other sessions
+      const userId = meRes.data.id
+      const onboardingComplete = localStorage.getItem(`onboardingComplete_${userId}`)
+      if (onboardingComplete === 'true') {
+        navigate('/dashboard')
+      } else {
+        navigate('/onboarding')
+      }
     } catch (err: any) {
       if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
         setError('Cannot connect to server. Is the backend running?')

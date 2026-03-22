@@ -1,401 +1,345 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAuthStore } from '../../store/authStore'
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+interface PastApp { company: string; status: string }
+interface OnboardingData {
+  fullName: string; college: string; branch: string; cgpa: string; graduationYear: string
+  skills: string[]; jobType: string
+  resumeName: string; resumeBase64: string
+  hasExperience: boolean; previousCompanies: PastApp[]
+}
+
+// ─── Stepper ──────────────────────────────────────────────────────────────────
+const STEPS = ['Basic Info', 'Skills', 'Resume', 'Experience', 'Done']
+
+function Stepper({ current }: { current: number }) {
+  return (
+    <div className="w-full mb-8 select-none">
+      <div className="hidden sm:flex items-center w-full">
+        {STEPS.map((label, i) => {
+          const step = i + 1; const done = step < current; const active = step === current
+          return (
+            <div key={step} className="flex items-center" style={{ flex: i < STEPS.length - 1 ? 1 : undefined }}>
+              <div className="flex flex-col items-center" style={{ minWidth: 44 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  background: done || active ? '#7c3aed' : 'rgba(255,255,255,0.1)',
+                  border: active ? '2px solid #a78bfa' : done ? '2px solid #7c3aed' : '2px solid rgba(255,255,255,0.15)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.3s', boxShadow: active ? '0 0 12px rgba(124,58,237,0.5)' : 'none'
+                }}>
+                  {done
+                    ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                    : <span style={{ color: active ? '#fff' : 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: 700 }}>{step}</span>
+                  }
+                </div>
+                <span style={{ fontSize: 10, color: active || done ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.3)', marginTop: 6, fontWeight: active ? 600 : 400, whiteSpace: 'nowrap' }}>{label}</span>
+              </div>
+              {i < STEPS.length - 1 && <div style={{ flex: 1, height: 1, margin: '0 4px', marginBottom: 18, background: done ? '#7c3aed' : 'rgba(255,255,255,0.1)', transition: 'background 0.3s' }} />}
+            </div>
+          )
+        })}
+      </div>
+      {/* Mobile compact */}
+      <div className="flex sm:hidden items-center gap-3">
+        <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#7c3aed', border: '2px solid #a78bfa', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 12px rgba(124,58,237,0.5)' }}>
+          <span style={{ color: '#fff', fontSize: 12, fontWeight: 700 }}>{current}</span>
+        </div>
+        <div>
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, margin: 0 }}>Step {current} of 5</p>
+          <p style={{ color: '#fff', fontSize: 13, fontWeight: 600, margin: 0 }}>{STEPS[current - 1]}</p>
+        </div>
+        <div className="flex-1 flex gap-1 ml-2">
+          {STEPS.map((_, i) => <div key={i} style={{ flex: 1, height: 3, borderRadius: 99, background: i < current ? '#7c3aed' : 'rgba(255,255,255,0.1)', transition: 'background 0.3s' }} />)}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Styled Inputs ────────────────────────────────────────────────────────────
+const inputBase: React.CSSProperties = {
+  width: '100%', background: '#0e0e2a', border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: 10, padding: '12px 16px', color: '#fff', fontSize: 14,
+  outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s, box-shadow 0.2s',
+  fontFamily: 'DM Sans, sans-serif',
+}
+const labelStyle: React.CSSProperties = { fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)', marginBottom: 6, display: 'block' }
+
+function StyledInput({ label, ...props }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+  const [focused, setFocused] = useState(false)
+  return (
+    <div>
+      <label style={labelStyle}>{label}</label>
+      <input {...props} style={{ ...inputBase, borderColor: focused ? '#7c3aed' : 'rgba(255,255,255,0.1)', boxShadow: focused ? '0 0 0 3px rgba(124,58,237,0.2)' : 'none' }}
+        onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} />
+    </div>
+  )
+}
+
+function StyledSelect({ label, children, value, onChange }: { label: string; children: React.ReactNode; value: string; onChange: (v: string) => void }) {
+  const [focused, setFocused] = useState(false)
+  return (
+    <div>
+      <label style={labelStyle}>{label}</label>
+      <div style={{ position: 'relative' }}>
+        <select value={value} onChange={e => onChange(e.target.value)}
+          style={{ ...inputBase, appearance: 'none', cursor: 'pointer', borderColor: focused ? '#7c3aed' : 'rgba(255,255,255,0.1)', boxShadow: focused ? '0 0 0 3px rgba(124,58,237,0.2)' : 'none', paddingRight: 36 }}
+          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}>{children}</select>
+        <svg style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(255,255,255,0.4)' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+      </div>
+    </div>
+  )
+}
+
+function SelectionRow({ index, label, selected, onClick }: { index: number; label: string; selected: boolean; onClick: () => void }) {
+  return (
+    <motion.div onClick={onClick} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+      style={{ background: selected ? 'rgba(124,58,237,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${selected ? '#7c3aed' : 'rgba(255,255,255,0.08)'}`, borderRadius: 50, padding: '13px 20px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', marginBottom: 10, transition: 'background 0.15s, border-color 0.15s' }}>
+      <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: selected ? '#7c3aed' : 'rgba(255,255,255,0.08)', color: selected ? '#fff' : 'rgba(255,255,255,0.5)', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }}>
+        {selected ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg> : index}
+      </div>
+      <span style={{ color: selected ? '#fff' : 'rgba(255,255,255,0.75)', fontSize: 15, fontWeight: selected ? 600 : 400 }}>{label}</span>
+    </motion.div>
+  )
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 export default function Onboarding() {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
   const [currentStep, setCurrentStep] = useState(1)
-  
-  // Form State
-  const [fullName, setFullName] = useState('')
-  const [college, setCollege] = useState('')
-  const [branch, setBranch] = useState('')
-  const [cgpa, setCgpa] = useState('')
-  const [gradYear, setGradYear] = useState('')
-  
-  const [skills, setSkills] = useState<string[]>([])
-  const [skillInput, setSkillInput] = useState('')
-  const [jobType, setJobType] = useState('Both')
-  
-  const [file, setFile] = useState<File | null>(null)
-  const [hasPriorApps, setHasPriorApps] = useState(false)
-  const [pastApps, setPastApps] = useState([{ company: '', status: 'Applied' }])
+  const [dragging, setDragging] = useState(false)
 
-  const suggestedSkills = ['React', 'Python', 'Java', 'SQL', 'Node.js', 'DSA']
+  const [data, setData] = useState<OnboardingData>({
+    fullName: '', college: '', branch: '', cgpa: '', graduationYear: '',
+    skills: [], jobType: '',
+    resumeName: '', resumeBase64: '',
+    hasExperience: false, previousCompanies: [{ company: '', status: 'Applied' }],
+  })
 
+  const update = (fields: Partial<OnboardingData>) => setData(prev => ({ ...prev, ...fields }))
+
+  const toggleSkill = (s: string) => update({ skills: data.skills.includes(s) ? data.skills.filter(x => x !== s) : [...data.skills, s] })
+
+  const handleResumeFile = (file: File) => {
+    if (!file || file.type !== 'application/pdf') return
+    const reader = new FileReader()
+    reader.onload = e => update({ resumeName: file.name, resumeBase64: e.target?.result as string })
+    reader.readAsDataURL(file)
+  }
+
+  // ── Fix: only fires on step 5, saves per-user key ─────────────────────────
   useEffect(() => {
     if (currentStep === 5) {
-      // Save logic
-      localStorage.setItem('onboardingComplete', 'true')
-      const timer = setTimeout(() => {
-        navigate('/dashboard')
-      }, 2500)
-      return () => clearTimeout(timer)
+      const key = user?.id ? `onboardingComplete_${user.id}` : 'onboardingComplete'
+      localStorage.setItem(key, 'true')
+      localStorage.setItem('userProfile', JSON.stringify(data))
+      const t = setTimeout(() => navigate('/dashboard'), 2800)
+      return () => clearTimeout(t)
     }
-  }, [currentStep, navigate])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep])
 
-  const handleNext = () => {
-    if (currentStep < 5) setCurrentStep(prev => prev + 1)
-  }
+  const handleNext = () => { if (currentStep < 5) setCurrentStep(p => p + 1) }
+  const handleBack = () => { if (currentStep > 1) setCurrentStep(p => p - 1) }
 
-  const handleBack = () => {
-    if (currentStep > 1) setCurrentStep(prev => prev - 1)
-  }
-
-  const handleAddSkill = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && skillInput.trim() !== '') {
-      if (!skills.includes(skillInput.trim())) setSkills([...skills, skillInput.trim()])
-      setSkillInput('')
-    }
-  }
-
-  const handleRemoveSkill = (skillToRemove: string) => {
-    setSkills(skills.filter(s => s !== skillToRemove))
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0])
-    }
-  }
+  const ALL_SKILLS = ['React', 'Python', 'Java', 'Node.js', 'SQL', 'DSA', 'Machine Learning', 'C++']
+  const JOB_TYPES = ['Internship', 'Full-time', 'Both']
 
   return (
-    <div 
-      className="min-h-screen w-full flex flex-col font-['DM_Sans',sans-serif] selection:bg-purple-500/30 overflow-hidden relative"
-      style={{
-        backgroundColor: '#07071a',
-        backgroundImage: 'repeating-linear-gradient(15deg, transparent, transparent 40px, rgba(255,255,255,0.02) 40px, rgba(255,255,255,0.02) 41px)'
-      }}
-    >
-      {/* NAVBAR */}
-      <nav style={{
-        position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)',
-        width: 'calc(100% - 48px)', maxWidth: 1100, zIndex: 100,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '10px 20px 10px 16px', borderRadius: 100,
-        background: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.12)',
-        boxShadow: '0 4px 32px rgba(0,0,0,0.25)'
-      }}>
+    <div style={{ minHeight: '100vh', width: '100%', background: '#07071a', backgroundImage: `repeating-linear-gradient(15deg,rgba(255,255,255,0.015) 0px,rgba(255,255,255,0.015) 1px,transparent 1px,transparent 60px)`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'DM Sans, sans-serif', padding: '100px 16px 40px', boxSizing: 'border-box' }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap'); ::placeholder{color:rgba(255,255,255,0.25)!important} select option{background:#0e0e2a;color:#fff} *{box-sizing:border-box}`}</style>
+
+      {/* Navbar */}
+      <nav style={{ position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 100, display: 'flex', alignItems: 'center', gap: 20, borderRadius: 50, padding: '10px 24px', background: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{
-            width: 34, height: 34, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #7c3aed, #5b21b6)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>
+          <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#5b21b6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
           </div>
-          <span style={{ fontFamily: 'Sora,sans-serif', fontWeight: 800, fontSize: 22, color: '#fff', letterSpacing: '-0.01em' }}>SmartPlacement</span>
+          <span style={{ color: '#fff', fontWeight: 700, fontSize: 15 }}>SmartPlacement</span>
         </div>
-        
-        <div className="hidden sm:flex text-[14px] font-medium text-white/70">
-          Steps Indicator
+        <div className="hidden sm:flex items-center gap-1.5">
+          {[1,2,3,4,5].map(s => <div key={s} style={{ width: 6, height: 6, borderRadius: '50%', background: s <= currentStep ? '#7c3aed' : 'rgba(255,255,255,0.2)', transition: 'background 0.3s' }} />)}
         </div>
-        
-        <div style={{ width: 150 }} className="hidden sm:block" />
+        <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12 }} className="hidden sm:block">Step {currentStep} of 5</span>
       </nav>
 
-      {/* MAIN CONTAINER */}
-      <div className="flex-1 w-full max-w-[560px] mx-auto flex items-center justify-center p-6 mt-20 relative z-10">
-        
-        <div 
-          className="w-full relative shadow-2xl transition-all"
-          style={{
-            background: 'rgba(255,255,255,0.04)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 20,
-            overflow: 'hidden'
-          }}
-        >
-          {/* Progress Bar */}
-          <div className="flex w-full h-[3px] bg-white/5">
-            {[1, 2, 3, 4, 5].map((step) => (
-              <div 
-                key={step} 
-                className="flex-1 transition-all duration-300 h-full border-r border-[#07071a]" 
-                style={{ 
-                  background: currentStep >= step ? '#7c3aed' : 'transparent',
-                  boxShadow: currentStep >= step ? '0 0 8px #7c3aed88' : 'none'
-                }} 
-              />
-            ))}
-          </div>
+      {/* Card */}
+      <div style={{ width: '100%', maxWidth: 480, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 20, padding: '36px 44px' }}>
+        <Stepper current={currentStep} />
+        <div style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', marginBottom: 28 }} />
 
-          <div className="p-8 sm:p-10">
-            {/* Step Label Tracker */}
-            <div className="text-[12px] font-medium text-white/40 mb-8 tracking-wide uppercase">
-              {currentStep === 1 && "Step 1 of 5 — Who are you?"}
-              {currentStep === 2 && "Step 2 of 5 — Skills & Interests"}
-              {currentStep === 3 && "Step 3 of 5 — Your Resume"}
-              {currentStep === 4 && "Step 4 of 5 — Past Experience"}
-              {currentStep === 5 && "Step 5 of 5 — All Set!"}
-            </div>
+        <AnimatePresence mode="wait">
+          <motion.div key={currentStep} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.28, ease: 'easeOut' }} style={{ minHeight: 320 }}>
 
-            <div className="min-h-[360px] relative">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentStep}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -12 }}
-                  transition={{ duration: 0.35, ease: "easeOut" }}
-                  className="w-full"
-                >
-                  {/* STEP 1 */}
-                  {currentStep === 1 && (
-                    <div>
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="text-[#7c3aed] font-bold text-sm bg-[#7c3aed]/10 px-2 py-1 rounded-md">· 01</span>
-                        <h2 className="text-3xl font-bold text-white font-['Sora',sans-serif]">Let's get to know you</h2>
-                      </div>
-                      <p className="text-white/55 mb-8 text-[15px]">Tell us a bit about yourself to personalize your experience.</p>
-                      
-                      <div className="space-y-4">
-                        <div>
-                          <input type="text" placeholder="Full Name" value={fullName} onChange={e => setFullName(e.target.value)}
-                            className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-white/30 focus:outline-none focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] transition-all" />
-                        </div>
-                        <div>
-                          <input type="text" placeholder="College / University" value={college} onChange={e => setCollege(e.target.value)}
-                            className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-white/30 focus:outline-none focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] transition-all" />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <select value={branch} onChange={e => setBranch(e.target.value)}
-                            className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] appearance-none transition-all">
-                            <option value="" disabled className="bg-[#0f111a]">Branch</option>
-                            <option value="CSE" className="bg-[#0f111a]">CSE</option>
-                            <option value="IT" className="bg-[#0f111a]">IT</option>
-                            <option value="ECE" className="bg-[#0f111a]">ECE</option>
-                            <option value="Mechanical" className="bg-[#0f111a]">Mechanical</option>
-                            <option value="Civil" className="bg-[#0f111a]">Civil</option>
-                            <option value="Other" className="bg-[#0f111a]">Other</option>
-                          </select>
-                          <input type="number" placeholder="CGPA (0-10)" min="0" max="10" step="0.01" value={cgpa} onChange={e => setCgpa(e.target.value)}
-                            className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-white/30 focus:outline-none focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] transition-all" />
-                        </div>
-                        <div>
-                          <select value={gradYear} onChange={e => setGradYear(e.target.value)}
-                            className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] appearance-none transition-all">
-                            <option value="" disabled className="bg-[#0f111a]">Graduation Year</option>
-                            <option value="2024" className="bg-[#0f111a]">2024</option>
-                            <option value="2025" className="bg-[#0f111a]">2025</option>
-                            <option value="2026" className="bg-[#0f111a]">2026</option>
-                            <option value="2027" className="bg-[#0f111a]">2027</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* STEP 2 */}
-                  {currentStep === 2 && (
-                    <div>
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="text-[#7c3aed] font-bold text-sm bg-[#7c3aed]/10 px-2 py-1 rounded-md">· 02</span>
-                        <h2 className="text-3xl font-bold text-white font-['Sora',sans-serif]">What do you bring to the table?</h2>
-                      </div>
-                      <p className="text-white/55 mb-8 text-[15px]">Add your tech skills and tell us what kind of role you're after.</p>
-
-                      <div className="mb-6">
-                        <label className="block text-sm font-medium text-white/70 mb-2">Your Skills</label>
-                        <div className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-3 flex flex-wrap gap-2 focus-within:border-[#7c3aed] focus-within:ring-1 focus-within:ring-[#7c3aed] transition-all">
-                          {skills.map((skill, i) => (
-                            <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#7c3aed]/50 bg-[#7c3aed]/10 text-white text-sm">
-                              {skill}
-                              <button onClick={() => handleRemoveSkill(skill)} className="text-white/50 hover:text-white mt-0.5">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                              </button>
-                            </span>
-                          ))}
-                          <input 
-                            type="text" 
-                            className="flex-1 min-w-[120px] bg-transparent text-white outline-none placeholder-white/30 text-sm py-1.5 px-1" 
-                            placeholder={skills.length === 0 ? "Type a skill and press Enter..." : "Add more..."}
-                            value={skillInput}
-                            onChange={(e) => setSkillInput(e.target.value)}
-                            onKeyDown={handleAddSkill}
-                          />
-                        </div>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <span className="text-white/40 text-xs py-1">Suggested:</span>
-                          {suggestedSkills.map(s => (
-                            <button key={s} onClick={() => !skills.includes(s) && setSkills([...skills, s])}
-                              className="text-xs text-white/60 bg-white/5 hover:bg-white/10 px-2.5 py-1 rounded-full border border-white/10 transition-colors">
-                              + {s}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-white/70 mb-3">Looking for</label>
-                        <div className="flex bg-white/5 p-1 rounded-full border border-white/10">
-                          {['Internship', 'Full-time', 'Both'].map(type => (
-                            <button
-                              key={type}
-                              onClick={() => setJobType(type)}
-                              className={`flex-1 py-2.5 text-sm font-medium rounded-full transition-all duration-300 ${jobType === type ? 'bg-gradient-to-r from-[#7c3aed] to-[#5b21b6] text-white shadow-lg' : 'text-white/60 hover:text-white'}`}
-                            >
-                              {type}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* STEP 3 */}
-                  {currentStep === 3 && (
-                    <div>
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="text-[#7c3aed] font-bold text-sm bg-[#7c3aed]/10 px-2 py-1 rounded-md">· 03</span>
-                        <h2 className="text-3xl font-bold text-white font-['Sora',sans-serif]">Upload your resume</h2>
-                      </div>
-                      <p className="text-white/55 mb-8 text-[15px]">We'll analyse it and give you an ATS score instantly.</p>
-
-                      <label className="relative flex flex-col items-center justify-center w-full h-[200px] rounded-[16px] cursor-pointer hover:bg-white/[0.03] transition-colors"
-                        style={{ border: '2px dashed rgba(255,255,255,0.12)' }}>
-                        <input type="file" className="hidden" accept=".pdf" onChange={handleFileChange} />
-                        <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }} className="mb-4">
-                          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-                        </motion.div>
-                        <p className="text-white/80 font-medium mb-1 text-sm">Drag & drop your PDF here</p>
-                        <p className="text-white/40 text-sm">or click to browse</p>
-                      </label>
-
-                      {file && (
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-6 flex flex-col gap-3">
-                          <div className="flex items-center justify-between bg-white/[0.04] border border-white/10 rounded-xl p-3">
-                            <div className="flex items-center gap-3 overflow-hidden">
-                              <div className="bg-[#34d399]/20 p-2 rounded-lg text-[#34d399]">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                              </div>
-                              <div>
-                                <p className="text-white text-sm font-medium truncate max-w-[200px]">{file.name}</p>
-                                <p className="text-white/40 text-[11px] mt-0.5">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="bg-[#0f766e]/20 border border-[#0d9488]/30 px-4 py-2.5 rounded-xl flex items-center gap-2">
-                             <div className="w-2 h-2 rounded-full bg-[#2dd4bf] shadow-[0_0_8px_#2dd4bf]"></div>
-                             <span className="text-[#2dd4bf] text-sm font-medium">ATS pre-check: Looks good!</span>
-                          </div>
-                        </motion.div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* STEP 4 */}
-                  {currentStep === 4 && (
-                    <div>
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="text-[#7c3aed] font-bold text-sm bg-[#7c3aed]/10 px-2 py-1 rounded-md">· 04</span>
-                        <h2 className="text-3xl font-bold text-white font-['Sora',sans-serif]">Any prior applications?</h2>
-                      </div>
-                      <p className="text-white/55 mb-8 text-[15px]">Help us understand where you stand in your placement journey.</p>
-                      
-                      <div className="flex items-center justify-between bg-white/[0.03] border border-white/10 rounded-2xl p-4 mb-6 cursor-pointer" onClick={() => setHasPriorApps(!hasPriorApps)}>
-                        <span className="text-white font-medium">I have applied to jobs recently</span>
-                        <div className={`w-12 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${hasPriorApps ? 'bg-[#7c3aed]' : 'bg-white/10'}`}>
-                          <motion.div layout className="bg-white w-5 h-5 rounded-full shadow-sm" animate={{ x: hasPriorApps ? 20 : 0 }} transition={{ type: "spring", stiffness: 500, damping: 30 }} />
-                        </div>
-                      </div>
-
-                      <AnimatePresence>
-                        {hasPriorApps && (
-                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-4 overflow-hidden">
-                            {pastApps.map((app, index) => (
-                              <div key={index} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                                <input type="text" placeholder="Company Name" value={app.company} 
-                                  onChange={(e) => {
-                                    const newApps = [...pastApps]
-                                    newApps[index].company = e.target.value
-                                    setPastApps(newApps)
-                                  }}
-                                  className="flex-1 w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-white/30 focus:outline-none focus:border-[#7c3aed] transition-all" />
-                                
-                                <div className="flex items-center gap-2 w-full sm:w-auto">
-                                  <select value={app.status} 
-                                    onChange={(e) => {
-                                      const newApps = [...pastApps]
-                                      newApps[index].status = e.target.value
-                                      setPastApps(newApps)
-                                    }}
-                                    className={`w-full sm:w-[140px] text-sm appearance-none border rounded-xl px-4 py-3 focus:outline-none transition-all
-                                      ${app.status === 'Applied' ? 'bg-[#3b82f6]/10 border-[#3b82f6]/30 text-[#60a5fa]' : ''}
-                                      ${app.status === 'Interviewed' ? 'bg-[#f59e0b]/10 border-[#f59e0b]/30 text-[#fbbf24]' : ''}
-                                      ${app.status === 'Offered' ? 'bg-[#10b981]/10 border-[#10b981]/30 text-[#34d399]' : ''}
-                                      ${app.status === 'Rejected' ? 'bg-[#ef4444]/10 border-[#ef4444]/30 text-[#f87171]' : ''}
-                                    `}>
-                                    <option value="Applied" className="bg-[#0f111a] text-white">Applied</option>
-                                    <option value="Interviewed" className="bg-[#0f111a] text-white">Interviewed</option>
-                                    <option value="Offered" className="bg-[#0f111a] text-white">Offered</option>
-                                    <option value="Rejected" className="bg-[#0f111a] text-white">Rejected</option>
-                                  </select>
-                                  <button onClick={() => setPastApps(pastApps.filter((_, i) => i !== index))} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-white/50 hover:text-red-400 transition-colors">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                            <button onClick={() => setPastApps([...pastApps, { company: '', status: 'Applied' }])}
-                              className="text-[#7c3aed] text-sm font-medium hover:text-[#9353d3] transition-colors mt-2 flex items-center gap-1.5">
-                              + Add another
-                            </button>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  )}
-
-                  {/* STEP 5 */}
-                  {currentStep === 5 && (
-                    <div className="flex flex-col items-center justify-center text-center py-10">
-                      <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", damping: 15, duration: 0.6 }} className="mb-6 relative">
-                        <div className="absolute inset-0 bg-[#7c3aed] blur-[30px] opacity-30 rounded-full"></div>
-                        <svg width="80" height="80" viewBox="0 0 100 100" className="relative z-10">
-                           <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(124,58,237,0.2)" strokeWidth="6" />
-                           <motion.circle cx="50" cy="50" r="46" fill="none" stroke="#7c3aed" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="290" initial={{ strokeDashoffset: 290 }} animate={{ strokeDashoffset: 0 }} transition={{ duration: 1, ease: "easeInOut" }} />
-                           <motion.path d="M30 52 L44 65 L70 35" fill="none" stroke="#7c3aed" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="100" initial={{ strokeDashoffset: 100 }} animate={{ strokeDashoffset: 0 }} transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }} />
-                        </svg>
-                      </motion.div>
-                      <h2 className="text-4xl font-bold text-white font-['Sora',sans-serif] mb-3 leading-tight">You're all set!</h2>
-                      <p className="text-white/60 mb-8 text-[16px]">Taking you to your dashboard...</p>
-                      
-                      <div className="flex gap-2.5 mt-2">
-                        <motion.div initial={{ y: 0 }} animate={{ y: [-4, 4, -4] }} transition={{ repeat: Infinity, duration: 1.2, delay: 0 }} className="w-2.5 h-2.5 rounded-full bg-[#7c3aed]"></motion.div>
-                        <motion.div initial={{ y: 0 }} animate={{ y: [-4, 4, -4] }} transition={{ repeat: Infinity, duration: 1.2, delay: 0.2 }} className="w-2.5 h-2.5 rounded-full bg-[#7c3aed]"></motion.div>
-                        <motion.div initial={{ y: 0 }} animate={{ y: [-4, 4, -4] }} transition={{ repeat: Infinity, duration: 1.2, delay: 0.4 }} className="w-2.5 h-2.5 rounded-full bg-[#7c3aed]"></motion.div>
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {/* Navigation Buttons */}
-            {currentStep < 5 && (
-              <div className="mt-8 pt-8 border-t border-white/10 flex items-center justify-between">
-                {currentStep > 1 ? (
-                  <button onClick={handleBack} 
-                    className="h-11 px-6 rounded-full border border-white/15 text-white bg-transparent hover:bg-white/5 font-medium transition-colors text-[14px]">
-                    ← Back
-                  </button>
-                ) : (
-                  <div></div>
-                )}
-                
-                <button 
-                  onClick={handleNext} 
-                  className="h-11 px-7 rounded-full bg-gradient-to-br from-[#7c3aed] to-[#5b21b6] text-white font-semibold flex items-center gap-2 transition-all hover:shadow-[0_0_20px_rgba(124,58,237,0.4)] hover:brightness-110 text-[14px]">
-                  {currentStep === 4 ? "Finish & Launch →" : "Next →"}
-                </button>
+            {/* ── STEP 1: Basic Info ── */}
+            {currentStep === 1 && (
+              <div>
+                <h2 style={{ color: '#fff', fontSize: 24, fontWeight: 700, margin: '0 0 6px', lineHeight: 1.2 }}>Create Your Profile</h2>
+                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, margin: '0 0 20px', lineHeight: 1.6 }}>Tell us about yourself to personalise your SmartPlacement experience</p>
+                <div style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', marginBottom: 20 }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <StyledInput label="Full Name" placeholder="e.g. Kulwinder Kour" value={data.fullName} onChange={e => update({ fullName: e.target.value })} />
+                  <StyledInput label="College / University" placeholder="e.g. Chandigarh University" value={data.college} onChange={e => update({ college: e.target.value })} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                    <StyledSelect label="Branch" value={data.branch} onChange={v => update({ branch: v })}>
+                      <option value="" disabled>Select branch</option>
+                      {['CSE','IT','ECE','Mechanical','Civil','Other'].map(b => <option key={b} value={b}>{b}</option>)}
+                    </StyledSelect>
+                    <StyledInput label="CGPA" type="number" placeholder="e.g. 8.5" min="0" max="10" step="0.01" value={data.cgpa} onChange={e => update({ cgpa: e.target.value })} />
+                  </div>
+                  <StyledSelect label="Graduation Year" value={data.graduationYear} onChange={v => update({ graduationYear: v })}>
+                    <option value="" disabled>Select year</option>
+                    {['2024','2025','2026','2027','2028'].map(y => <option key={y} value={y}>{y}</option>)}
+                  </StyledSelect>
+                </div>
               </div>
             )}
+
+            {/* ── STEP 2: Skills ── */}
+            {currentStep === 2 && (
+              <div>
+                <h2 style={{ color: '#fff', fontSize: 22, fontWeight: 700, margin: '0 0 4px' }}>What skills do you bring?</h2>
+                <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13, margin: '0 0 16px' }}>Select all that apply — we'll use this to match you with the best jobs.</p>
+                {data.skills.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+                    {data.skills.map(s => <span key={s} style={{ background: 'rgba(124,58,237,0.2)', border: '1px solid rgba(124,58,237,0.5)', color: '#c4b5fd', borderRadius: 50, padding: '4px 14px', fontSize: 13 }}>{s}</span>)}
+                  </div>
+                )}
+                {ALL_SKILLS.map((s, i) => <SelectionRow key={s} index={i + 1} label={s} selected={data.skills.includes(s)} onClick={() => toggleSkill(s)} />)}
+                <div style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', margin: '20px 0 16px' }} />
+                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Looking for</p>
+                {JOB_TYPES.map((t, i) => <SelectionRow key={t} index={i + 1} label={t} selected={data.jobType === t} onClick={() => update({ jobType: t })} />)}
+              </div>
+            )}
+
+            {/* ── STEP 3: Resume ── */}
+            {currentStep === 3 && (
+              <div>
+                <h2 style={{ color: '#fff', fontSize: 22, fontWeight: 700, margin: '0 0 4px' }}>Upload your resume</h2>
+                <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13, margin: '0 0 24px' }}>We'll analyse it and give you an ATS score instantly.</p>
+                <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: `1.5px dashed ${dragging ? '#7c3aed' : 'rgba(255,255,255,0.15)'}`, borderRadius: 16, padding: '40px 24px', cursor: 'pointer', textAlign: 'center', background: dragging ? 'rgba(124,58,237,0.05)' : 'transparent', transition: 'all 0.2s' }}
+                  onDragOver={e => { e.preventDefault(); setDragging(true) }} onDragLeave={() => setDragging(false)}
+                  onDrop={e => { e.preventDefault(); setDragging(false); handleResumeFile(e.dataTransfer.files[0]) }}>
+                  <input type="file" style={{ display: 'none' }} accept=".pdf" onChange={e => { if (e.target.files?.[0]) handleResumeFile(e.target.files[0]) }} />
+                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }} style={{ marginBottom: 16 }}>
+                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+                    </svg>
+                  </motion.div>
+                  <p style={{ color: 'rgba(255,255,255,0.75)', fontWeight: 500, marginBottom: 4, fontSize: 14 }}>Drag & drop your PDF here</p>
+                  <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>or click to browse</p>
+                </label>
+                <AnimatePresence>
+                  {data.resumeName && (
+                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: '12px 16px' }}>
+                        <div style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid #10b981', borderRadius: 8, padding: 6, display: 'flex' }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div style={{ flex: 1, overflow: 'hidden' }}>
+                          <p style={{ color: '#fff', fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>{data.resumeName}</p>
+                        </div>
+                        <button onClick={() => update({ resumeName: '', resumeBase64: '' })} style={{ color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                        </button>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 50, padding: '8px 16px' }}>
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+                        <span style={{ color: '#10b981', fontSize: 13, fontWeight: 500 }}>ATS pre-check: Looks good!</span>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+
+            {/* ── STEP 4: Experience ── */}
+            {currentStep === 4 && (
+              <div>
+                <h2 style={{ color: '#fff', fontSize: 22, fontWeight: 700, margin: '0 0 4px' }}>Any prior applications?</h2>
+                <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13, margin: '0 0 24px' }}>Help us understand where you stand in your placement journey.</p>
+                <SelectionRow index={1} label="Yes, I've applied before" selected={data.hasExperience === true} onClick={() => update({ hasExperience: true })} />
+                <SelectionRow index={2} label="No, this is my first time" selected={data.hasExperience === false && data.previousCompanies.length === 0} onClick={() => update({ hasExperience: false, previousCompanies: [] })} />
+                <AnimatePresence>
+                  {data.hasExperience && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden', marginTop: 16 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {data.previousCompanies.map((app, idx) => (
+                          <div key={idx} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                            <input placeholder="Company name" value={app.company}
+                              onChange={e => { const a = [...data.previousCompanies]; a[idx].company = e.target.value; update({ previousCompanies: a }) }}
+                              style={{ ...inputBase, flex: 1 }} />
+                            <div style={{ position: 'relative' }}>
+                              <select value={app.status}
+                                onChange={e => { const a = [...data.previousCompanies]; a[idx].status = e.target.value; update({ previousCompanies: a }) }}
+                                style={{ ...inputBase, width: 130, paddingRight: 30, appearance: 'none', cursor: 'pointer' }}>
+                                {['Applied','Interviewed','Offered','Rejected'].map(s => <option key={s} value={s}>{s}</option>)}
+                              </select>
+                              <svg style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(255,255,255,0.4)' }} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </div>
+                            <button onClick={() => update({ previousCompanies: data.previousCompanies.filter((_, i) => i !== idx) })} style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                            </button>
+                          </div>
+                        ))}
+                        <button onClick={() => update({ previousCompanies: [...data.previousCompanies, { company: '', status: 'Applied' }] })}
+                          style={{ background: 'none', border: '1px solid rgba(124,58,237,0.4)', borderRadius: 10, padding: '10px 16px', color: '#a78bfa', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add another
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+
+            {/* ── STEP 5: Done ── */}
+            {currentStep === 5 && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '20px 0 10px' }}>
+                <div style={{ position: 'relative', marginBottom: 28 }}>
+                  <div style={{ position: 'absolute', inset: 0, background: '#7c3aed', borderRadius: '50%', filter: 'blur(24px)', opacity: 0.3 }} />
+                  <svg width="88" height="88" viewBox="0 0 100 100" style={{ position: 'relative', zIndex: 1 }}>
+                    <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(124,58,237,0.25)" strokeWidth="5" />
+                    <motion.circle cx="50" cy="50" r="44" fill="none" stroke="#7c3aed" strokeWidth="5" strokeLinecap="round" strokeDasharray="276" initial={{ strokeDashoffset: 276 }} animate={{ strokeDashoffset: 0 }} transition={{ duration: 1.2, ease: 'easeInOut' }} />
+                    <motion.path d="M30 52 L44 66 L70 34" fill="none" stroke="#7c3aed" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="80" initial={{ strokeDashoffset: 80 }} animate={{ strokeDashoffset: 0 }} transition={{ duration: 0.6, delay: 1, ease: 'easeOut' }} />
+                  </svg>
+                </div>
+                <h2 style={{ color: '#fff', fontSize: 28, fontWeight: 700, margin: '0 0 10px' }}>You're all set!</h2>
+                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15, margin: '0 0 32px' }}>Redirecting you to your dashboard...</p>
+                <div style={{ width: '100%', height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+                  <motion.div style={{ height: '100%', background: '#7c3aed', borderRadius: 99, boxShadow: '0 0 12px rgba(124,58,237,0.7)' }} initial={{ width: '0%' }} animate={{ width: '100%' }} transition={{ duration: 2.5, ease: 'easeInOut' }} />
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
+                  {[0, 0.2, 0.4].map((delay, i) => <motion.div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: '#7c3aed' }} animate={{ y: [-4, 4, -4] }} transition={{ repeat: Infinity, duration: 1.2, delay }} />)}
+                </div>
+              </div>
+            )}
+
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Nav Buttons */}
+        {currentStep < 5 && (
+          <div style={{ marginTop: 32, display: 'flex', gap: 12, alignItems: 'center' }}>
+            {currentStep > 1 && (
+              <button onClick={handleBack} style={{ height: 44, padding: '0 20px', borderRadius: 10, background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.7)', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                ← Back
+              </button>
+            )}
+            <button onClick={handleNext} style={{ flex: 1, height: 44, borderRadius: 10, background: '#7c3aed', border: 'none', color: '#fff', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', boxShadow: '0 4px 16px rgba(124,58,237,0.35)', transition: 'all 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#6d28d9'; e.currentTarget.style.boxShadow = '0 6px 22px rgba(124,58,237,0.5)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#7c3aed'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(124,58,237,0.35)' }}>
+              {currentStep === 4 ? 'Finish & Launch →' : 'Continue →'}
+            </button>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

@@ -1,184 +1,597 @@
-import { useQuery } from '@tanstack/react-query'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { applicationsApi } from '../../api/applications'
 import { useAuthStore } from '../../store/authStore'
 
+// ── Types ─────────────────────────────────────────────────────────────────────
+interface PastApp { company: string; status: string }
+interface UserProfile {
+  fullName?: string
+  college?: string
+  branch?: string
+  cgpa?: string
+  graduationYear?: string
+  skills?: string[]
+  jobType?: string
+  resumeName?: string
+  resumeBase64?: string
+  resumeUrl?: string
+  hasExperience?: boolean
+  previousCompanies?: PastApp[]
+}
+
+// ── Status badge styles ───────────────────────────────────────────────────────
+const STATUS_STYLES: Record<string, { bg: string; color: string; border: string }> = {
+  Applied:    { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' },
+  Interviewed:{ bg: '#fffbeb', color: '#d97706', border: '#fde68a' },
+  Offered:    { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
+  Rejected:   { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function calcReadiness(profile: UserProfile): number {
+  let score = 0
+  const hasName   = !!(profile.fullName && profile.college && profile.branch && profile.cgpa && profile.graduationYear)
+  const hasSkills = !!(profile.skills?.length)
+  const hasResume = !!(profile.resumeName || profile.resumeUrl)
+  const hasExp    = !!(profile.hasExperience && profile.previousCompanies?.some(p => p.company))
+  const highCGPA  = parseFloat(profile.cgpa || '0') >= 7.0
+
+  if (hasName)   score += 20
+  if (hasSkills) score += 20
+  if (hasResume) score += 20
+  if (hasExp)    score += 20
+  if (highCGPA)  score += 20
+  return score
+}
+
+
+// ── Stat Card ─────────────────────────────────────────────────────────────────
+function StatCard({ value, label, iconBg, icon }: {
+  value: string | number; label: string; iconBg: string; icon: React.ReactNode
+}) {
+  return (
+    <div style={{
+      background: 'white',
+      border: '1px solid #e8e8f0',
+      borderRadius: 14,
+      padding: '20px 24px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 16,
+      flex: 1,
+      minWidth: 0,
+    }}>
+      <div style={{
+        width: 46,
+        height: 46,
+        borderRadius: '50%',
+        background: iconBg,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+      }}>
+        {icon}
+      </div>
+      <div>
+        <p style={{ margin: 0, fontSize: 26, fontWeight: 700, color: '#111827', lineHeight: 1.1 }}>{value}</p>
+        <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7280', fontWeight: 400 }}>{label}</p>
+      </div>
+    </div>
+  )
+}
+
+// ── Quick Action Card ─────────────────────────────────────────────────────────
+function ActionCard({ to, iconBg, iconColor, icon, title, subtitle }: {
+  to: string; iconBg: string; iconColor: string; icon: string; title: string; subtitle: string
+}) {
+  const [hov, setHov] = useState(false)
+  return (
+    <Link
+      to={to}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: hov ? '#f0fdf9' : 'white',
+        border: `1px solid ${hov ? '#20c997' : '#e8e8f0'}`,
+        borderRadius: 14,
+        padding: '18px 22px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        cursor: 'pointer',
+        textDecoration: 'none',
+        transition: 'all 0.18s ease',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{
+          width: 40,
+          height: 40,
+          borderRadius: '50%',
+          background: iconBg,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: iconColor,
+          flexShrink: 0,
+        }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d={icon} />
+          </svg>
+        </div>
+        <div>
+          <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#111827' }}>{title}</p>
+          <p style={{ margin: '2px 0 0', fontSize: 13, color: '#6b7280' }}>{subtitle}</p>
+        </div>
+      </div>
+      <span style={{ color: '#9ca3af', fontSize: 18, flexShrink: 0 }}>→</span>
+    </Link>
+  )
+}
+
+// ── Main Dashboard ────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { user } = useAuthStore()
-  const { data: apps, isLoading } = useQuery({
-    queryKey: ['my-applications'],
-    queryFn: () => applicationsApi.myApplications(),
-  })
+  const profile: UserProfile = JSON.parse(localStorage.getItem('userProfile') || '{}')
+  const readiness = calcReadiness(profile)
 
-  const applications = apps?.data || []
-  const stats = {
-    total:     applications.length,
-    active:    applications.filter((a: any) => !['offer','rejected'].includes(a.status)).length,
-    offers:    applications.filter((a: any) => a.status === 'offer').length,
-    rejected:  applications.filter((a: any) => a.status === 'rejected').length,
-  }
+  // Animated readiness bar
+  const [barWidth, setBarWidth] = useState(0)
+  useEffect(() => {
+    const t = setTimeout(() => setBarWidth(readiness), 300)
+    return () => clearTimeout(t)
+  }, [readiness])
 
-  const initials = (user?.email || 'Student').substring(0, 2).toUpperCase()
+  // Greeting
+  const firstName = profile.fullName?.split(' ')[0] || user?.email?.split('@')[0] || 'there'
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
-  const quickActions = [
-    { 
-      title: 'Browse jobs', 
-      desc: 'Explore new matching roles.', 
-      badge: 'Live', 
-      iconBg: 'bg-purple-100', 
-      iconColor: 'text-purple-600', 
-      iconPath: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />,
-      ctaColor: 'text-purple-600',
-      hoverBorder: 'hover:border-purple-600',
-      to: '/jobs'
-    },
-    { 
-      title: 'Application tracker', 
-      desc: 'Manage your active pipelines.', 
-      badge: 'Board', 
-      iconBg: 'bg-blue-100', 
-      iconColor: 'text-blue-600', 
-      iconPath: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />,
-      ctaColor: 'text-blue-600',
-      hoverBorder: 'hover:border-blue-600',
-      to: '/tracker'
-    },
-    { 
-      title: 'Resume analyser', 
-      desc: 'Score and improve your resume.', 
-      badge: 'AI', 
-      iconBg: 'bg-green-100', 
-      iconColor: 'text-green-600', 
-      iconPath: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />,
-      ctaColor: 'text-green-600',
-      hoverBorder: 'hover:border-green-600',
-      to: '/resume'
-    }
-  ]
+  // Subtitle
+  const skills = profile.skills || []
+  const companies = profile.previousCompanies?.filter(c => c.company) || []
+  const subtitle = skills.length > 0
+    ? `You have ${skills.length} skills listed. Keep building your profile!`
+    : companies.length > 0
+    ? `You've tracked ${companies.length} application${companies.length !== 1 ? 's' : ''}. Keep going!`
+    : 'Complete your profile to boost your placement readiness.'
 
-  const statusColors: Record<string, string> = {
-    applied: 'bg-blue-100 text-blue-700', 
-    online_test: 'bg-yellow-100 text-yellow-700', 
-    technical_round: 'bg-purple-100 text-purple-700',
-    hr_round: 'bg-purple-100 text-purple-700', 
-    offer: 'bg-green-100 text-green-700', 
-    rejected: 'bg-red-100 text-red-700',
-  }
+  // Readiness tip
+  const hasResume = !!(profile.resumeName || profile.resumeUrl)
+  const readinessTip = !hasResume
+    ? `Upload your resume to jump to ${Math.min(readiness + 20, 100)}%!`
+    : skills.length === 0
+    ? 'Add your skills to boost readiness!'
+    : parseFloat(profile.cgpa || '0') < 7.0
+    ? 'Keep your CGPA above 7.0 for better eligibility.'
+    : "You're fully set up! Start applying to companies."
+
+  // Days to season approximate
+  const gradYear = parseInt(profile.graduationYear || '2025', 10)
+  const now = new Date()
+  const targetDate = new Date(gradYear, 5, 1) // June of grad year
+  const diffDays = Math.max(0, Math.ceil((targetDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+
+  // Profile initials
+  const displayName = profile.fullName || user?.email?.split('@')[0] || 'User'
+  const initials = displayName.split(' ').slice(0, 2).map((n: string) => n[0]?.toUpperCase() || '').join('')
+
+  // Progress bar ref for animation
+  const barRef = useRef<HTMLDivElement>(null)
 
   return (
     <div style={{ fontFamily: 'Inter, system-ui, sans-serif', width: '100%', maxWidth: '100%' }}>
-      {/* Hero Section */}
-      <div 
-        style={{
-          background: '#1e3a5f',
-          borderRadius: '14px',
-          margin: '16px',
-          padding: '20px 24px 44px',
-          width: 'calc(100% - 32px)'
-        }}
-      >
-        <h1 style={{ fontSize: '13px', fontWeight: 500, color: 'white', margin: 0, lineHeight: 1.2 }}>Welcome back, {initials} 👋</h1>
-        <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.55)', margin: '4px 0 0 0' }}>Your placement overview</p>
+      {/* ── Section 1: Greeting ───────────────────────────────────────────── */}
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#111827', margin: '0 0 6px', lineHeight: 1.2 }}>
+          {greeting}, {firstName}! 👋
+        </h1>
+        <p style={{ fontSize: 15, color: '#6b7280', margin: 0, fontWeight: 400 }}>{subtitle}</p>
+      </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginTop: '20px', width: '100%' }}>
-          {[
-            { label: 'Total applied', value: stats.total, dot: '#8b5cf6' }, // violet
-            { label: 'In progress', value: stats.active, dot: '#eab308' },  // yellow
-            { label: 'Offers', value: stats.offers, dot: '#22c55e' },       // green
-            { label: 'Rejected', value: stats.rejected, dot: '#ef4444' }     // red
-          ].map(stat => (
-            <div key={stat.label} style={{
-              background: 'rgba(255,255,255,0.10)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              borderRadius: '12px',
-              padding: '14px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              flex: 1
+      {/* ── Section 2: Stat Cards ─────────────────────────────────────────── */}
+      <div style={{ display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
+        <StatCard
+          value={`${readiness}%`}
+          label="Placement Readiness"
+          iconBg="rgba(32,201,151,0.12)"
+          icon={
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#20c997" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <circle cx="12" cy="12" r="6" />
+              <circle cx="12" cy="12" r="2" />
+            </svg>
+          }
+        />
+        <StatCard
+          value={skills.length}
+          label="Skills Added"
+          iconBg="rgba(245,158,11,0.12)"
+          icon={
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg>
+          }
+        />
+        <StatCard
+          value={companies.length}
+          label="Apps Tracked"
+          iconBg="rgba(59,130,246,0.12)"
+          icon={
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
+            </svg>
+          }
+        />
+        <StatCard
+          value={`${diffDays}d`}
+          label="Days to Season"
+          iconBg="rgba(124,58,237,0.12)"
+          icon={
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          }
+        />
+      </div>
+
+      {/* ── Section 3: Readiness Bar ──────────────────────────────────────── */}
+      <div style={{
+        background: 'white',
+        border: '1px solid #e8e8f0',
+        borderRadius: 14,
+        padding: '20px 24px',
+        marginBottom: 24,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#111827' }}>📈 Placement Readiness</h2>
+          <span style={{ fontSize: 15, fontWeight: 700, color: '#20c997' }}>{readiness}%</span>
+        </div>
+        <div style={{
+          height: 10,
+          borderRadius: 50,
+          background: '#e8e8f0',
+          overflow: 'hidden',
+          marginBottom: 10,
+        }}>
+          <div
+            ref={barRef}
+            style={{
+              height: '100%',
+              width: `${barWidth}%`,
+              borderRadius: 50,
+              background: 'linear-gradient(90deg, #20c997, #7c3aed)',
+              transition: 'width 1s ease',
+            }}
+          />
+        </div>
+        <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>
+          💡 {readinessTip}
+        </p>
+      </div>
+
+      {/* ── Main 2-col: Quick Actions + Profile Summary ───────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, marginBottom: 24, alignItems: 'start' }}>
+
+        {/* Left column: Quick Actions + Recent Applications */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24, minWidth: 0 }}>
+
+          {/* ── Section 4: Quick Actions ──────────────────────────────────── */}
+          <div>
+            <h2 style={{ margin: '0 0 14px', fontSize: 16, fontWeight: 600, color: '#111827' }}>Quick Actions</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <ActionCard
+                to="/jobs"
+                iconBg="rgba(32,201,151,0.12)"
+                iconColor="#20c997"
+                icon="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                title="Browse Jobs"
+                subtitle="Find roles matching your skills"
+              />
+              <ActionCard
+                to="/resume"
+                iconBg="rgba(59,130,246,0.12)"
+                iconColor="#3b82f6"
+                icon="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                title="Resume Analyser"
+                subtitle="Check your ATS score"
+              />
+              <ActionCard
+                to="/tracker"
+                iconBg="rgba(124,58,237,0.12)"
+                iconColor="#7c3aed"
+                icon="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                title="Application Tracker"
+                subtitle="View your Kanban board"
+              />
+              <ActionCard
+                to="/skills"
+                iconBg="rgba(245,158,11,0.12)"
+                iconColor="#f59e0b"
+                icon="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                title="Skill Analyzer"
+                subtitle="See gaps in your profile"
+              />
+            </div>
+          </div>
+
+          {/* ── Section 5: Recent Applications ───────────────────────────── */}
+          <div>
+            <h2 style={{ margin: '0 0 14px', fontSize: 16, fontWeight: 600, color: '#111827' }}>
+              Recent Applications
+            </h2>
+            <div style={{
+              background: 'white',
+              border: '1px solid #e8e8f0',
+              borderRadius: 14,
+              overflow: 'hidden',
             }}>
-              <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: stat.dot, marginBottom: '8px' }}></div>
-              <div style={{ fontSize: '28px', color: 'white', fontWeight: 600, lineHeight: 1, marginBottom: '6px' }}>{stat.value}</div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Quick Action Cards */}
-      <div style={{ padding: '0 16px', marginTop: '-20px', width: 'calc(100% - 32px)' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', width: '100%' }}>
-          {quickActions.map(action => (
-            <Link to={action.to} key={action.title} 
-              className={`bg-white transition-colors ${action.hoverBorder}`}
-              style={{ border: '0.5px solid #e2e0f0', borderRadius: '14px', padding: '18px', textDecoration: 'none', display: 'flex', flexDirection: 'column', flex: 1 }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                <div className={`${action.iconBg} ${action.iconColor}`} style={{ width: '42px', height: '42px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg style={{ width: '22px', height: '22px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">{action.iconPath}</svg>
+              {companies.length > 0 ? (
+                companies.map((app, i) => {
+                  const s = STATUS_STYLES[app.status] || STATUS_STYLES['Applied']
+                  const compInit = (app.company || '?')[0].toUpperCase()
+                  const isLast = i === companies.length - 1
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        padding: '14px 20px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        borderBottom: isLast ? 'none' : '1px solid #f0f0f5',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: '50%',
+                          background: '#f3f4f6',
+                          color: '#374151',
+                          fontSize: 14,
+                          fontWeight: 700,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}>
+                          {compInit}
+                        </div>
+                        <div>
+                          <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: '#111827' }}>
+                            {app.company}
+                          </p>
+                          <p style={{ margin: '2px 0 0', fontSize: 12, color: '#9ca3af' }}>
+                            Added during onboarding
+                          </p>
+                        </div>
+                      </div>
+                      <span style={{
+                        fontSize: 12,
+                        fontWeight: 500,
+                        padding: '4px 12px',
+                        borderRadius: 50,
+                        background: s.bg,
+                        color: s.color,
+                        border: `1px solid ${s.border}`,
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {app.status}
+                      </span>
+                    </div>
+                  )
+                })
+              ) : (
+                <div style={{
+                  padding: '48px 24px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                }}>
+                  <div style={{ fontSize: 36, marginBottom: 12 }}>📭</div>
+                  <p style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 500, color: '#374151' }}>
+                    No applications tracked yet
+                  </p>
+                  <p style={{ margin: '0 0 16px', fontSize: 13, color: '#9ca3af' }}>
+                    Track your placement applications here
+                  </p>
+                  <Link
+                    to="/tracker"
+                    style={{
+                      background: '#20c997',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 8,
+                      padding: '10px 20px',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      textDecoration: 'none',
+                      display: 'inline-block',
+                    }}
+                  >
+                    Add companies →
+                  </Link>
                 </div>
-                <div style={{ background: '#f3f4f6', color: '#6b7280', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '4px 8px', borderRadius: '6px' }}>{action.badge}</div>
-              </div>
-              <h3 style={{ fontSize: '14px', fontWeight: 500, color: '#111827', margin: '0 0 6px 0', lineHeight: 1 }}>{action.title}</h3>
-              <p style={{ fontSize: '12px', color: '#6b7280', margin: 0, flex: 1 }}>{action.desc}</p>
-              <div className={action.ctaColor} style={{ marginTop: '16px', fontSize: '13px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                Open <span style={{ fontSize: '16px', lineHeight: 1 }}>&rarr;</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* Bottom 2-column grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', padding: '12px 16px 24px', width: 'calc(100% - 32px)' }}>
-        {/* Left Panel */}
-        <div style={{ backgroundColor: 'white', border: '0.5px solid #e2e0f0', borderRadius: '14px', padding: '20px', minHeight: '180px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 500, color: '#111827', margin: '0 0 20px 0' }}>Recent applications</h3>
-          {isLoading ? (
-            <p style={{ color: '#6b7280', fontSize: '13px', margin: 0 }}>Loading...</p>
-          ) : applications.length === 0 ? (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-              <div style={{ width: '40px', height: '40px', backgroundColor: '#f4f4f8', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px', fontSize: '20px' }}>📭</div>
-              <p style={{ fontSize: '13px', color: '#6b7280', margin: '0 0 4px 0', fontWeight: 500 }}>No applications yet</p>
-              <Link to="/jobs" style={{ fontSize: '13px', color: '#7c3aed', fontWeight: 500, textDecoration: 'none' }}>Browse jobs to get started →</Link>
+              )}
             </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {applications.slice(0, 3).map((app: any) => (
-                <div key={app.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div>
-                    <h4 style={{ fontSize: '13px', fontWeight: 500, color: '#111827', margin: '0 0 2px 0' }}>{app.job?.role_title || 'Unknown Role'}</h4>
-                    <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>{app.job?.company_name}</p>
-                  </div>
-                  <span className={`px-2 py-0.5 rounded text-[11px] font-medium ${statusColors[app.status] || 'bg-gray-100 text-gray-600'}`}>
-                    {app.status.replace('_', ' ')}
-                  </span>
-                </div>
-              ))}
+          </div>
+        </div>
+
+        {/* ── Section 6: Profile Summary Card (right sidebar) ────────────── */}
+        <div style={{
+          background: 'white',
+          border: '1px solid #e8e8f0',
+          borderRadius: 14,
+          padding: '24px 20px',
+          position: 'sticky',
+          top: 32,
+        }}>
+          <h2 style={{ margin: '0 0 20px', fontSize: 16, fontWeight: 600, color: '#111827' }}>
+            Profile Summary
+          </h2>
+
+          {/* Avatar + name */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 20 }}>
+            <div style={{
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #20c997, #0d9488)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 22,
+              fontWeight: 700,
+              color: 'white',
+              marginBottom: 10,
+            }}>
+              {initials || 'U'}
+            </div>
+            <p style={{ margin: '0 0 2px', fontSize: 15, fontWeight: 600, color: '#111827', textAlign: 'center' }}>
+              {displayName}
+            </p>
+            {profile.college && (
+              <p style={{ margin: '0 0 2px', fontSize: 13, color: '#6b7280', textAlign: 'center' }}>
+                {profile.college}
+              </p>
+            )}
+            {profile.branch && (
+              <p style={{ margin: 0, fontSize: 12, color: '#9ca3af', textAlign: 'center' }}>
+                {profile.branch}
+              </p>
+            )}
+          </div>
+
+          {/* CGPA */}
+          {profile.cgpa && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 500 }}>CGPA</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>
+                  {profile.cgpa} / 10
+                </span>
+              </div>
+              <div style={{ height: 6, borderRadius: 50, background: '#f3f4f6', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: `${(parseFloat(profile.cgpa) / 10) * 100}%`,
+                  borderRadius: 50,
+                  background: parseFloat(profile.cgpa) >= 7
+                    ? 'linear-gradient(90deg, #20c997, #0d9488)'
+                    : 'linear-gradient(90deg, #f59e0b, #d97706)',
+                  transition: 'width 1s ease',
+                }} />
+              </div>
             </div>
           )}
-        </div>
 
-        {/* Right Panel */}
-        <div style={{ backgroundColor: 'white', border: '0.5px solid #e2e0f0', borderRadius: '14px', padding: '20px', minHeight: '180px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 500, color: '#111827', margin: '0 0 20px 0' }}>Getting started</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {[ 
-              { title: 'Complete your profile', desc: 'Add your skills and education.' }, 
-              { title: 'Upload a resume', desc: 'Check your ATS score inside the analyser.' }, 
-              { title: 'Apply to your first job', desc: 'Browse live openings on the board.' } 
-            ].map((step, i) => (
-              <div key={step.title} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#1e3a5f', color: 'white', fontSize: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
-                  {i + 1}
-                </div>
-                <div>
-                  <h4 style={{ fontSize: '13px', fontWeight: 500, color: '#111827', margin: '0 0 4px 0', lineHeight: 1 }}>{step.title}</h4>
-                  <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>{step.desc}</p>
-                </div>
+          {/* Divider */}
+          <div style={{ height: 1, background: '#f3f4f6', margin: '16px 0' }} />
+
+          {/* Skills */}
+          <div style={{ marginBottom: 16 }}>
+            <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Skills
+            </p>
+            {skills.length > 0 ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {skills.map((s) => (
+                  <span key={s} style={{
+                    background: 'rgba(32,201,151,0.1)',
+                    color: '#0d9488',
+                    border: '1px solid rgba(32,201,151,0.25)',
+                    borderRadius: 50,
+                    padding: '3px 10px',
+                    fontSize: 12,
+                    fontWeight: 500,
+                  }}>
+                    {s}
+                  </span>
+                ))}
               </div>
-            ))}
+            ) : (
+              <p style={{ margin: 0, fontSize: 13, color: '#9ca3af' }}>No skills added yet</p>
+            )}
           </div>
+
+          {/* Divider */}
+          <div style={{ height: 1, background: '#f3f4f6', margin: '16px 0' }} />
+
+          {/* Resume */}
+          <div>
+            <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Resume
+            </p>
+            {hasResume ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ color: '#16a34a', fontSize: 14 }}>✓</span>
+                  <span style={{ fontSize: 13, color: '#16a34a', fontWeight: 500 }}>Resume uploaded</span>
+                </div>
+                {(profile.resumeUrl || profile.resumeBase64) && (
+                  <a
+                    href={profile.resumeUrl || profile.resumeBase64}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      fontSize: 12,
+                      color: '#20c997',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    View →
+                  </a>
+                )}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ color: '#dc2626', fontSize: 14 }}>✗</span>
+                  <span style={{ fontSize: 13, color: '#9ca3af', fontWeight: 400 }}>No resume</span>
+                </div>
+                <Link
+                  to="/resume"
+                  style={{
+                    fontSize: 12,
+                    color: '#7c3aed',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                  }}
+                >
+                  Upload now →
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Edit Profile link */}
+          <Link
+            to="/profile"
+            style={{
+              display: 'block',
+              marginTop: 20,
+              textAlign: 'center',
+              fontSize: 13,
+              fontWeight: 600,
+              color: '#20c997',
+              textDecoration: 'none',
+              padding: '10px',
+              borderRadius: 8,
+              border: '1px solid rgba(32,201,151,0.3)',
+              background: 'rgba(32,201,151,0.05)',
+              transition: 'all 0.15s',
+            }}
+          >
+            Edit Profile →
+          </Link>
         </div>
       </div>
     </div>

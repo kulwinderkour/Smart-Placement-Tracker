@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { authApi } from '../../api/auth'
+import { useAuthStore } from '../../store/authStore'
 import { Loader2 } from 'lucide-react'
 
 const schema = z.object({
@@ -15,6 +16,7 @@ type FormData = z.infer<typeof schema>
 
 export default function Register() {
   const navigate = useNavigate()
+  const { setUser } = useAuthStore()
   const [searchParams] = useSearchParams()
   const googleError = searchParams.get('error')
   const [error, setError] = useState('')
@@ -29,7 +31,15 @@ export default function Register() {
     try {
       setError('')
       await authApi.register(data.email, data.password, data.role)
-      navigate('/login-form')
+      
+      const loginRes = await authApi.login(data.email, data.password)
+      localStorage.setItem('access_token', loginRes.data.access_token)
+      localStorage.setItem('refresh_token', loginRes.data.refresh_token)
+      
+      const meRes = await authApi.me()
+      setUser(meRes.data)
+      
+      navigate('/onboarding')
     } catch (err: any) {
       if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
         setError('Cannot connect to server. Is the backend running?')
