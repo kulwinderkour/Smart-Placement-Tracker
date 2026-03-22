@@ -137,10 +137,12 @@ export default function Login() {
           .mobile-menu-btn { display: flex !important; }
           .curved-loop-wrap { margin-top: 24px !important; }
           .curved-loop-wrap svg text { font-size: 28px !important; }
+          .curved-marquee-title { font-size: 20px !important; padding: 8px 20px !important; margin-bottom: -15px !important; }
         }
         @media (max-width: 480px) {
           .curved-loop-wrap { margin-top: 16px !important; }
           .curved-loop-wrap svg text { font-size: 22px !important; }
+          .curved-marquee-title { font-size: 16px !important; padding: 6px 16px !important; margin-bottom: -10px !important; }
         }
         .mobile-menu-btn { display: none; }
       `}} />
@@ -637,17 +639,27 @@ export default function Login() {
           }}
         >
           {/* "Students placed at" label above the curve */}
-          <div style={{
+          <div className="curved-marquee-title" style={{
             textAlign: 'center',
-            marginBottom: -12,
+            position: 'relative',
+            zIndex: 3,
+            marginBottom: -25, // Nudge it down to stick closer to the curve
           }}>
             <span style={{
+              display: 'inline-block',
               fontFamily: 'Sora, sans-serif',
-              fontSize: 32,
+              fontSize: 28, // Balanced size
               fontWeight: 700,
               color: '#ffffff',
-              letterSpacing: '0.04em',
+              letterSpacing: '0.06em',
               textTransform: 'uppercase',
+              background: 'rgba(255, 255, 255, 0.03)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              padding: '12px 32px',
+              borderRadius: 100,
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
             }}>
               Students placed at
             </span>
@@ -659,7 +671,7 @@ export default function Login() {
             curveAmount={200}
             direction="left"
             interactive
-            fontSize={42}
+            fontSize={34}
             gradientColors={['#818cf8', '#60a5fa']}
           />
         </motion.div>

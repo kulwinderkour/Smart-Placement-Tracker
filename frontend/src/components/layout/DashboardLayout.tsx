@@ -13,18 +13,29 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const marginLeft = sidebarOpen ? EXPANDED_W : COLLAPSED_W
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#f8f9fb' }}>
+    <div 
+      style={{ 
+        display: 'flex', 
+        height: '100vh', 
+        overflow: 'hidden', 
+        background: '#0d1117',
+        color: '#e6edf3',
+        position: 'relative'
+      }}
+    >
       <DashboardSidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(prev => !prev)} />
+      
       <main
         style={{
           flex: 1,
           marginLeft,
           overflowX: 'hidden',
           overflowY: 'auto',
-          padding: '32px 40px',
-          boxSizing: 'border-box',
-          minHeight: '100vh',
-          transition: 'margin-left 0.25s cubic-bezier(.4,0,.2,1)',
+          position: 'relative',
+          zIndex: 1,
+          transition: 'margin-left 0.2s ease',
+          display: 'flex',
+          flexDirection: 'column'
         }}
       >
         {children}
