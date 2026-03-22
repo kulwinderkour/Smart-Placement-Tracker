@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
+import GoogleCallback from './pages/Auth/GoogleCallback'
 import Navbar from './components/layout/Navbar'
 import Login from './pages/Auth/Login'
 import LoginForm from './pages/Auth/LoginForm'
@@ -47,5 +48,9 @@ export const router = createBrowserRouter([
   {
     path: '/resume',
     element: <Layout><ProtectedRoute><ResumeAnalyser /></ProtectedRoute></Layout>
+  },
+  {
+    path: '/auth/callback',
+    element: <GoogleCallback />
   },
 ])

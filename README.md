@@ -35,3 +35,13 @@ curl http://localhost:8000/health
 | Frontend | http://localhost:3000 |
 | Backend API | http://localhost:8000/docs |
 | AI Engine | http://localhost:8002/docs |
+
+
+
+
+
+
+## start the backend server
+docker compose up -d
+## now start the frontend server
+npm run dev

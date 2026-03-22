@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -15,6 +15,8 @@ type FormData = z.infer<typeof schema>
 
 export default function Register() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const googleError = searchParams.get('error')
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
@@ -105,6 +107,68 @@ export default function Register() {
             marginTop: 0,
             textAlign: 'center'
           }}>Create Account</h1>
+
+          {googleError && (
+            <p className="text-red-500 text-sm bg-red-50 p-3 rounded-lg mb-4" style={{ marginBottom: '16px' }}>
+              Google sign-in failed. Please try again.
+            </p>
+          )}
+
+          {/* Google OAuth Button */}
+          <a
+            href="http://localhost:8000/api/v1/auth/google"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px',
+              width: '100%',
+              padding: '12px',
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '30px',
+              color: '#ffffff',
+              fontSize: '14px',
+              fontFamily: 'DM Sans, sans-serif',
+              fontWeight: 600,
+              textDecoration: 'none',
+              transition: 'all 0.2s',
+              marginBottom: '24px',
+              cursor: 'pointer',
+              boxSizing: 'border-box'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+              e.currentTarget.style.borderColor = '#7c3aed';
+              e.currentTarget.style.boxShadow = '0 0 12px rgba(124, 58, 237, 0.2)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            <img
+              src="https://www.google.com/favicon.ico"
+              alt="Google"
+              style={{ width: '18px', height: '18px' }}
+            />
+            Sign up with Google
+          </a>
+
+          {/* Divider */}
+          <div style={{ position: 'relative', marginBottom: '24px', display: 'flex', alignItems: 'center' }}>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.1)' }} />
+            <span style={{ 
+              padding: '0 16px', 
+              color: 'rgba(255, 255, 255, 0.4)', 
+              fontSize: '13px', 
+              fontFamily: 'DM Sans, sans-serif' 
+            }}>
+              or register with email
+            </span>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.1)' }} />
+          </div>
 
           <form onSubmit={handleSubmit(onSubmit)} style={{ width: '100%' }}>
             {/* Email Field */}
