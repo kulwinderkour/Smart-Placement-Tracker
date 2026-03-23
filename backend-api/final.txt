@@ -1,0 +1,12 @@
+DATABASE_URL=postgresql+asyncpg://postgres:changeme@postgres:5432/placement_tracker
+REDIS_URL=redis://redis:6379/0
+
+JWT_SECRET=change-this-secret
+
+GOOGLE_CLIENT_ID=531859780857-7r6lj0bgjiuq42g04rln1idv9gupo1pg.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=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
+
+OPENAI_API_KEY=
+
+
+GEMINI_API_KEY=AIzaSyD8SQWZpFKzWairWBkZkx0CXP_yWniQ9P8
