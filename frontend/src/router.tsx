@@ -10,6 +10,7 @@ import JobBoard from './pages/Student/JobBoard'
 import Dashboard from './pages/Student/Dashboard'
 import Tracker from './pages/Student/Tracker'
 import ResumeAnalyser from './pages/Student/ResumeAnalyser'
+import Roadmap from './pages/Student/Roadmap'
 import Onboarding from './pages/Student/Onboarding'
 import Profile from './pages/Student/Profile'
 
@@ -58,9 +59,12 @@ export const router = createBrowserRouter([
     element: <Layout><OnboardingGuard><JobBoard /></OnboardingGuard></Layout>
   },
   {
-    // Dashboard uses PlaceMe-style sidebar layout — no top Navbar
     path: '/dashboard',
     element: <OnboardingGuard><DashboardLayout><Dashboard /></DashboardLayout></OnboardingGuard>
+  },
+  {
+    path: '/roadmap',
+    element: <OnboardingGuard><DashboardLayout><Roadmap /></DashboardLayout></OnboardingGuard>
   },
   {
     path: '/tracker',

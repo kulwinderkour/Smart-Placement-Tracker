@@ -1,6 +1,8 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { scrapeInternshala } = require('./scrapers/internshala');
+const roadmapRouter = require('./routes/roadmap');
 
 const app = express();
 const port = 8081;
@@ -8,15 +10,14 @@ const port = 8081;
 app.use(cors());
 app.use(express.json());
 
-// Cache results for 1 hour to avoid re-scraping
-const cache = new Map();
-
+// Scraper routes
+const scraperCache = new Map();
 app.get('/api/jobs/internshala', async (req, res) => {
   const skills = req.query.skills?.split(',') || ['software'];
   const cacheKey = skills.join('-');
 
-  if (cache.has(cacheKey)) {
-    const { data, time } = cache.get(cacheKey);
+  if (scraperCache.has(cacheKey)) {
+    const { data, time } = scraperCache.get(cacheKey);
     if (Date.now() - time < 3600000) { // 1 hour
       return res.json(data);
     }
@@ -24,13 +25,16 @@ app.get('/api/jobs/internshala', async (req, res) => {
 
   try {
     const jobs = await scrapeInternshala(skills);
-    cache.set(cacheKey, { data: jobs, time: Date.now() });
+    scraperCache.set(cacheKey, { data: jobs, time: Date.now() });
     res.json(jobs);
   } catch (err) {
     res.status(500).json({ error: 'Scraping failed', message: err.message });
   }
 });
 
+// Roadmap routes
+app.use('/api/roadmap', roadmapRouter);
+
 app.listen(port, () => {
-  console.log(`Scraper server listening at http://localhost:${port}`);
+  console.log(`Scraper & Roadmap server listening at http://localhost:${port}`);
 });
