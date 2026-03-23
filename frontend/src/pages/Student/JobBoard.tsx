@@ -153,73 +153,71 @@ export default function JobBoard() {
 
     const key = import.meta.env.VITE_RAPIDAPI_KEY;
 
-    // Debug check
-    if (!key || key === 'undefined' || key.length < 10) {
-      setError('RapidAPI key is missing. Add VITE_RAPIDAPI_KEY to your .env file');
-      setLoading(false);
-      return;
-    }
-
     try {
       const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
       const userSkills = profile.skills || [];
+      const city = filters.location || 'India';
+      const skillQuery = userSkills.length > 0 ? userSkills.slice(0, 2).join(' ') : 'Software';
+      const baseQuery = fieldOverride || filters.field || skillQuery;
 
-      const buildQuery = (field: string, skills: string[], location: string) => {
-        if (field) return `${field} jobs ${location || 'india'}`;
-        if (skills.length > 0) return `${skills.slice(0, 2).join(' ')} jobs ${location || 'india'}`;
-        return `jobs india`;
-      };
+      console.log('Searching all sources for:', baseQuery);
 
-      const query = buildQuery(fieldOverride || filters.field, userSkills, filters.location);
-
-      console.log('Fetching jobs with query:', query);
-
-      const response = await fetch(
-        `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(query)}&page=1&num_pages=2&country=in&date_posted=month`,
-        {
-          method: 'GET',
-          headers: {
-            'x-rapidapi-key': key,
-            'x-rapidapi-host': 'jsearch.p.rapidapi.com',
-          },
+      // 1. Fetch from JSearch (RapidAPI)
+      let jsearchResults: Job[] = [];
+      if (key && key !== 'undefined' && key.length > 5) {
+        try {
+          const res = await fetch(
+            `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(baseQuery + ' jobs in ' + city)}&page=1&num_pages=1&country=in&date_posted=month`,
+            { headers: { 'x-rapidapi-key': key, 'x-rapidapi-host': 'jsearch.p.rapidapi.com' } }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            jsearchResults = (data.data || []).map((job: any) => ({
+              id: job.job_id,
+              title: job.job_title,
+              company: job.employer_name,
+              location: `${job.job_city || ''} ${job.job_country || ''}`.trim(),
+              salary: job.job_min_salary ? `₹${job.job_min_salary} - ₹${job.job_max_salary}` : 'Not listed',
+              applyUrl: job.job_apply_link,
+              source: 'JSearch',
+              description: job.job_description?.substring(0, 200) + '...',
+              postedAt: job.job_posted_at_datetime_utc,
+              employmentType: job.job_employment_type?.toLowerCase(),
+            }));
+          }
+        } catch (e) {
+          console.error('JSearch failed');
         }
-      );
-
-      console.log('Response status:', response.status);
-
-      if (!response.ok) {
-        const errText = await response.text();
-        console.error('API error:', errText);
-        setError(`API error ${response.status}: Check your RapidAPI key and subscription`);
-        setLoading(false);
-        return;
       }
 
-      const data = await response.json();
-      console.log('Jobs received:', data.data?.length, data);
-
-      const mapped = (data.data || []).map((job: any) => ({
-        id: job.job_id,
-        title: job.job_title,
-        company: job.employer_name,
-        location: `${job.job_city || ''} ${job.job_country || ''}`.trim(),
-        salary: job.job_min_salary ? `₹${job.job_min_salary} - ₹${job.job_max_salary}` : 'Not listed',
-        applyUrl: job.job_apply_link,
-        source: 'JSearch',
-        description: job.job_description?.substring(0, 200) + '...',
-        postedAt: job.job_posted_at_datetime_utc,
-        employmentType: job.job_employment_type,
-      }));
-
-      if (mapped.length === 0) {
-        const remotiveJobs = await fetchRemotiveJobs(userSkills.length > 0 ? userSkills : ['software developer']);
-        setJobs(remotiveJobs);
-      } else {
-        setJobs(mapped);
+      // 2. Fetch from your Internshala scraper
+      let internshalaResults: Job[] = [];
+      try {
+        const res = await fetch(`http://localhost:8081/api/jobs/internshala?skills=${encodeURIComponent(baseQuery)}`);
+        if (res.ok) {
+          const data = await res.json();
+          internshalaResults = data.map((job: any) => ({
+            ...job,
+            id: `is-${Math.random().toString(36).substr(2, 9)}`,
+            employmentType: 'internship'
+          }));
+        }
+      } catch (e) {
+        console.error('Internshala scraper not running on 8081');
       }
+
+      // 3. Fallback to Remotive
+      let remotiveJobs: Job[] = [];
+      try {
+        remotiveJobs = await fetchRemotiveJobs(userSkills.length > 0 ? userSkills : ['software']);
+      } catch (e) {}
+
+      const allJobs = [...jsearchResults, ...internshalaResults, ...remotiveJobs];
+      console.log('Merged Results:', allJobs.length);
+      setJobs(allJobs);
     } catch (err: any) {
       console.error('Fetch error:', err);
-      setError(`Network error: ${err.message}. Is your internet on?`);
+      setError(`Search failed. Please try again.`);
     }
 
     setLoading(false);
@@ -244,9 +242,18 @@ export default function JobBoard() {
     if (filters.type) {
       const type = filters.type.toLowerCase();
       const empType = job.employmentType?.toLowerCase() || '';
-      if (type === 'remote' && !loc?.includes('remote') && !titleDesc.includes('remote')) return false;
-      if (type === 'internship' && !titleDesc.includes('intern')) return false;
-      if (type === 'full-time' && !empType.includes('fulltime') && !empType.includes('full_time')) return false;
+      if (type === 'full-time' || type === 'Full-time') {
+        if (!empType.includes('fulltime') && !empType.includes('full_time') && !empType.includes('full-time')) return false;
+      }
+      if (type === 'internship' || type === 'Internship') {
+        if (!titleDesc.includes('intern') && !empType.includes('intern')) return false;
+      }
+      if (type === 'contract' || type === 'Contract') {
+        if (!empType.includes('contract') && !empType.includes('contractor')) return false;
+      }
+      if (type === 'remote' || type === 'Remote') {
+        if (!loc?.includes('remote') && !titleDesc.includes('remote')) return false;
+      }
     }
 
     // Experience filter
