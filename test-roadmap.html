@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Roadmap Test</title>
+</head>
+<body>
+    <h1>Roadmap Generation Test</h1>
+    <button onclick="testRoadmap()">Test Roadmap Generation</button>
+    <div id="result"></div>
+
+    <script>
+        // Set up test user profile
+        localStorage.setItem('userProfile', JSON.stringify({
+            skills: ['JavaScript', 'React', 'Node.js'],
+            branch: 'Computer Science',
+            cgpa: 8.5,
+            preferredRole: 'Full Stack Developer'
+        }));
+
+        // Mock auth token (you'll need to replace this with a real token)
+        localStorage.setItem('token', 'test-token');
+
+        async function testRoadmap() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+
+            try {
+                const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+                const token = localStorage.getItem('token');
+
+                const response = await fetch('http://localhost:8000/api/v1/roadmap/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        role: userProfile.preferredRole,
+                        skills: userProfile.skills,
+                    }),
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <h3>Success!</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>Error: ${response.status}</h3>
+                        <p>${data.detail || 'Unknown error'}</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>Network Error</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
