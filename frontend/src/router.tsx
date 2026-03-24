@@ -9,21 +9,63 @@ import JobBoard from './pages/Jobs/JobBoard'
 import Dashboard from './pages/Student/Dashboard'
 import Tracker from './pages/Student/Tracker'
 import ResumeAnalyser from './pages/Student/ResumeAnalyser'
+import ManageStudents from './pages/Admin/ManageStudents'
+import ManageJobs from './pages/Admin/ManageJobs'
+import ManageCompanies from './pages/Admin/ManageCompanies'
+import CompanyProfileView from './pages/Admin/CompanyProfileView'
+import JobPosting from './pages/Admin/JobPosting'
+import AdminNavbar from './components/layout/AdminNavbar'
+import CompanyProfileForm from './pages/Company/CompanyProfileForm'
+import CompanyOnboardingGate from './components/company/CompanyOnboardingGate'
+import OnboardingPreview from './pages/Company/OnboardingPreview'
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#f4f4f8] font-sans">
-      <div className="max-w-[1100px] mx-auto w-full min-h-screen relative shadow-sm bg-[#f4f4f8] flex flex-col">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-      </div>
+    <div className="min-h-screen bg-slate-50 font-sans flex flex-col w-full">
+      <Navbar />
+      <main className="flex-1 w-full">{children}</main>
+    </div>
+  )
+}
+
+function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-[#070b18] text-white font-sans flex flex-col w-full selection:bg-blue-500/30">
+      <style dangerouslySetInnerHTML={{__html: `
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Sora:wght@400;600;700;800&display=swap');
+      `}} />
+      <AdminNavbar />
+      <main className="flex-1 w-full">{children}</main>
     </div>
   )
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, user } = useAuthStore()
   if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (user && user.role === 'admin') return <Navigate to="/admin/dashboard" replace />
+  return <>{children}</>
+}
+
+function RootRedirect() {
+  const { isAuthenticated, user } = useAuthStore()
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (user && user.role === 'admin') {
+    return (
+      <Navigate
+        to={user.is_onboarding_completed ? '/admin/dashboard' : '/onboarding'}
+        replace
+      />
+    )
+  }
+  return <Navigate to="/dashboard" replace />
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user } = useAuthStore()
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (user && user.role !== 'admin') return <Navigate to="/dashboard" replace />
+  if (user && !user.is_onboarding_completed) return <Navigate to="/onboarding" replace />
   return <>{children}</>
 }
 
@@ -33,7 +75,7 @@ export const router = createBrowserRouter([
   { path: '/register', element: <Register /> },
   {
     path: '/',
-    element: <Layout><Navigate to="/dashboard" replace /></Layout>
+    element: <Layout><RootRedirect /></Layout>
   },
   {
     path: '/jobs',
@@ -41,6 +83,10 @@ export const router = createBrowserRouter([
   },
   {
     path: '/dashboard',
+    element: <Layout><ProtectedRoute><Dashboard /></ProtectedRoute></Layout>
+  },
+  {
+    path: '/student-dashboard',
     element: <Layout><ProtectedRoute><Dashboard /></ProtectedRoute></Layout>
   },
   {
@@ -54,5 +100,41 @@ export const router = createBrowserRouter([
   {
     path: '/auth/callback',
     element: <GoogleCallback />
+  },
+  {
+    path: '/admin/dashboard',
+    element: <AdminLayout><AdminRoute><div className="flex items-center justify-center h-screen text-white text-2xl">Admin Dashboard</div></AdminRoute></AdminLayout>
+  },
+  {
+    path: '/admin-dashboard',
+    element: <AdminLayout><AdminRoute><div className="flex items-center justify-center h-screen text-white text-2xl">Admin Dashboard</div></AdminRoute></AdminLayout>
+  },
+  {
+    path: '/admin/students',
+    element: <AdminLayout><AdminRoute><ManageStudents /></AdminRoute></AdminLayout>
+  },
+  {
+    path: '/admin/jobs',
+    element: <AdminLayout><AdminRoute><ManageJobs /></AdminRoute></AdminLayout>
+  },
+  {
+    path: '/admin/companies',
+    element: <AdminLayout><AdminRoute><ManageCompanies /></AdminRoute></AdminLayout>
+  },
+  {
+    path: '/admin/companies/:id',
+    element: <AdminLayout><AdminRoute><CompanyProfileView /></AdminRoute></AdminLayout>
+  },
+  {
+    path: '/admin/jobs/post',
+    element: <AdminLayout><AdminRoute><JobPosting /></AdminRoute></AdminLayout>
+  },
+  {
+    path: '/onboarding',
+    element: <CompanyOnboardingGate><CompanyProfileForm /></CompanyOnboardingGate>
+  },
+  {
+    path: '/onboarding-preview',
+    element: <OnboardingPreview />
   },
 ])

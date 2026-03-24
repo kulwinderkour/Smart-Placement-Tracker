@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { authApi } from '../../api/auth'
+import { useAuthStore } from '../../store/authStore'
 import { Loader2 } from 'lucide-react'
 
 const schema = z.object({
@@ -15,6 +16,7 @@ type FormData = z.infer<typeof schema>
 
 export default function Register() {
   const navigate = useNavigate()
+  const { setUser } = useAuthStore()
   const [searchParams] = useSearchParams()
   const googleError = searchParams.get('error')
   const [error, setError] = useState('')
@@ -29,7 +31,28 @@ export default function Register() {
     try {
       setError('')
       await authApi.register(data.email, data.password, data.role)
-      navigate('/login-form')
+
+      // Auto-login immediately after successful registration.
+      const loginRes = await authApi.login(data.email, data.password)
+      const loginData = loginRes.data
+      localStorage.setItem('access_token', loginData.access_token)
+      localStorage.setItem('refresh_token', loginData.refresh_token)
+
+      const meRes = await authApi.me()
+      setUser({
+        ...meRes.data,
+        is_onboarding_completed: loginData.is_onboarding_completed,
+      })
+
+      if (loginData.role === 'admin') {
+        navigate(
+          loginData.is_onboarding_completed
+            ? '/admin/dashboard'
+            : '/onboarding'
+        )
+      } else {
+        navigate('/dashboard')
+      }
     } catch (err: any) {
       if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
         setError('Cannot connect to server. Is the backend running?')
@@ -60,7 +83,7 @@ export default function Register() {
         input::placeholder { color: rgba(255,255,255,0.4); }
       `}} />
 
-      <button onClick={() => navigate(-1)} style={{
+      <button onClick={() => navigate(-1)} title="Go back" aria-label="Go back" style={{
         position: 'fixed',
         top: 20, left: 20,
         background: 'rgba(255,255,255,0.08)',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -29,11 +29,27 @@ export default function LoginForm() {
     try {
       setError('')
       const res = await authApi.login(data.email, data.password)
-      localStorage.setItem('access_token', res.data.access_token)
-      localStorage.setItem('refresh_token', res.data.refresh_token)
+      const loginData = res.data
+      localStorage.setItem('access_token', loginData.access_token)
+      localStorage.setItem('refresh_token', loginData.refresh_token)
+
+      // Hydrate the user into the auth store from login response
       const meRes = await authApi.me()
-      setUser(meRes.data)
-      navigate('/dashboard')
+      setUser({
+        ...meRes.data,
+        is_onboarding_completed: loginData.is_onboarding_completed,
+      })
+
+      // Route based on role + onboarding completion
+      if (loginData.role === 'admin') {
+        navigate(
+          loginData.is_onboarding_completed
+            ? '/admin/dashboard'
+            : '/onboarding'
+        )
+      } else {
+        navigate('/dashboard')
+      }
     } catch (err: any) {
       if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
         setError('Cannot connect to server. Is the backend running?')

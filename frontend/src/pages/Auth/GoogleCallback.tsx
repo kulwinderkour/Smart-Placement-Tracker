@@ -31,7 +31,14 @@ export default function GoogleCallback() {
         // This setUser is safe to call inside the effect because we extracted 
         // the function itself at the top level of the component 
         setUser(meRes.data);
-        navigate('/dashboard', { replace: true });
+        if (meRes.data.role === 'admin') {
+          navigate(
+            meRes.data.is_onboarding_completed ? '/admin/dashboard' : '/onboarding',
+            { replace: true }
+          );
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
 
       } catch (err) {
         console.error('Google Auth Error:', err);

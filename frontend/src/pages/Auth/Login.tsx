@@ -60,7 +60,7 @@ export default function Login() {
   const testimonialsRef = useRef<HTMLElement>(null)
   const ctaRef = useRef<HTMLElement>(null)
 
-  const scrollTo = (ref: React.RefObject<HTMLElement>, name: string) => {
+  const scrollTo = (ref: React.RefObject<HTMLElement | null>, name: string) => {
     setActiveNav(name)
     setMenuOpen(false)
     ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
