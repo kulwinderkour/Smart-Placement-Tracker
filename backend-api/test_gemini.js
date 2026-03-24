@@ -7,7 +7,7 @@ async function test() {
     // Some older versions or specific setups might need apiVersion? 
     // But the current SDK version should handle it.
     const genAI = new GoogleGenerativeAI(gemini_key);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' }, { apiVersion: 'v1' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' }, { apiVersion: 'v1' });
     const result = await model.generateContent("hello");
     console.log('Success:', result.response.text());
   } catch (err) {

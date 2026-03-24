@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Questions API Test</title>
+</head>
+<body>
+    <h1>AI Question Bank API Test</h1>
+    <button onclick="testTopics()">Test Topics</button>
+    <button onclick="testGenerate()">Test Generate Questions</button>
+    <button onclick="testEvaluate()">Test Evaluate Answer</button>
+    <div id="result"></div>
+
+    <script>
+        // Mock auth token (you'll need to replace this with a real token from login)
+        const token = 'test-token';
+
+        async function testTopics() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing topics...';
+
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/questions/topics', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <h3>Topics Success!</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>Topics Error: ${response.status}</h3>
+                        <p>${data.detail || 'Unknown error'}</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>Network Error</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+
+        async function testGenerate() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing question generation...';
+
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/questions/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        topic: 'JavaScript',
+                        difficulty: 'medium',
+                        type: 'mcq',
+                        count: 5,
+                        userSkills: ['JavaScript', 'React']
+                    }),
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <h3>Generate Success!</h3>
+                        <p>From Cache: ${data.fromCache}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>Generate Error: ${response.status}</h3>
+                        <p>${data.detail || 'Unknown error'}</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>Network Error</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+
+        async function testEvaluate() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing answer evaluation...';
+
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/questions/evaluate', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question: 'What is closures in JavaScript?',
+                        userAnswer: 'Closures are functions that have access to variables in their outer scope.',
+                        correctAnswer: 'Closures are functions that retain access to variables from their outer (enclosing) lexical scope even when the outer function has finished executing.',
+                        topic: 'JavaScript'
+                    }),
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <h3>Evaluation Success!</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>Evaluation Error: ${response.status}</h3>
+                        <p>${data.detail || 'Unknown error'}</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>Network Error</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
