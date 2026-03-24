@@ -1,523 +1,440 @@
 import { useState, useEffect } from 'react';
-import { useAuthStore } from '../../store/authStore';
-import { Loader2, Sparkles, BookOpen, ChevronRight, Calendar, Target, TrendingUp, User, GraduationCap, Award } from 'lucide-react';
+import { 
+  Loader2, 
+  Sparkles, 
+  Search, 
+  BookOpen, 
+  ChevronRight, 
+  Plus, 
+  History,
+  AlertCircle
+} from 'lucide-react';
 
 // Types
-interface UserProfile {
-  skills: string[];
-  branch: string;
-  cgpa: number;
-  preferredRole: string;
-}
-
-interface WeekPlan {
-  week: number;
+interface Topic {
+  id: string;
   title: string;
   description: string;
-  topics: string[];
   resources: string[];
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+}
+
+interface Section {
+  id: string;
+  title: string;
+  level: 'beginner' | 'intermediate' | 'advanced';
+  topics: Topic[];
 }
 
 interface RoadmapData {
   title: string;
   description: string;
-  totalWeeks: number;
-  weeks: WeekPlan[];
+  sections: Section[];
 }
 
 interface RoadmapResponse {
-  id: number;
-  user_id: string;
-  role: string;
-  skills: string[];
-  roadmap_data: RoadmapData;
-  created_at: string;
-  updated_at: string;
+  data: RoadmapData;
+  fromCache: boolean;
+  stale?: boolean;
 }
 
+const SUGGESTED_ROLES = [
+  'Full Stack Developer',
+  'Cloud Architect',
+  'Cybersecurity',
+  'ML Engineer',
+  'Frontend Developer',
+  'Backend Developer'
+];
+
 export default function Roadmap() {
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
-  const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null);
+  const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
   const [error, setError] = useState('');
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [myRoadmaps, setMyRoadmaps] = useState<RoadmapResponse[]>([]);
-  const { token } = useAuthStore();
-
-  // Load user profile from localStorage
-  useEffect(() => {
-    const profile = localStorage.getItem('userProfile');
-    if (profile) {
-      try {
-        setUserProfile(JSON.parse(profile));
-      } catch (err) {
-        console.error('Failed to parse user profile:', err);
-      }
-    }
-  }, []);
-
-  // Load user's existing roadmaps
-  const loadMyRoadmaps = async () => {
-    if (!token) return;
-    
+  const [recentRoadmaps, setRecentRoadmaps] = useState<string[]>([]);
+  
+  // Load cached roadmap names from backend
+  const loadRecentRoadmaps = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/roadmap/my`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
+      const response = await fetch(`${apiUrl}/roadmap/cached`);
       if (response.ok) {
-        const roadmaps = await response.json();
-        setMyRoadmaps(roadmaps);
+        const data = await response.json();
+        setRecentRoadmaps(data.roadmaps || []);
       }
     } catch (err) {
-      console.error('Failed to load roadmaps:', err);
+      console.error('Failed to load recent roadmaps:', err);
     }
   };
 
   useEffect(() => {
-    if (token) {
-      loadMyRoadmaps();
-    }
-  }, [token]);
+    loadRecentRoadmaps();
+  }, []);
 
-  // Generate personalized roadmap using backend API
-  const generateRoadmap = async () => {
-    if (!userProfile) {
-      setError('Please complete your profile first');
-      return;
-    }
-
-    if (!token) {
-      setError('Please login first');
+  // Generate roadmap calling backend GET /api/roadmap/generate?field=...
+  const generateRoadmap = async (field?: string) => {
+    const targetField = field || searchTerm;
+    if (!targetField) {
+      setError('Please enter a role or technology');
       return;
     }
 
     setLoading(true);
     setError('');
-
+    
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/roadmap/generate`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          role: userProfile.preferredRole,
-          skills: userProfile.skills,
-        }),
-      });
-
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
+      const response = await fetch(`${apiUrl}/roadmap/generate?field=${encodeURIComponent(targetField)}`);
+      
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || `Server error: ${response.status}`);
+        throw new Error(errorData.message || errorData.error || `Server error: ${response.status}`);
       }
 
-      const roadmapData: RoadmapResponse = await response.json();
-      setRoadmap(roadmapData);
+      const resData: RoadmapResponse = await response.json();
+      setRoadmap(resData.data);
       
-      // Reload roadmaps list
-      await loadMyRoadmaps();
-      
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Unknown error';
-      setError(`Failed to generate roadmap: ${msg}`);
-      console.error('Roadmap generation error:', err);
+      // Update recent list
+      if (!recentRoadmaps.includes(targetField)) {
+        setRecentRoadmaps(prev => [targetField, ...prev.slice(0, 9)]);
+      }
+    } catch (err: any) {
+      setError(`Failed to generate roadmap: ${err.message || 'Unknown error'}`);
+      console.error('Generation Error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Load saved roadmap on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('generatedRoadmap');
-    if (saved) {
-      try {
-        setRoadmap(JSON.parse(saved));
-      } catch (err) {
-        console.error('Failed to parse saved roadmap:', err);
-      }
-    }
-  }, []);
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'beginner': return '#3fb950';
+  const getLevelColor = (level: string) => {
+    switch (level) {
+      case 'beginner': return '#20c997';
       case 'intermediate': return '#f1a732';
       case 'advanced': return '#f85149';
       default: return '#7d8590';
     }
   };
 
-  const getDifficultyBg = (difficulty: string) => {
-    switch (difficulty) {
-      case 'beginner': return '#1a2e22';
-      case 'intermediate': return '#2d1f1b';
-      case 'advanced': return '#2d1b1b';
-      default: return '#161b22';
-    }
-  };
-
-  const selectRoadmap = (roadmapData: RoadmapResponse) => {
-    setRoadmap(roadmapData);
-    localStorage.setItem('generatedRoadmap', JSON.stringify(roadmapData));
-  };
-
   return (
-    <div style={{ minHeight: '100vh', background: '#0d1117', color: '#e6edf3' }}>
-      {/* Header */}
-      <header style={{
-        padding: '20px',
-        borderBottom: '1px solid #21262d',
-        background: '#0d1117'
+    <div style={{ 
+      display: 'flex', 
+      minHeight: 'calc(100vh - 64px)', 
+      background: '#0d1117', 
+      color: '#e6edf3',
+      fontFamily: 'Inter, system-ui, sans-serif'
+    }}>
+      {/* Sidebar - Recent Roadmaps */}
+      <aside style={{
+        width: '280px',
+        background: '#0d1117',
+        borderRight: '1px solid #21262d',
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px'
       }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          <div>
-            <h1 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 8px' }}>Prep Roadmap</h1>
-            <p style={{ fontSize: '14px', color: '#7d8590', margin: 0 }}>
-              AI-powered personalized learning path
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#7d8590' }}>
+          <History size={16} />
+          <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Recent Roadmaps
+          </span>
+        </div>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {recentRoadmaps.length === 0 ? (
+            <p style={{ fontSize: '13px', color: '#484f58', fontStyle: 'italic', margin: '20px 0' }}>
+              No roadmaps yet.
             </p>
-          </div>
-          
-          <button
-            onClick={generateRoadmap}
-            disabled={loading || !userProfile}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: loading || !userProfile ? '#21262d' : '#20c997',
-              color: loading || !userProfile ? '#484f58' : '#0d1117',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '12px 20px',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: loading || !userProfile ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-            {loading ? 'Generating...' : 'Generate Roadmap'}
-          </button>
+          ) : (
+            recentRoadmaps.map((name, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setSearchTerm(name);
+                  generateRoadmap(name);
+                }}
+                style={{
+                  textAlign: 'left',
+                  background: 'transparent',
+                  border: '1px solid transparent',
+                  borderRadius: '6px',
+                  padding: '8px 12px',
+                  fontSize: '14px',
+                  color: '#7d8590',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#161b22';
+                  e.currentTarget.style.color = '#e6edf3';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = '#7d8590';
+                }}
+              >
+                {name}
+              </button>
+            ))
+          )}
         </div>
-      </header>
-
-      {/* User Profile Summary */}
-      {userProfile && (
-        <div style={{
-          padding: '20px',
-          borderBottom: '1px solid #21262d',
-          background: '#161b22'
-        }}>
-          <div style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '32px',
-            flexWrap: 'wrap'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <User size={20} color="#7d8590" />
-              <div>
-                <div style={{ fontSize: '12px', color: '#7d8590', marginBottom: '2px' }}>Target Role</div>
-                <div style={{ fontSize: '14px', fontWeight: 500 }}>{userProfile.preferredRole}</div>
-              </div>
-            </div>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <GraduationCap size={20} color="#7d8590" />
-              <div>
-                <div style={{ fontSize: '12px', color: '#7d8590', marginBottom: '2px' }}>Branch</div>
-                <div style={{ fontSize: '14px', fontWeight: 500 }}>{userProfile.branch}</div>
-              </div>
-            </div>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Award size={20} color="#7d8590" />
-              <div>
-                <div style={{ fontSize: '12px', color: '#7d8590', marginBottom: '2px' }}>CGPA</div>
-                <div style={{ fontSize: '14px', fontWeight: 500 }}>{userProfile.cgpa}</div>
-              </div>
-            </div>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Target size={20} color="#7d8590" />
-              <div>
-                <div style={{ fontSize: '12px', color: '#7d8590', marginBottom: '2px' }}>Skills</div>
-                <div style={{ fontSize: '14px', fontWeight: 500 }}>
-                  {userProfile.skills.slice(0, 3).join(', ')}
-                  {userProfile.skills.length > 3 && ` +${userProfile.skills.length - 3}`}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      </aside>
 
       {/* Main Content */}
-      <main style={{ padding: '20px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           
-          {/* Error Display */}
+          {/* Header & Search */}
+          <div style={{ 
+            display: 'flex', 
+            gap: '12px', 
+            marginBottom: '40px' 
+          }}>
+            <div style={{ 
+              flex: 1, 
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center'
+            }}>
+              <Search size={18} style={{ position: 'absolute', left: '16px', color: '#7d8590' }} />
+              <input 
+                type="text"
+                placeholder="Full Stack Developer"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && generateRoadmap()}
+                style={{
+                  width: '100%',
+                  background: '#161b22',
+                  border: '1px solid #30363d',
+                  borderRadius: '10px',
+                  padding: '12px 16px 12px 48px',
+                  color: '#e6edf3',
+                  fontSize: '15px',
+                  outline: 'none',
+                  transition: 'border-color 0.2s'
+                }}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#20c997'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#30363d'}
+              />
+            </div>
+            <button
+              onClick={() => generateRoadmap()}
+              disabled={loading}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: '#20c997',
+                color: '#0d1117',
+                border: 'none',
+                borderRadius: '10px',
+                padding: '0 24px',
+                fontSize: '15px',
+                fontWeight: 600,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                transition: 'transform 0.2s, opacity 0.2s',
+                opacity: loading ? 0.7 : 1
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              {loading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+              Generate
+            </button>
+          </div>
+
+          {/* Error */}
           {error && (
             <div style={{
               background: '#2d1b1b',
               border: '1px solid #da3633',
               borderRadius: '8px',
               padding: '16px',
-              marginBottom: '20px',
+              marginBottom: '32px',
               color: '#f85149',
-              fontSize: '14px'
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
             }}>
-              {error}
+              <AlertCircle size={20} />
+              <span>{error}</span>
             </div>
           )}
 
-          {/* My Roadmaps */}
-          {myRoadmaps.length > 0 && !roadmap && (
-            <div style={{ marginBottom: '32px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 16px', color: '#e6edf3' }}>
-                Your Saved Roadmaps
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-                {myRoadmaps.map((r) => (
-                  <div
-                    key={r.id}
-                    onClick={() => selectRoadmap(r)}
+          {/* Initial State */}
+          {!roadmap && !loading && (
+            <div style={{ textAlign: 'center', marginTop: '60px' }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                background: '#161b22',
+                borderRadius: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 24px',
+                color: '#20c997',
+                border: '1px solid #21262d'
+              }}>
+                <BookOpen size={32} />
+              </div>
+              <h1 style={{ fontSize: '28px', fontWeight: 700, marginBottom: '16px' }}>
+                AI-Powered Roadmap Generator
+              </h1>
+              <p style={{ 
+                fontSize: '16px', 
+                color: '#7d8590', 
+                lineHeight: 1.6, 
+                maxWidth: '600px', 
+                margin: '0 auto 40px' 
+              }}>
+                Type any role or technology above and press Enter to get an interactive, 
+                fully-personalized learning path generated by Gemini.
+              </p>
+
+              {/* Suggestions */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px' }}>
+                {SUGGESTED_ROLES.map((role) => (
+                  <button
+                    key={role}
+                    onClick={() => {
+                      setSearchTerm(role);
+                      generateRoadmap(role);
+                    }}
                     style={{
                       background: '#161b22',
                       border: '1px solid #21262d',
-                      borderRadius: '12px',
-                      padding: '20px',
+                      borderRadius: '20px',
+                      padding: '8px 16px',
+                      fontSize: '13px',
+                      color: '#7d8590',
                       cursor: 'pointer',
-                      transition: 'all 0.2s ease'
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.2s'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = '#20c997';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.color = '#e6edf3';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderColor = '#21262d';
-                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.color = '#7d8590';
                     }}
                   >
-                    <h3 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 8px', color: '#e6edf3' }}>
-                      {r.roadmap_data.title}
-                    </h3>
-                    <p style={{ fontSize: '13px', color: '#7d8590', margin: '0 0 12px', lineHeight: 1.4 }}>
-                      {r.roadmap_data.description}
-                    </p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: '#7d8590' }}>
-                      <span>{r.role}</span>
-                      <span>•</span>
-                      <span>{r.roadmap_data.totalWeeks} weeks</span>
-                      <span>•</span>
-                      <span>{new Date(r.created_at).toLocaleDateString()}</span>
-                    </div>
-                  </div>
+                    <Plus size={14} />
+                    {role}
+                  </button>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Empty State */}
-          {!roadmap && !loading && myRoadmaps.length === 0 && (
-            <div style={{
-              textAlign: 'center',
-              padding: '60px 20px',
-              background: '#161b22',
-              border: '1px solid #21262d',
-              borderRadius: '12px'
-            }}>
-              <div style={{
-                width: '80px',
-                height: '80px',
-                borderRadius: '16px',
-                background: '#20c99718',
-                color: '#20c997',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 24px'
-              }}>
-                <BookOpen size={40} />
-              </div>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, margin: '0 0 12px' }}>
-                Your Personalized Roadmap Awaits
-              </h2>
-              <p style={{ fontSize: '14px', color: '#7d8590', lineHeight: 1.6, margin: '0 0 32px' }}>
-                Get a week-by-week learning plan tailored to your skills, branch, and career goals. 
-                Generated by AI using your unique profile.
-              </p>
-              {!userProfile && (
-                <p style={{ fontSize: '14px', color: '#f85149' }}>
-                  Please complete your profile first to generate a personalized roadmap.
-                </p>
-              )}
-            </div>
-          )}
-
           {/* Loading State */}
           {loading && (
-            <div style={{
-              textAlign: 'center',
-              padding: '60px 20px',
-              background: '#161b22',
-              border: '1px solid #21262d',
-              borderRadius: '12px'
-            }}>
-              <Loader2 size={40} className="animate-spin" style={{ color: '#20c997', margin: '0 auto 20px' }} />
-              <p style={{ fontSize: '16px', color: '#e6edf3' }}>Generating your personalized roadmap...</p>
-              <p style={{ fontSize: '14px', color: '#7d8590', marginTop: '8px' }}>
-                This may take a few moments as AI analyzes your profile
-              </p>
+            <div style={{ textAlign: 'center', marginTop: '60px' }}>
+              <Loader2 size={48} className="animate-spin" style={{ color: '#20c997', margin: '0 auto 24px' }} />
+              <h2 style={{ fontSize: '20px', fontWeight: 600 }}>Building your roadmap...</h2>
+              <p style={{ color: '#7d8590', marginTop: '8px' }}>Gemini is curating the best resources for you.</p>
             </div>
           )}
 
-          {/* Roadmap Display */}
-          {roadmap && (
-            <div>
-              {/* Header */}
-              <div style={{
-                background: '#161b22',
-                border: '1px solid #21262d',
-                borderRadius: '12px',
-                padding: '24px',
-                marginBottom: '24px'
+          {/* Roadmap Result */}
+          {roadmap && !loading && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div style={{ 
+                background: '#161b22', 
+                border: '1px solid #30363d', 
+                borderRadius: '16px', 
+                padding: '32px',
+                marginBottom: '40px'
               }}>
-                <h2 style={{ fontSize: '20px', fontWeight: 600, margin: '0 0 8px' }}>
-                  {roadmap.roadmap_data.title}
-                </h2>
-                <p style={{ fontSize: '14px', color: '#7d8590', margin: '0 0 16px' }}>
-                  {roadmap.roadmap_data.description}
-                </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Calendar size={16} color="#7d8590" />
-                    <span style={{ fontSize: '14px', color: '#7d8590' }}>
-                      {roadmap.roadmap_data.totalWeeks} weeks
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <TrendingUp size={16} color="#20c997" />
-                    <span style={{ fontSize: '14px', color: '#20c997' }}>
-                      Progressive learning
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <User size={16} color="#7d8590" />
-                    <span style={{ fontSize: '14px', color: '#7d8590' }}>
-                      {roadmap.role}
-                    </span>
-                  </div>
-                </div>
+                <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>{roadmap.title}</h1>
+                <p style={{ color: '#7d8590', fontSize: '15px', lineHeight: 1.5 }}>{roadmap.description}</p>
               </div>
 
-              {/* Week Cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '20px' }}>
-                {roadmap.roadmap_data.weeks.map((week) => (
-                  <div
-                    key={week.week}
-                    style={{
-                      background: '#161b22',
-                      border: '1px solid #21262d',
-                      borderRadius: '12px',
-                      padding: '20px',
-                      transition: 'all 0.2s ease',
-                      cursor: 'pointer'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#20c997';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = '#21262d';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    {/* Week Header */}
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
-                      <div>
-                        <h3 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 4px' }}>
-                          {week.title}
-                        </h3>
-                        <p style={{ fontSize: '13px', color: '#7d8590', margin: 0, lineHeight: 1.4 }}>
-                          {week.description}
-                        </p>
+              {/* Sections */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+                {roadmap.sections.map((section, sIdx) => (
+                  <div key={section.id}>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '12px', 
+                      marginBottom: '20px' 
+                    }}>
+                      <div style={{ 
+                        width: '32px', 
+                        height: '32px', 
+                        background: '#20c99720', 
+                        color: '#20c997',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '14px',
+                        fontWeight: 700
+                      }}>
+                        {sIdx + 1}
                       </div>
-                      <span style={{
-                        background: getDifficultyBg(week.difficulty),
-                        color: getDifficultyColor(week.difficulty),
-                        fontSize: '11px',
-                        fontWeight: 600,
-                        padding: '4px 8px',
-                        borderRadius: '6px',
+                      <h3 style={{ fontSize: '18px', fontWeight: 600 }}>{section.title}</h3>
+                      <span style={{ 
+                        fontSize: '11px', 
+                        fontWeight: 700, 
                         textTransform: 'uppercase',
+                        padding: '4px 8px',
+                        background: `${getLevelColor(section.level)}20`,
+                        color: getLevelColor(section.level),
+                        borderRadius: '6px',
                         letterSpacing: '0.05em'
                       }}>
-                        {week.difficulty}
+                        {section.level}
                       </span>
                     </div>
 
-                    {/* Topics */}
-                    <div style={{ marginBottom: '16px' }}>
-                      <h4 style={{ fontSize: '12px', fontWeight: 600, color: '#7d8590', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Topics
-                      </h4>
-                      <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                        {week.topics.map((topic, index) => (
-                          <li key={index} style={{
-                            fontSize: '13px',
-                            color: '#e6edf3',
-                            marginBottom: '4px',
-                            paddingLeft: '16px',
-                            position: 'relative'
-                          }}>
-                            <span style={{
-                              position: 'absolute',
-                              left: 0,
-                              top: '6px',
-                              width: '6px',
-                              height: '6px',
-                              borderRadius: '50%',
-                              background: '#20c997'
-                            }} />
-                            {topic}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Resources */}
-                    <div>
-                      <h4 style={{ fontSize: '12px', fontWeight: 600, color: '#7d8590', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Resources
-                      </h4>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {week.resources.map((resource, index) => (
-                          <div key={index} style={{
-                            fontSize: '12px',
-                            color: '#58a6ff',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px'
-                          }}>
-                            <ChevronRight size={12} />
-                            {resource}
+                    <div style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
+                      gap: '20px' 
+                    }}>
+                      {section.topics.map((topic) => (
+                        <div 
+                          key={topic.id}
+                          style={{
+                            background: '#161b22',
+                            border: '1px solid #21262d',
+                            borderRadius: '12px',
+                            padding: '20px',
+                            transition: 'border-color 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.borderColor = '#30363d'}
+                          onMouseLeave={(e) => e.currentTarget.style.borderColor = '#21262d'}
+                        >
+                          <h4 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '8px' }}>{topic.title}</h4>
+                          <p style={{ fontSize: '13px', color: '#7d8590', lineHeight: 1.5, marginBottom: '16px' }}>
+                            {topic.description}
+                          </p>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {topic.resources.map((res, rIdx) => (
+                              <div key={rIdx} style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                fontSize: '12px',
+                                color: '#58a6ff'
+                              }}>
+                                <ChevronRight size={12} />
+                                <span style={{ cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'} onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}>{res}</span>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}

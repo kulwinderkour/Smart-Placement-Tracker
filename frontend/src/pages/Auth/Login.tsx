@@ -288,7 +288,7 @@ export default function Login() {
       )}
 
       {/* SECTION 1 — HERO */}
-      <section className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-[#070b18] px-6 py-[120px]" style={{ paddingTop: 'calc(120px + 100px)' }}>
+      <section className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-[#070b18] px-6 py-[120px]">
         {/* Animated GradientBlinds Background */}
         <div className="absolute inset-0 z-0 flex items-center justify-center">
           <div style={{ width: '100%', height: '100%', position: 'relative' }}>
