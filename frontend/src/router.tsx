@@ -11,6 +11,7 @@ import Dashboard from './pages/Student/Dashboard'
 import Tracker from './pages/Student/Tracker'
 import ResumeAnalyser from './pages/Student/ResumeAnalyser'
 import Roadmap from './pages/Student/Roadmap'
+import Questions from './pages/Student/Questions'
 import Onboarding from './pages/Student/Onboarding'
 import Profile from './pages/Student/Profile'
 
@@ -65,6 +66,10 @@ export const router = createBrowserRouter([
   {
     path: '/roadmap',
     element: <OnboardingGuard><DashboardLayout><Roadmap /></DashboardLayout></OnboardingGuard>
+  },
+  {
+    path: '/questions',
+    element: <OnboardingGuard><DashboardLayout><Questions /></DashboardLayout></OnboardingGuard>
   },
   {
     path: '/tracker',
