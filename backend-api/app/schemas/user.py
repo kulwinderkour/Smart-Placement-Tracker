@@ -39,3 +39,4 @@ class LoginResponse(TokenResponse):
     so the frontend can route in a single API call."""
     role: str
     is_onboarding_completed: bool
+    is_company_profile_completed: bool = False

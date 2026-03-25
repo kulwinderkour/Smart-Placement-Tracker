@@ -14,19 +14,19 @@ from app.services import company_profile as profile_service
 router = APIRouter(prefix="/company", tags=["company"])
 
 
-def require_admin(current_user: User = Depends(get_current_user)) -> User:
-    """Guard: only admin-role users may access onboarding profile routes."""
-    if current_user.role != UserRole.admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+def require_provider(current_user: User = Depends(get_current_user)) -> User:
+    """Guard: only admin or provider role users may access company profile routes."""
+    if current_user.role not in (UserRole.admin, UserRole.provider):
+        raise HTTPException(status_code=403, detail="Provider access required")
     return current_user
 
 
 @router.get("/profile", response_model=CompanyProfileResponse)
 async def get_company_profile(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(require_provider),
 ):
-    """Fetch the authenticated admin's onboarding profile."""
+    """Fetch the authenticated provider's onboarding profile."""
     profile = await profile_service.get_profile(current_user.id, db)
     if not profile:
         raise HTTPException(status_code=404, detail="Company profile not found")
@@ -37,7 +37,7 @@ async def get_company_profile(
 async def save_company_profile(
     data: CompanyProfileCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(require_provider),
 ):
     """Create or update the company profile.
 
@@ -58,9 +58,9 @@ async def save_company_profile(
 async def update_company_profile(
     data: CompanyProfileUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(require_provider),
 ):
-    """Update the authenticated admin's onboarding profile using partial fields."""
+    """Update the authenticated provider's onboarding profile using partial fields."""
     payload = data.model_dump(exclude={"submit"}, exclude_none=True)
     profile = await profile_service.update_profile(
         user_id=current_user.id,

@@ -5,8 +5,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
+from app.models.company_profile import CompanyProfile
 from app.models.student import Student
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.user import LoginResponse, UserLogin, UserRegister, UserResponse
 from app.utils.security import (
     create_access_token,
@@ -54,11 +55,23 @@ async def login(data: UserLogin, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     token_data = {"sub": str(user.id), "email": user.email, "role": user.role.value}
+
+    is_company_profile_completed = False
+    if user.role == UserRole.provider:
+        cp_result = await db.execute(
+            select(CompanyProfile).where(
+                CompanyProfile.user_id == user.id,
+                CompanyProfile.is_draft.is_(False),
+            )
+        )
+        is_company_profile_completed = cp_result.scalar_one_or_none() is not None
+
     return LoginResponse(
         access_token=create_access_token(token_data),
         refresh_token=create_refresh_token(token_data),
         role=user.role.value,
         is_onboarding_completed=user.is_onboarding_completed,
+        is_company_profile_completed=is_company_profile_completed,
     )
 
 
