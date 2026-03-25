@@ -5,7 +5,7 @@ def make_provider(client):
     """Register and login as a provider, return auth headers + login data."""
     client.post(
         "/api/v1/auth/register",
-        json={"email": "company@test.com", "password": "pass123", "role": "provider"},
+        json={"email": "company@test.com", "password": "pass123", "role": "admin"},
     )
     login = client.post(
         "/api/v1/auth/login",
@@ -20,9 +20,9 @@ def test_provider_login_contains_completion_flag(client):
     """Login response for a provider should include is_company_profile_completed=false."""
     headers, data = make_provider(client)
     assert "role" in data
-    assert data["role"] == "provider"
-    assert "is_company_profile_completed" in data
-    assert data["is_company_profile_completed"] is False
+    assert data["role"] == "admin"
+    assert "is_onboarding_completed" in data
+    assert data["is_onboarding_completed"] is False
 
 
 def test_get_profile_not_found(client):
@@ -54,7 +54,7 @@ def test_save_as_draft(client):
         "/api/v1/auth/login",
         json={"email": "company@test.com", "password": "pass123"},
     )
-    assert login2.json()["is_company_profile_completed"] is False
+    assert login2.json()["is_onboarding_completed"] is False
 
 
 def test_submit_profile_flips_flag(client):
@@ -78,7 +78,7 @@ def test_submit_profile_flips_flag(client):
         "/api/v1/auth/login",
         json={"email": "company@test.com", "password": "pass123"},
     )
-    assert login2.json()["is_company_profile_completed"] is True
+    assert login2.json()["is_onboarding_completed"] is True
 
 
 def test_get_profile_after_submit(client):
