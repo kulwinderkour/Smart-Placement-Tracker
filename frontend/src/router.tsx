@@ -2,13 +2,18 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { useAuthStore } from "./store/authStore";
 import GoogleCallback from "./pages/Auth/GoogleCallback";
 import Navbar from "./components/layout/Navbar";
+import DashboardLayout from "./components/layout/DashboardLayout";
 import Login from "./pages/Auth/Login";
 import LoginForm from "./pages/Auth/LoginForm";
 import Register from "./pages/Auth/Register";
-import JobBoard from "./pages/Jobs/JobBoard";
+import StudentJobBoard from "./pages/Student/JobBoard";
 import Dashboard from "./pages/Student/Dashboard";
 import Tracker from "./pages/Student/Tracker";
 import ResumeAnalyser from "./pages/Student/ResumeAnalyser";
+import Roadmap from "./pages/Student/Roadmap";
+import Questions from "./pages/Student/Questions";
+import Onboarding from "./pages/Student/Onboarding";
+import Profile from "./pages/Student/Profile";
 import ManageStudents from "./pages/Admin/ManageStudents";
 import ManageCompanies from "./pages/Admin/ManageCompanies";
 import CompanyProfileView from "./pages/Admin/CompanyProfileView";
@@ -92,6 +97,29 @@ function AdminPageRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function OnboardingGuard({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user } = useAuthStore()
+
+  // Check per-user key first, then the generic fallback key
+  const userKey = user ? `onboardingComplete_${user.id}` : null
+  const onboardingDone =
+    (userKey && localStorage.getItem(userKey) === 'true') ||
+    localStorage.getItem('onboardingComplete') === 'true'
+
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (!onboardingDone) return <Navigate to="/onboarding" replace />
+
+  return <>{children}</>
+}
+
+function SmartOnboarding() {
+  const { user } = useAuthStore()
+  if (user?.role === 'admin') {
+    return <CompanyOnboardingGate><CompanyProfileForm /></CompanyOnboardingGate>
+  }
+  return <ProtectedRoute><Onboarding /></ProtectedRoute>
+}
+
 export const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/login-form", element: <LoginForm /> },
@@ -108,37 +136,59 @@ export const router = createBrowserRouter([
     path: "/jobs",
     element: (
       <Layout>
-        <JobBoard />
+        <OnboardingGuard>
+          <StudentJobBoard />
+        </OnboardingGuard>
       </Layout>
     ),
   },
   {
     path: "/dashboard",
     element: (
-      <Layout>
-        <ProtectedRoute>
+      <OnboardingGuard>
+        <DashboardLayout>
           <Dashboard />
-        </ProtectedRoute>
-      </Layout>
+        </DashboardLayout>
+      </OnboardingGuard>
     ),
   },
   {
-    path: "/student-dashboard",
+    path: "/roadmap",
     element: (
-      <Layout>
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      </Layout>
+      <OnboardingGuard>
+        <DashboardLayout>
+          <Roadmap />
+        </DashboardLayout>
+      </OnboardingGuard>
+    ),
+  },
+  {
+    path: "/questions",
+    element: (
+      <OnboardingGuard>
+        <DashboardLayout>
+          <Questions />
+        </DashboardLayout>
+      </OnboardingGuard>
     ),
   },
   {
     path: "/tracker",
     element: (
       <Layout>
-        <ProtectedRoute>
+        <OnboardingGuard>
           <Tracker />
-        </ProtectedRoute>
+        </OnboardingGuard>
+      </Layout>
+    ),
+  },
+  {
+    path: "/profile",
+    element: (
+      <Layout>
+        <OnboardingGuard>
+          <Profile />
+        </OnboardingGuard>
       </Layout>
     ),
   },
@@ -146,9 +196,9 @@ export const router = createBrowserRouter([
     path: "/resume",
     element: (
       <Layout>
-        <ProtectedRoute>
+        <OnboardingGuard>
           <ResumeAnalyser />
-        </ProtectedRoute>
+        </OnboardingGuard>
       </Layout>
     ),
   },
@@ -262,14 +312,14 @@ export const router = createBrowserRouter([
   },
   {
     path: "/onboarding",
-    element: (
-      <CompanyOnboardingGate>
-        <CompanyProfileForm />
-      </CompanyOnboardingGate>
-    ),
+    element: <SmartOnboarding />,
   },
   {
     path: "/onboarding-preview",
     element: <OnboardingPreview />,
+  },
+  {
+    path: "*",
+    element: <Navigate to="/" replace />,
   },
 ]);
