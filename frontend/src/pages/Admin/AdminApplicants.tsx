@@ -1,315 +1,757 @@
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useSearchParams } from 'react-router-dom'
-import { Users, Search, Filter, Download, X, FileText, ChevronDown } from 'lucide-react'
-import { adminApi } from '../../api/admin'
-import StatusBadge from '../../components/admin/StatusBadge'
-import AdminLayout from '../../components/admin/AdminLayout'
-import type { ApplicationWithStudent, Job } from '../../types'
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
+import {
+  Users,
+  Search,
+  Filter,
+  Download,
+  X,
+  FileText,
+  ChevronDown,
+} from "lucide-react";
+import { adminApi } from "../../api/admin";
+import StatusBadge from "../../components/admin/StatusBadge";
+import AdminLayout from "../../components/admin/AdminLayout";
+import type { ApplicationWithStudent, Job } from "../../types";
 
-const STATUS_OPTIONS = ['all', 'applied', 'online_test', 'technical_round', 'hr_round', 'offer', 'rejected']
+const STATUS_OPTIONS = [
+  "all",
+  "applied",
+  "online_test",
+  "technical_round",
+  "hr_round",
+  "offer",
+  "rejected",
+];
 
-function StudentModal({ app, onClose, onStatusChange }: {
-  app: ApplicationWithStudent
-  onClose: () => void
-  onStatusChange: (id: string, status: string) => void
+/* ── Shared input/select base style (CSS-variable-aware) ── */
+const INPUT_BASE: React.CSSProperties = {
+  background: "var(--color-bg-surface)",
+  border: "1px solid var(--color-border)",
+  color: "var(--color-text)",
+  outline: "none",
+};
+
+/* ─────────────────────────────────────────────
+   Applicant Detail Modal
+───────────────────────────────────────────── */
+function StudentModal({
+  app,
+  onClose,
+  onStatusChange,
+}: {
+  app: ApplicationWithStudent;
+  onClose: () => void;
+  onStatusChange: (id: string, status: string) => void;
 }) {
-  const [status, setStatus] = useState(app.status)
-  const [saving, setSaving] = useState(false)
+  const [status, setStatus] = useState(app.status);
+  const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
-    setSaving(true)
-    await onStatusChange(app.id, status)
-    setSaving(false)
-    onClose()
-  }
+    setSaving(true);
+    await onStatusChange(app.id, status);
+    setSaving(false);
+    onClose();
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0] sticky top-0 bg-white">
-          <h2 className="text-base font-bold text-[#0F172A]">Applicant Profile</h2>
-          <button onClick={onClose} className="text-[#94A3B8] hover:text-[#0F172A]"><X size={20} /></button>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
+    >
+      <div
+        className="w-full max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto"
+        style={{
+          background: "var(--color-bg-surface)",
+          border: "1px solid var(--color-border)",
+          boxShadow: "0 24px 60px rgba(0,0,0,0.18)",
+        }}
+      >
+        {/* Modal header */}
+        <div
+          className="flex items-center justify-between px-6 py-4 sticky top-0"
+          style={{
+            background: "var(--color-bg-surface)",
+            borderBottom: "1px solid var(--color-border)",
+          }}
+        >
+          <h2
+            className="text-base font-bold"
+            style={{ color: "var(--color-text)" }}
+          >
+            Applicant Profile
+          </h2>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+            style={{ color: "var(--color-text-muted)" }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background =
+                "var(--color-accent-bg)";
+              (e.currentTarget as HTMLElement).style.color =
+                "var(--color-accent)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "";
+              (e.currentTarget as HTMLElement).style.color =
+                "var(--color-text-muted)";
+            }}
+          >
+            <X size={18} />
+          </button>
         </div>
+
         <div className="p-6 space-y-5">
           {/* Avatar + name */}
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-[#EFF6FF] flex items-center justify-center text-[#3B82F6] text-xl font-bold">
-              {app.student_name?.[0]?.toUpperCase() ?? '?'}
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold shrink-0"
+              style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}
+            >
+              {app.student_name?.[0]?.toUpperCase() ?? "?"}
             </div>
             <div>
-              <h3 className="font-bold text-[#0F172A] text-lg">{app.student_name}</h3>
-              <p className="text-sm text-[#64748B]">{app.college ?? 'N/A'} · {app.branch ?? 'N/A'}</p>
-              {app.graduation_year && <p className="text-xs text-[#94A3B8]">Class of {app.graduation_year}</p>}
+              <h3
+                className="font-bold text-lg"
+                style={{ color: "var(--color-text)" }}
+              >
+                {app.student_name}
+              </h3>
+              <p
+                className="text-sm"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                {app.college ?? "N/A"} · {app.branch ?? "N/A"}
+              </p>
+              {app.graduation_year && (
+                <p
+                  className="text-xs mt-0.5"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  Class of {app.graduation_year}
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Details grid */}
+          {/* Stats grid */}
           <div className="grid grid-cols-2 gap-3">
-            {[
-              ['CGPA', app.cgpa ? `${app.cgpa}/10` : '—'],
-              ['ATS Score', app.ats_score ? `${app.ats_score}%` : '—'],
-              ['Phone', app.phone ?? '—'],
-              ['Applied', new Date(app.applied_at).toLocaleDateString()],
-            ].map(([label, val]) => (
-              <div key={label} className="bg-[#F8FAFC] rounded-lg p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8] mb-0.5">{label}</p>
-                <p className="text-sm font-semibold text-[#0F172A]">{val}</p>
+            {(
+              [
+                ["CGPA", app.cgpa ? `${app.cgpa}/10` : "—"],
+                ["ATS Score", app.ats_score ? `${app.ats_score}%` : "—"],
+                ["Phone", app.phone ?? "—"],
+                ["Applied", new Date(app.applied_at).toLocaleDateString()],
+              ] as [string, string][]
+            ).map(([label, val]) => (
+              <div
+                key={label}
+                className="rounded-lg p-3"
+                style={{
+                  background: "var(--color-bg-elevated)",
+                  border: "1px solid var(--color-border)",
+                }}
+              >
+                <p
+                  className="text-[10px] font-semibold uppercase tracking-wider mb-0.5"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  {label}
+                </p>
+                <p
+                  className="text-sm font-semibold"
+                  style={{ color: "var(--color-text)" }}
+                >
+                  {val}
+                </p>
               </div>
             ))}
           </div>
 
           {/* Applied for */}
-          <div className="bg-[#EFF6FF] rounded-lg p-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8] mb-1">Applied For</p>
-            <p className="text-sm font-semibold text-[#1D4ED8]">{app.role_title}</p>
+          <div
+            className="rounded-lg p-3"
+            style={{
+              background: "var(--color-accent-bg)",
+              border: "1px solid var(--color-accent-border)",
+            }}
+          >
+            <p
+              className="text-[10px] font-semibold uppercase tracking-wider mb-1"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Applied For
+            </p>
+            <p
+              className="text-sm font-semibold"
+              style={{ color: "var(--color-accent)" }}
+            >
+              {app.role_title}
+            </p>
           </div>
 
-          {/* Links */}
+          {/* Resume / LinkedIn links */}
           {(app.resume_url || app.linkedin_url) && (
             <div className="flex gap-2">
               {app.resume_url && (
-                <a href={app.resume_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-xs font-semibold text-[#3B82F6] bg-[#EFF6FF] px-3 py-2 rounded-lg hover:bg-[#DBEAFE] transition-colors">
+                <a
+                  href={app.resume_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-all"
+                  style={{
+                    background: "var(--color-accent-bg)",
+                    color: "var(--color-accent)",
+                    border: "1px solid var(--color-accent-border)",
+                  }}
+                >
                   <FileText size={13} /> View Resume
                 </a>
               )}
               {app.linkedin_url && (
-                <a href={app.linkedin_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-xs font-semibold text-[#0F172A] bg-[#F1F5F9] px-3 py-2 rounded-lg hover:bg-[#E2E8F0] transition-colors">
+                <a
+                  href={app.linkedin_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-all"
+                  style={{
+                    background: "var(--color-bg-elevated)",
+                    color: "var(--color-text-secondary)",
+                    border: "1px solid var(--color-border)",
+                  }}
+                >
                   LinkedIn ↗
                 </a>
               )}
             </div>
           )}
 
-          {/* Status update */}
+          {/* Status selector */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-[#64748B] mb-2">Update Status</p>
+            <p
+              className="text-xs font-semibold uppercase tracking-wider mb-2"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Update Status
+            </p>
             <div className="grid grid-cols-3 gap-2">
-              {STATUS_OPTIONS.filter(s => s !== 'all').map(s => (
-                <button key={s} onClick={() => setStatus(s as ApplicationWithStudent['status'])}
-                  className={`py-2 px-3 rounded-lg text-xs font-semibold border transition-all ${
+              {STATUS_OPTIONS.filter((s) => s !== "all").map((s) => (
+                <button
+                  key={s}
+                  onClick={() =>
+                    setStatus(s as ApplicationWithStudent["status"])
+                  }
+                  className="py-2 px-3 rounded-lg text-xs font-semibold transition-all capitalize"
+                  style={
                     status === s
-                      ? 'bg-[#3B82F6] border-[#3B82F6] text-white'
-                      : 'border-[#E2E8F0] text-[#64748B] hover:border-[#3B82F6] hover:text-[#3B82F6]'
-                  }`}>
-                  {s.replace(/_/g, ' ')}
+                      ? {
+                          background: "#7c3aed",
+                          color: "#ffffff",
+                          border: "1px solid #7c3aed",
+                        }
+                      : {
+                          background: "transparent",
+                          color: "var(--color-text-muted)",
+                          border: "1px solid var(--color-border)",
+                        }
+                  }
+                >
+                  {s.replace(/_/g, " ")}
                 </button>
               ))}
             </div>
           </div>
 
+          {/* Action buttons */}
           <div className="flex gap-3 pt-2">
-            <button onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-[#E2E8F0] text-sm font-semibold text-[#64748B] hover:bg-[#F8FAFC]">Cancel</button>
-            <button onClick={handleSave} disabled={saving || status === app.status}
-              className="flex-1 py-2.5 rounded-lg bg-[#3B82F6] text-sm font-semibold text-white hover:bg-[#2563EB] disabled:opacity-60 transition-colors">
-              {saving ? 'Saving…' : 'Update Status'}
+            <button
+              onClick={onClose}
+              className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all"
+              style={{
+                border: "1px solid var(--color-border)",
+                color: "var(--color-text-secondary)",
+                background: "transparent",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background =
+                  "var(--color-accent-bg)";
+                (e.currentTarget as HTMLElement).style.borderColor =
+                  "var(--color-accent-border)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background =
+                  "transparent";
+                (e.currentTarget as HTMLElement).style.borderColor =
+                  "var(--color-border)";
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving || status === app.status}
+              className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all disabled:opacity-60"
+              style={{ background: "#7c3aed", color: "#ffffff" }}
+              onMouseEnter={(e) => {
+                if (!saving && status !== app.status)
+                  (e.currentTarget as HTMLElement).style.background = "#6d28d9";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "#7c3aed";
+              }}
+            >
+              {saving ? "Saving…" : "Update Status"}
             </button>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
+/* ─────────────────────────────────────────────
+   Main AdminApplicants Page
+───────────────────────────────────────────── */
 export default function AdminApplicants() {
-  const [searchParams] = useSearchParams()
-  const queryClient = useQueryClient()
+  const [searchParams] = useSearchParams();
+  const queryClient = useQueryClient();
 
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [jobFilter, setJobFilter] = useState(searchParams.get('job') ?? 'all')
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [activeApp, setActiveApp] = useState<ApplicationWithStudent | null>(null)
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [jobFilter, setJobFilter] = useState(searchParams.get("job") ?? "all");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [activeApp, setActiveApp] = useState<ApplicationWithStudent | null>(
+    null,
+  );
 
   const { data: appsData, isLoading } = useQuery({
-    queryKey: ['admin-applicants', jobFilter, statusFilter],
-    queryFn: () => adminApi.listApplicants(jobFilter === 'all' ? undefined : jobFilter, statusFilter === 'all' ? undefined : statusFilter),
-  })
+    queryKey: ["admin-applicants", jobFilter, statusFilter],
+    queryFn: () =>
+      adminApi.listApplicants(
+        jobFilter === "all" ? undefined : jobFilter,
+        statusFilter === "all" ? undefined : statusFilter,
+      ),
+  });
 
   const { data: jobsData } = useQuery({
-    queryKey: ['admin-jobs'],
+    queryKey: ["admin-jobs"],
     queryFn: () => adminApi.listJobs(1, 100),
-  })
+  });
 
   const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) => adminApi.updateApplicationStatus(id, status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-applicants'] }),
-  })
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      adminApi.updateApplicationStatus(id, status),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["admin-applicants"] }),
+  });
 
-  const apps: ApplicationWithStudent[] = appsData?.data?.data ?? []
-  const jobs: Job[] = jobsData?.data?.data ?? []
+  const apps: ApplicationWithStudent[] = appsData?.data?.data ?? [];
+  const jobs: Job[] = jobsData?.data?.data ?? [];
 
-  const filtered = apps.filter(a => {
-    if (!search) return true
-    const q = search.toLowerCase()
-    return a.student_name?.toLowerCase().includes(q) || a.college?.toLowerCase().includes(q)
-  })
-
-  const toggleSelect = (id: string) =>
-    setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  const filtered = apps.filter((a) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      a.student_name?.toLowerCase().includes(q) ||
+      a.college?.toLowerCase().includes(q)
+    );
+  });
 
   const bulkAction = async (status: string) => {
     for (const id of selected) {
-      await statusMutation.mutateAsync({ id, status })
+      await statusMutation.mutateAsync({ id, status });
     }
-    setSelected(new Set())
-  }
+    setSelected(new Set());
+  };
+
+  const SELECT_STYLE: React.CSSProperties = {
+    ...INPUT_BASE,
+    borderRadius: "8px",
+    padding: "10px 36px 10px 12px",
+    fontSize: "13px",
+    appearance: "none",
+    cursor: "pointer",
+    minWidth: "130px",
+  };
 
   return (
     <AdminLayout>
-      <div className="p-6 max-w-[1400px] mx-auto">
-        {/* Header */}
+      <div className="p-6 max-w-[1400px] mx-auto page-enter">
+        {/* ── Page header ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-xl font-bold text-[#0F172A]">Applicants</h1>
-            <p className="text-sm text-[#64748B] mt-0.5">{filtered.length} applicant{filtered.length !== 1 ? 's' : ''}</p>
+            <h1
+              className="text-2xl font-bold"
+              style={{ color: "var(--color-text)" }}
+            >
+              Applicants
+            </h1>
+            <p
+              className="text-sm mt-0.5"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Review and manage applications
+            </p>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-xl border border-[#E2E8F0] p-4 mb-5 flex flex-wrap gap-3 items-center">
-          <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg px-3 py-2 flex-1 min-w-48">
-            <Search size={14} className="text-[#94A3B8] flex-shrink-0" />
-            <input value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search by name or college…"
-              className="bg-transparent text-sm text-[#0F172A] placeholder-[#94A3B8] outline-none w-full" />
+        {/* ── Filter bar ── */}
+        <div className="flex flex-wrap gap-3 items-center mb-5">
+          {/* Search input */}
+          <div
+            className="flex items-center gap-2 px-3 py-2.5 rounded-lg flex-1 min-w-64"
+            style={{
+              background: "var(--color-bg-surface)",
+              border: "1px solid var(--color-border)",
+              transition: "border-color 0.15s ease",
+            }}
+          >
+            <Search
+              size={14}
+              className="shrink-0"
+              style={{ color: "var(--color-text-muted)" }}
+            />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search applicants..."
+              className="bg-transparent text-sm outline-none w-full theme-input"
+              style={{ color: "var(--color-text)" }}
+            />
           </div>
 
+          {/* Job filter */}
           <div className="relative">
-            <select value={jobFilter} onChange={e => setJobFilter(e.target.value)}
-              className="appearance-none border border-[#E2E8F0] rounded-lg px-3 py-2 pr-8 text-sm text-[#374151] outline-none focus:border-[#3B82F6] bg-white">
-              <option value="all">All Jobs</option>
-              {jobs.map(j => <option key={j.id} value={j.id}>{j.role_title}</option>)}
+            <select
+              value={jobFilter}
+              onChange={(e) => setJobFilter(e.target.value)}
+              style={SELECT_STYLE}
+            >
+              <option
+                value="all"
+                style={{ background: "var(--color-bg-surface)" }}
+              >
+                All Jobs
+              </option>
+              {jobs.map((j) => (
+                <option
+                  key={j.id}
+                  value={j.id}
+                  style={{ background: "var(--color-bg-surface)" }}
+                >
+                  {j.role_title}
+                </option>
+              ))}
             </select>
-            <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8] pointer-events-none" />
+            <ChevronDown
+              size={13}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
+              style={{ color: "var(--color-text-muted)" }}
+            />
           </div>
 
+          {/* Status filter */}
           <div className="relative">
-            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-              className="appearance-none border border-[#E2E8F0] rounded-lg px-3 py-2 pr-8 text-sm text-[#374151] outline-none focus:border-[#3B82F6] bg-white">
-              {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s === 'all' ? 'All Status' : s.replace(/_/g, ' ')}</option>)}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              style={SELECT_STYLE}
+            >
+              {STATUS_OPTIONS.map((s) => (
+                <option
+                  key={s}
+                  value={s}
+                  style={{ background: "var(--color-bg-surface)" }}
+                >
+                  {s === "all" ? "All Status" : s.replace(/_/g, " ")}
+                </option>
+              ))}
             </select>
-            <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8] pointer-events-none" />
+            <ChevronDown
+              size={13}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
+              style={{ color: "var(--color-text-muted)" }}
+            />
           </div>
 
-          <div className="flex items-center gap-1 text-xs text-[#94A3B8]">
-            <Filter size={12} /> {filtered.length} results
-          </div>
+          {/* More Filters */}
+          <button
+            className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg transition-all"
+            style={{
+              color: "var(--color-text-secondary)",
+              border: "1px solid var(--color-border)",
+              background: "transparent",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor =
+                "var(--color-accent)";
+              (e.currentTarget as HTMLElement).style.color =
+                "var(--color-accent)";
+              (e.currentTarget as HTMLElement).style.background =
+                "var(--color-accent-bg)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor =
+                "var(--color-border)";
+              (e.currentTarget as HTMLElement).style.color =
+                "var(--color-text-secondary)";
+              (e.currentTarget as HTMLElement).style.background = "transparent";
+            }}
+          >
+            <Filter size={14} /> More Filters
+          </button>
         </div>
 
-        {/* Bulk actions */}
+        {/* ── Bulk actions bar ── */}
         {selected.size > 0 && (
-          <div className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl px-4 py-3 mb-4 flex items-center gap-4">
-            <span className="text-sm font-semibold text-[#1D4ED8]">{selected.size} selected</span>
+          <div
+            className="rounded-xl px-4 py-3 mb-4 flex items-center gap-4"
+            style={{
+              background: "var(--color-accent-bg)",
+              border: "1px solid var(--color-accent-border)",
+            }}
+          >
+            <span
+              className="text-sm font-semibold"
+              style={{ color: "var(--color-accent)" }}
+            >
+              {selected.size} selected
+            </span>
             <div className="flex gap-2">
-              <button onClick={() => bulkAction('hr_round')}
-                className="text-xs font-semibold px-3 py-1.5 bg-[#22C55E] text-white rounded-lg hover:bg-[#16A34A] transition-colors">
+              <button
+                onClick={() => bulkAction("hr_round")}
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
+                style={{
+                  background: "rgba(34,197,94,0.15)",
+                  color: "#16a34a",
+                  border: "1px solid rgba(34,197,94,0.3)",
+                }}
+              >
                 Shortlist
               </button>
-              <button onClick={() => bulkAction('rejected')}
-                className="text-xs font-semibold px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+              <button
+                onClick={() => bulkAction("rejected")}
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
+                style={{
+                  background: "rgba(239,68,68,0.12)",
+                  color: "var(--color-danger)",
+                  border: "1px solid rgba(239,68,68,0.28)",
+                }}
+              >
                 Reject
               </button>
-              <button onClick={() => setSelected(new Set())}
-                className="text-xs font-semibold px-3 py-1.5 border border-[#E2E8F0] text-[#64748B] rounded-lg hover:bg-white transition-colors">
+              <button
+                onClick={() => setSelected(new Set())}
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
+                style={{
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-text-muted)",
+                  background: "transparent",
+                }}
+              >
                 Clear
               </button>
             </div>
           </div>
         )}
 
-        {/* Table */}
-        <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
+        {/* ── Table ── */}
+        <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-xs font-semibold uppercase tracking-wider text-[#64748B]">
-                  <th className="px-4 py-3 w-8">
-                    <input type="checkbox"
-                      checked={selected.size === filtered.length && filtered.length > 0}
-                      onChange={e => setSelected(e.target.checked ? new Set(filtered.map(a => a.id)) : new Set())}
-                      className="rounded border-[#CBD5E1]" />
-                  </th>
-                  <th className="px-4 py-3">Student</th>
-                  <th className="px-4 py-3">College / Branch</th>
-                  <th className="px-4 py-3">Applied For</th>
-                  <th className="px-4 py-3">Applied Date</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Resume</th>
+                <tr
+                  style={{
+                    background: "var(--color-bg-elevated)",
+                    borderBottom: "1px solid var(--color-border)",
+                  }}
+                >
+                  {[
+                    "Student",
+                    "College / Branch",
+                    "Applied For",
+                    "Applied Date",
+                    "Status",
+                    "Resume",
+                  ].map((h) => (
+                    <th
+                      key={h}
+                      className="px-5 py-3.5 text-xs font-semibold text-left uppercase tracking-wide"
+                      style={{ color: "var(--color-text-muted)" }}
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
+
               <tbody>
+                {/* Loading skeletons */}
                 {isLoading ? (
                   [...Array(5)].map((_, i) => (
-                    <tr key={i} className="border-b border-[#F1F5F9]">
-                      {[...Array(7)].map((__, j) => (
-                        <td key={j} className="px-4 py-3"><div className="h-4 bg-[#F1F5F9] rounded animate-pulse" /></td>
+                    <tr
+                      key={i}
+                      style={{ borderBottom: "1px solid var(--color-border)" }}
+                    >
+                      {[...Array(6)].map((__, j) => (
+                        <td key={j} className="px-5 py-4">
+                          <div className="skeleton h-4 rounded" />
+                        </td>
                       ))}
                     </tr>
                   ))
                 ) : filtered.length === 0 ? (
+                  /* Empty state */
                   <tr>
-                    <td colSpan={7} className="px-4 py-16 text-center">
-                      <Users size={36} className="mx-auto mb-3 text-[#CBD5E1]" />
-                      <p className="text-sm text-[#94A3B8] font-medium">No applicants found</p>
+                    <td
+                      colSpan={6}
+                      className="px-5 py-16 text-center"
+                      style={{ color: "var(--color-text-muted)" }}
+                    >
+                      <Users size={36} className="mx-auto mb-3 opacity-25" />
+                      <p className="text-sm font-medium">No applicants found</p>
                     </td>
                   </tr>
-                ) : filtered.map((app, i) => (
-                  <tr
-                    key={app.id}
-                    onClick={() => setActiveApp(app)}
-                    className={`border-b border-[#F1F5F9] hover:bg-[#F8FAFC] cursor-pointer transition-colors ${i === filtered.length - 1 ? 'border-b-0' : ''}`}
-                  >
-                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                      <input type="checkbox" checked={selected.has(app.id)} onChange={() => toggleSelect(app.id)} className="rounded border-[#CBD5E1]" />
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-[#EFF6FF] flex items-center justify-center text-[#3B82F6] text-xs font-bold flex-shrink-0">
-                          {app.student_name?.[0]?.toUpperCase() ?? '?'}
+                ) : (
+                  /* Data rows */
+                  filtered.map((app, i) => (
+                    <tr
+                      key={app.id}
+                      onClick={() => setActiveApp(app)}
+                      className="cursor-pointer transition-colors"
+                      style={
+                        i < filtered.length - 1
+                          ? { borderBottom: "1px solid var(--color-border)" }
+                          : {}
+                      }
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLElement).style.background =
+                          "var(--color-accent-bg-hover)";
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLElement).style.background = "";
+                      }}
+                    >
+                      {/* Student name + avatar */}
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                            style={{
+                              background:
+                                "linear-gradient(135deg,#7c3aed,#4f46e5)",
+                            }}
+                          >
+                            {app.student_name?.[0]?.toUpperCase() ?? "?"}
+                          </div>
+                          <div>
+                            <p
+                              className="text-sm font-semibold"
+                              style={{ color: "var(--color-text)" }}
+                            >
+                              {app.student_name}
+                            </p>
+                            {app.cgpa && (
+                              <p
+                                className="text-xs"
+                                style={{ color: "var(--color-text-muted)" }}
+                              >
+                                CGPA: {app.cgpa}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-[#0F172A]">{app.student_name}</p>
-                          {app.cgpa && <p className="text-xs text-[#94A3B8]">CGPA: {app.cgpa}</p>}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="text-sm text-[#374151]">{app.college ?? '—'}</p>
-                      <p className="text-xs text-[#94A3B8]">{app.branch ?? '—'}</p>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-[#374151] max-w-[160px] truncate">{app.role_title}</td>
-                    <td className="px-4 py-3 text-sm text-[#64748B] whitespace-nowrap">
-                      {new Date(app.applied_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3"><StatusBadge status={app.status} /></td>
-                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                      {app.resume_url ? (
-                        <a href={app.resume_url} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-xs text-[#3B82F6] hover:underline font-medium">
-                          <Download size={12} /> PDF
-                        </a>
-                      ) : (
-                        <span className="text-xs text-[#CBD5E1]">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+
+                      {/* College / Branch */}
+                      <td className="px-5 py-4">
+                        <p
+                          className="text-sm"
+                          style={{ color: "var(--color-text-secondary)" }}
+                        >
+                          {app.college ?? "—"}
+                          {app.branch ? ` · ${app.branch}` : ""}
+                        </p>
+                      </td>
+
+                      {/* Applied For */}
+                      <td
+                        className="px-5 py-4 text-sm font-medium max-w-[160px] truncate"
+                        style={{ color: "var(--color-text)" }}
+                      >
+                        {app.role_title}
+                      </td>
+
+                      {/* Applied Date */}
+                      <td
+                        className="px-5 py-4 text-sm whitespace-nowrap"
+                        style={{ color: "var(--color-text-secondary)" }}
+                      >
+                        {new Date(app.applied_at).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </td>
+
+                      {/* Status badge */}
+                      <td className="px-5 py-4">
+                        <StatusBadge status={app.status} />
+                      </td>
+
+                      {/* Resume download */}
+                      <td
+                        className="px-5 py-4"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {app.resume_url ? (
+                          <a
+                            href={app.resume_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 transition-colors"
+                            style={{ color: "var(--color-accent)" }}
+                            title="Download Resume"
+                            onMouseEnter={(e) => {
+                              (e.currentTarget as HTMLElement).style.opacity =
+                                "0.7";
+                            }}
+                            onMouseLeave={(e) => {
+                              (e.currentTarget as HTMLElement).style.opacity =
+                                "1";
+                            }}
+                          >
+                            <Download size={16} />
+                          </a>
+                        ) : (
+                          <span
+                            className="text-xs"
+                            style={{ color: "var(--color-border-strong)" }}
+                          >
+                            —
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
+      {/* Applicant detail modal */}
       {activeApp && (
         <StudentModal
           app={activeApp}
           onClose={() => setActiveApp(null)}
-          onStatusChange={(id, status) => statusMutation.mutateAsync({ id, status })}
+          onStatusChange={(id, status) =>
+            statusMutation.mutateAsync({ id, status })
+          }
         />
       )}
     </AdminLayout>
-  )
+  );
 }
