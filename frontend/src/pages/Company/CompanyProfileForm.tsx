@@ -25,6 +25,63 @@ const STEPS = [
   { id: 5, label: 'Done' },
 ]
 
+// ─── SHARED STYLES (module scope) ───────────────────────────────────────────
+const inputBase =
+  'w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white ' +
+  'placeholder-white/25 outline-none transition-all duration-150 ' +
+  'focus:border-violet-500/60 focus:bg-white/[0.07] focus:ring-2 focus:ring-violet-500/20 ' +
+  'hover:border-white/20'
+
+const labelBase = 'block text-[11px] font-semibold uppercase tracking-widest text-white/40 mb-2'
+
+// ─── FIELD WRAPPER (module scope — must NOT be inside component) ─────────────
+function Field({ label, error, children }: { label?: string; error?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      {label && <label className={labelBase}>{label}</label>}
+      {children}
+      {error && (
+        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-400">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5.5" stroke="currentColor" strokeWidth="1" />
+            <path d="M6 3.5v3M6 8h.01" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+          </svg>
+          {error}
+        </p>
+      )}
+    </div>
+  )
+}
+
+// ─── STYLED SELECT (module scope — must NOT be inside component) ──────────────
+function StyledSelect({ name, value, onChange, placeholder, options }: {
+  name: string; value: string
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
+  placeholder: string; options: string[]
+}) {
+  return (
+    <div className="relative">
+      <select
+        name={name}
+        value={value}
+        onChange={onChange}
+        className={inputBase + ' appearance-none cursor-pointer pr-10'}
+        style={{ color: value ? '#fff' : 'rgba(255,255,255,0.25)' }}
+      >
+        <option value="" disabled style={{ background: '#0d1226', color: 'rgba(255,255,255,0.35)' }}>
+          {placeholder}
+        </option>
+        {options.map((o) => (
+          <option key={o} value={o} style={{ background: '#0d1226', color: '#fff' }}>{o}</option>
+        ))}
+      </select>
+      <svg className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 9l6 6 6-6" />
+      </svg>
+    </div>
+  )
+}
+
 type FormErrors = Record<string, string>
 type FormValues = Record<string, string>
 
@@ -181,60 +238,6 @@ export default function CompanyProfileForm() {
 
   if (isBootstrapping) {
     return <div className="min-h-screen bg-[#060a18]" />
-  }
-
-  const inputBase =
-    'w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white ' +
-    'placeholder-white/25 outline-none transition-all duration-150 ' +
-    'focus:border-violet-500/60 focus:bg-white/[0.07] focus:ring-2 focus:ring-violet-500/20 ' +
-    'hover:border-white/20'
-
-  const labelBase = 'block text-[11px] font-semibold uppercase tracking-widest text-white/40 mb-2'
-
-  function Field({ label, error, children }: { label?: string; error?: string; children: React.ReactNode }) {
-    return (
-      <div>
-        {label && <label className={labelBase}>{label}</label>}
-        {children}
-        {error && (
-          <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-400">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <circle cx="6" cy="6" r="5.5" stroke="currentColor" strokeWidth="1" />
-              <path d="M6 3.5v3M6 8h.01" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-            </svg>
-            {error}
-          </p>
-        )}
-      </div>
-    )
-  }
-
-  function StyledSelect({ name, value, onChange, placeholder, options }: {
-    name: string; value: string
-    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
-    placeholder: string; options: string[]
-  }) {
-    return (
-      <div className="relative">
-        <select
-          name={name}
-          value={value}
-          onChange={onChange}
-          className={inputBase + ' appearance-none cursor-pointer pr-10'}
-          style={{ color: value ? '#fff' : 'rgba(255,255,255,0.25)' }}
-        >
-          <option value="" disabled style={{ background: '#0d1226', color: 'rgba(255,255,255,0.35)' }}>
-            {placeholder}
-          </option>
-          {options.map((o) => (
-            <option key={o} value={o} style={{ background: '#0d1226', color: '#fff' }}>{o}</option>
-          ))}
-        </select>
-        <svg className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </div>
-    )
   }
 
   return (

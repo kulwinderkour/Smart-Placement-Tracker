@@ -10,7 +10,6 @@ import Dashboard from './pages/Student/Dashboard'
 import Tracker from './pages/Student/Tracker'
 import ResumeAnalyser from './pages/Student/ResumeAnalyser'
 import ManageStudents from './pages/Admin/ManageStudents'
-import ManageJobs from './pages/Admin/ManageJobs'
 import ManageCompanies from './pages/Admin/ManageCompanies'
 import CompanyProfileView from './pages/Admin/CompanyProfileView'
 import JobPosting from './pages/Admin/JobPosting'
@@ -18,6 +17,12 @@ import AdminNavbar from './components/layout/AdminNavbar'
 import CompanyProfileForm from './pages/Company/CompanyProfileForm'
 import CompanyOnboardingGate from './components/company/CompanyOnboardingGate'
 import OnboardingPreview from './pages/Company/OnboardingPreview'
+import AdminDashboard from './pages/Admin/AdminDashboard'
+import AdminJobs from './pages/Admin/AdminJobs'
+import AdminApplicants from './pages/Admin/AdminApplicants'
+import AdminInterviews from './pages/Admin/AdminInterviews'
+import AdminAnalytics from './pages/Admin/AdminAnalytics'
+import AdminCompanyProfile from './pages/Admin/AdminCompanyProfile'
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -69,6 +74,14 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function AdminPageRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user } = useAuthStore()
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (user && user.role !== 'admin') return <Navigate to="/dashboard" replace />
+  if (user && !user.is_onboarding_completed) return <Navigate to="/onboarding" replace />
+  return <>{children}</>
+}
+
 export const router = createBrowserRouter([
   { path: '/login',    element: <Login /> },
   { path: '/login-form', element: <LoginForm /> },
@@ -103,19 +116,35 @@ export const router = createBrowserRouter([
   },
   {
     path: '/admin/dashboard',
-    element: <AdminLayout><AdminRoute><div className="flex items-center justify-center h-screen text-white text-2xl">Admin Dashboard</div></AdminRoute></AdminLayout>
+    element: <AdminPageRoute><AdminDashboard /></AdminPageRoute>
   },
   {
     path: '/admin-dashboard',
-    element: <AdminLayout><AdminRoute><div className="flex items-center justify-center h-screen text-white text-2xl">Admin Dashboard</div></AdminRoute></AdminLayout>
+    element: <AdminPageRoute><AdminDashboard /></AdminPageRoute>
+  },
+  {
+    path: '/admin/jobs',
+    element: <AdminPageRoute><AdminJobs /></AdminPageRoute>
+  },
+  {
+    path: '/admin/applicants',
+    element: <AdminPageRoute><AdminApplicants /></AdminPageRoute>
+  },
+  {
+    path: '/admin/interviews',
+    element: <AdminPageRoute><AdminInterviews /></AdminPageRoute>
+  },
+  {
+    path: '/admin/analytics',
+    element: <AdminPageRoute><AdminAnalytics /></AdminPageRoute>
+  },
+  {
+    path: '/admin/company-profile',
+    element: <AdminPageRoute><AdminCompanyProfile /></AdminPageRoute>
   },
   {
     path: '/admin/students',
     element: <AdminLayout><AdminRoute><ManageStudents /></AdminRoute></AdminLayout>
-  },
-  {
-    path: '/admin/jobs',
-    element: <AdminLayout><AdminRoute><ManageJobs /></AdminRoute></AdminLayout>
   },
   {
     path: '/admin/companies',

@@ -165,6 +165,50 @@ export interface JobCreatePayload {
   deadline?: string
 }
 
+export interface ApplicationWithStudent {
+  id: string
+  student_id: string
+  job_id: string
+  student_name: string
+  college?: string
+  branch?: string
+  graduation_year?: number
+  cgpa?: number
+  ats_score?: number
+  phone?: string
+  resume_url?: string
+  linkedin_url?: string
+  role_title: string
+  company_name: string
+  status: 'applied' | 'online_test' | 'technical_round' | 'hr_round' | 'offer' | 'rejected'
+  applied_at: string
+  notes?: string
+}
+
+export interface Interview {
+  id: string
+  student_id: string
+  job_id: string
+  student_name: string
+  role_title: string
+  scheduled_at: string
+  mode: 'google_meet' | 'zoom' | 'offline'
+  meeting_link?: string
+  status: 'scheduled' | 'completed' | 'cancelled'
+  notes?: string
+  feedback_rating?: number
+  feedback_comment?: string
+  created_at: string
+}
+
+export interface AnalyticsData {
+  applications_over_time: { date: string; count: number }[]
+  placement_funnel: { status: string; count: number }[]
+  top_colleges: { college: string; count: number }[]
+  offer_rate: number
+  shortlist_rate: number
+}
+
 export interface ApiResponse<T> {
   success: boolean
   data: T
