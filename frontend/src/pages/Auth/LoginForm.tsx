@@ -40,7 +40,6 @@ export default function LoginForm() {
         is_onboarding_completed: loginData.is_onboarding_completed,
       })
 
-      // Route based on role + onboarding completion
       if (loginData.role === 'admin') {
         navigate(
           loginData.is_onboarding_completed
@@ -48,7 +47,13 @@ export default function LoginForm() {
             : '/onboarding'
         )
       } else {
-        navigate('/dashboard')
+        const userId = meRes.data.id
+        const onboardingComplete = localStorage.getItem(`onboardingComplete_${userId}`)
+        if (onboardingComplete === 'true') {
+          navigate('/dashboard')
+        } else {
+          navigate('/onboarding')
+        }
       }
     } catch (err: any) {
       if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {

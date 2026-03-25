@@ -32,27 +32,15 @@ export default function Register() {
       setError('')
       await authApi.register(data.email, data.password, data.role)
 
-      // Auto-login immediately after successful registration.
       const loginRes = await authApi.login(data.email, data.password)
       const loginData = loginRes.data
       localStorage.setItem('access_token', loginData.access_token)
       localStorage.setItem('refresh_token', loginData.refresh_token)
 
       const meRes = await authApi.me()
-      setUser({
-        ...meRes.data,
-        is_onboarding_completed: loginData.is_onboarding_completed,
-      })
+      setUser(meRes.data)
 
-      if (loginData.role === 'admin') {
-        navigate(
-          loginData.is_onboarding_completed
-            ? '/admin/dashboard'
-            : '/onboarding'
-        )
-      } else {
-        navigate('/dashboard')
-      }
+      navigate('/onboarding')
     } catch (err: any) {
       if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
         setError('Cannot connect to server. Is the backend running?')

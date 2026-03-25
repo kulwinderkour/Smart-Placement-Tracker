@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { GradientBlinds } from '../../components/common/GradientBlinds'
+import CurvedLoop from '../../components/common/CurvedLoop'
+import MagicBento from './MagicBento'
 
 function AnimatedCounter({ end, label, prefix = '', suffix = '' }: { end: number, label: string, prefix?: string, suffix?: string }) {
   const [count, setCount] = useState(0)
@@ -66,7 +68,7 @@ export default function Login() {
     ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  const navLinks = [
+  const navLinks: { label: string, ref: React.RefObject<HTMLElement | null>, key: string }[] = [
     { label: 'About', ref: aboutRef, key: 'about' },
     { label: 'Features', ref: featuresRef, key: 'features' },
     { label: 'How it Works', ref: howItWorksRef, key: 'howitworks' },
@@ -110,14 +112,7 @@ export default function Login() {
     return () => observer.disconnect()
   }, [])
 
-  const featureGrid = [
-    { icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>, title: "AI Job Matching", desc: "Our algorithm finds the perfect roles based on your skills.", color: "text-purple-400 bg-purple-400/10" },
-    { icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /><line x1="16" x2="8" y1="13" y2="13" /><line x1="16" x2="8" y1="17" y2="17" /><line x1="10" x2="8" y1="9" y2="9" /></svg>, title: "Resume Builder", desc: "Create ATS-friendly resumes that get you noticed instantly.", color: "text-blue-400 bg-blue-400/10" },
-    { icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="18" y1="20" y2="10" /><line x1="12" x2="12" y1="20" y2="4" /><line x1="6" x2="6" y1="20" y2="14" /></svg>, title: "Application Tracker", desc: "Monitor all your applications in one centralized dashboard.", color: "text-teal-400 bg-teal-400/10" },
-    { icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" x2="12" y1="19" y2="22" /></svg>, title: "Interview Prep", desc: "Practice with AI-driven mock interviews and feedback.", color: "text-pink-400 bg-pink-400/10" },
-    { icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>, title: "Recruiter Connect", desc: "Message directly with recruiters actively looking to hire.", color: "text-indigo-400 bg-indigo-400/10" },
-    { icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>, title: "Real-time Alerts", desc: "Get instantly notified when top companies post new jobs.", color: "text-orange-400 bg-orange-400/10" }
-  ]
+
 
   const testimonials = [
     { quote: "SmartPlacement got me into my dream company! The AI resume tips completely transformed how I applied. Absolute lifesaver for passing ATS scans.", name: "Rahul S.", role: "Software Engineer at Google", rating: 5, color: "bg-blue-500" },
@@ -134,6 +129,14 @@ export default function Login() {
           .nav-center-links { display: none !important; }
           .nav-wrapper { width: calc(100% - 24px) !important; padding: 10px 16px !important; }
           .mobile-menu-btn { display: flex !important; }
+          .curved-loop-wrap { margin-top: 24px !important; }
+          .curved-loop-wrap svg text { font-size: 28px !important; }
+          .curved-marquee-title { font-size: 20px !important; padding: 8px 20px !important; margin-bottom: -15px !important; }
+        }
+        @media (max-width: 480px) {
+          .curved-loop-wrap { margin-top: 16px !important; }
+          .curved-loop-wrap svg text { font-size: 22px !important; }
+          .curved-marquee-title { font-size: 16px !important; padding: 6px 16px !important; margin-bottom: -10px !important; }
         }
         .mobile-menu-btn { display: none; }
       `}} />
@@ -285,7 +288,7 @@ export default function Login() {
       )}
 
       {/* SECTION 1 — HERO */}
-      <section className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-[#070b18] px-6 py-[120px]" style={{ paddingTop: 'calc(120px + 100px)' }}>
+      <section className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-[#070b18] px-6 py-[120px]">
         {/* Animated GradientBlinds Background */}
         <div className="absolute inset-0 z-0 flex items-center justify-center">
           <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -614,30 +617,57 @@ export default function Login() {
           ))}
         </div>
 
+        {/* Curved Marquee with centered label */}
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          className="curved-loop-wrap"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.6, duration: 0.9 }}
           style={{
-            marginTop: 64, display: 'flex', alignItems: 'center',
-            gap: 16, flexWrap: 'wrap', justifyContent: 'center'
+            marginTop: 64,
+            width: '100vw',
+            position: 'relative',
+            zIndex: 1,
+            marginLeft: 'calc(-50vw + 50%)',
           }}
         >
-          <span style={{ fontSize: 15, color: 'rgba(255,255,255,0.3)', fontFamily: 'DM Sans,sans-serif', marginRight: 8 }}>
-            Students placed at
-          </span>
-          {['Google', 'Amazon', 'Microsoft', 'Flipkart', 'Infosys', 'TCS'].map((co, i) => (
-            <span key={i} style={{
-              padding: '8px 24px', borderRadius: 100,
-              border: '1px solid rgba(255,255,255,0.1)',
-              background: 'rgba(255,255,255,0.04)',
-              fontSize: 15, fontWeight: 500,
-              color: 'rgba(255,255,255,0.45)',
-              fontFamily: 'DM Sans,sans-serif',
-              letterSpacing: '0.02em'
-            }}>{co}</span>
-          ))}
+          {/* "Students placed at" label above the curve */}
+          <div className="curved-marquee-title" style={{
+            textAlign: 'center',
+            position: 'relative',
+            zIndex: 3,
+            marginBottom: -25, // Nudge it down to stick closer to the curve
+          }}>
+            <span style={{
+              display: 'inline-block',
+              fontFamily: 'Sora, sans-serif',
+              fontSize: 28, // Balanced size
+              fontWeight: 700,
+              color: '#ffffff',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              background: 'rgba(255, 255, 255, 0.03)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              padding: '12px 32px',
+              borderRadius: 100,
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+            }}>
+              Students placed at
+            </span>
+          </div>
+
+          <CurvedLoop
+            marqueeText="Google ✦ Amazon ✦ Microsoft ✦ Flipkart ✦ Infosys ✦ TCS ✦ Wipro ✦ Accenture ✦ Adobe ✦ Deloitte ✦ "
+            speed={1.5}
+            curveAmount={200}
+            direction="left"
+            interactive
+            fontSize={34}
+            gradientColors={['#818cf8', '#60a5fa']}
+          />
         </motion.div>
       </section>
 
@@ -937,20 +967,6 @@ export default function Login() {
             position: 'relative',
             zIndex: 1
           }}>
-            {/* Badge */}
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              padding: '5px 14px', borderRadius: 100,
-              background: 'rgba(124,58,237,0.12)',
-              border: '1px solid rgba(124,58,237,0.25)',
-              fontSize: 11, fontWeight: 700, letterSpacing: '0.1em',
-              color: '#a78bfa', textTransform: 'uppercase',
-              fontFamily: 'DM Sans, sans-serif',
-              marginBottom: 16
-            }}>
-              <span style={{ width:5, height:5, borderRadius:'50%', background:'#a78bfa', display:'inline-block' }}/>
-              Powerful Features
-            </span>
 
             <h2 style={{
               fontFamily: 'Sora, sans-serif',
@@ -979,87 +995,26 @@ export default function Login() {
             </p>
           </div>
 
-          <style dangerouslySetInnerHTML={{__html: `
-            @media (max-width: 1024px) { .feat-grid { grid-template-columns: repeat(2,1fr) !important; } }
-            @media (max-width: 640px)  { .feat-grid { grid-template-columns: 1fr !important; } }
-          `}} />
-          <div className="feat-grid" style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 16,
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
             width: '100%',
-            maxWidth: 960,
+            maxWidth: 1200,
             margin: '0 auto'
           }}>
-            {featureGrid.map((feat, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity:0, y:24 }}
-                whileInView={{ opacity:1, y:0 }}
-                viewport={{ once:true }}
-                transition={{ delay: i * 0.08 }}
-                style={{
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: 16,
-                  padding: '24px 22px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 10,
-                  cursor: 'default',
-                  transition: 'all 0.25s',
-                  position: 'relative'
-                }}
-                whileHover={{ y: -4, borderColor: 'rgba(255,255,255,0.16)', backgroundColor: 'rgba(255,255,255,0.07)' }}
-              >
-                <div style={{
-                  position: 'absolute',
-                  top: 0, left: '20%', right: '20%', height: 1,
-                  background: `linear-gradient(90deg, transparent, ${
-                    ['#a78bfa','#60a5fa','#2dd4bf','#f472b6','#818cf8','#fb923c'][i]
-                  }60, transparent)`,
-                  borderRadius: '0 0 4px 4px'
-                }}/>
-                {/* Icon box — smaller */}
-                <div style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 4,
-                  flexShrink: 0
-                }}
-                className={feat.color}
-                >
-                  {feat.icon}
-                </div>
-
-                {/* Title */}
-                <h3 style={{
-                  fontFamily: 'Sora, sans-serif',
-                  fontSize: 15,
-                  fontWeight: 700,
-                  color: '#fff',
-                  margin: 0,
-                  letterSpacing: '-0.01em'
-                }}>
-                  {feat.title}
-                </h3>
-
-                {/* Description */}
-                <p style={{
-                  fontSize: 13,
-                  color: 'rgba(255,255,255,0.5)',
-                  lineHeight: 1.6,
-                  margin: 0,
-                  fontFamily: 'DM Sans, sans-serif'
-                }}>
-                  {feat.desc}
-                </p>
-              </motion.div>
-            ))}
+            <MagicBento 
+              textAutoHide={true}
+              enableStars
+              enableSpotlight
+              enableBorderGlow={true}
+              enableTilt={true}
+              enableMagnetism={true}
+              clickEffect
+              spotlightRadius={500}
+              particleCount={16}
+              glowColor="59, 130, 246"
+              disableAnimations={false}
+            />
           </div>
         </div>
       </section>

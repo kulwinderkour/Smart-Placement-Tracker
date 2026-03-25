@@ -15,6 +15,11 @@ export const useAuthStore = create<AuthState>()((set) => ({
   logout: () => {
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
+    // Clean up legacy key + any user-scoped onboarding keys
+    localStorage.removeItem('onboardingComplete')
+    Object.keys(localStorage)
+      .filter(k => k.startsWith('onboardingComplete_'))
+      .forEach(k => localStorage.removeItem(k))
     set({ user: null, isAuthenticated: false })
   },
 }))
