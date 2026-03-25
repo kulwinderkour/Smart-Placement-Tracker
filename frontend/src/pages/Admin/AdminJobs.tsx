@@ -1,12 +1,15 @@
-import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Briefcase, MapPin, Users, X, ChevronDown } from "lucide-react";
-import { adminApi } from "../../api/admin";
-import { jobsApi } from "../../api/jobs";
+import { useState, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  Plus, Briefcase, MapPin, Users, X, ChevronDown,
+  Pencil, Trash2, PowerOff, Power, Wifi, WifiOff,
+} from "lucide-react";
+import { companyJobsApi } from "../../api/companyJobs";
 import StatusBadge from "../../components/admin/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
-import type { Job, JobCreatePayload } from "../../types";
+import type { Job, CompanyJobCreate } from "../../types";
 import { useCompanyProfileStore } from "../../store/companyProfileStore";
+import { useJobsRealtime } from "../../hooks/useJobsRealtime";
 
 const JOB_TYPES = ["full_time", "intern", "contract"] as const;
 
@@ -22,31 +25,53 @@ const INPUT_STYLE: React.CSSProperties = {
   width: "100%",
 };
 
+type JobFormState = CompanyJobCreate;
+
+const EMPTY_FORM: JobFormState = {
+  role_title: "",
+  location: "",
+  salary_min: undefined,
+  salary_max: undefined,
+  experience_min: undefined,
+  experience_max: undefined,
+  job_type: "full_time",
+  description: "",
+  deadline: "",
+};
+
+function focusBorder(e: React.FocusEvent<HTMLElement>) {
+  (e.target as HTMLElement).style.borderColor = "var(--color-accent)";
+}
+function blurBorder(e: React.FocusEvent<HTMLElement>) {
+  (e.target as HTMLElement).style.borderColor = "var(--color-border)";
+}
+
 /* ─────────────────────────────────────────────
-   Post Job Modal
+   Job Form (shared by Post + Edit modals)
 ───────────────────────────────────────────── */
-function PostJobModal({
+function JobForm({
+  title,
+  initialValues,
   onClose,
-  onSuccess,
+  onSubmit,
+  submitLabel,
 }: {
+  title: string;
+  initialValues?: Partial<JobFormState>;
   onClose: () => void;
-  onSuccess: () => void;
+  onSubmit: (form: JobFormState) => Promise<void>;
+  submitLabel: string;
 }) {
   const { profile } = useCompanyProfileStore();
-  const [form, setForm] = useState<JobCreatePayload>({
-    company_name: profile?.company_name ?? "",
-    role_title: "",
+  const [form, setForm] = useState<JobFormState>({
+    ...EMPTY_FORM,
     location: profile?.location ?? "",
-    salary_min: undefined,
-    salary_max: undefined,
-    job_type: "full_time",
-    description: "",
-    deadline: "",
+    ...initialValues,
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const set = (k: keyof JobCreatePayload, v: unknown) =>
+  const set = (k: keyof JobFormState, v: unknown) =>
     setForm((p) => ({ ...p, [k]: v }));
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,23 +83,15 @@ function PostJobModal({
     setSubmitting(true);
     setError("");
     try {
-      await jobsApi.create(form);
-      onSuccess();
+      await onSubmit(form);
       onClose();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { detail?: string } } })
         ?.response?.data?.detail;
-      setError(msg ?? "Failed to create job");
+      setError(msg ?? "Operation failed");
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const focusBorder = (e: React.FocusEvent<HTMLElement>) => {
-    (e.target as HTMLElement).style.borderColor = "var(--color-accent)";
-  };
-  const blurBorder = (e: React.FocusEvent<HTMLElement>) => {
-    (e.target as HTMLElement).style.borderColor = "var(--color-border)";
   };
 
   return (
@@ -99,22 +116,19 @@ function PostJobModal({
             className="text-base font-bold"
             style={{ color: "var(--color-text)" }}
           >
-            Post New Job
+            {title}
           </h2>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
             style={{ color: "var(--color-text-muted)" }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background =
-                "var(--color-accent-bg)";
-              (e.currentTarget as HTMLElement).style.color =
-                "var(--color-accent)";
+              (e.currentTarget as HTMLElement).style.background = "var(--color-accent-bg)";
+              (e.currentTarget as HTMLElement).style.color = "var(--color-accent)";
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLElement).style.background = "";
-              (e.currentTarget as HTMLElement).style.color =
-                "var(--color-text-muted)";
+              (e.currentTarget as HTMLElement).style.color = "var(--color-text-muted)";
             }}
           >
             <X size={18} />
@@ -139,6 +153,23 @@ function PostJobModal({
             </div>
           )}
 
+          {/* Company name (read-only, auto-filled) */}
+          {profile?.company_name && (
+            <div
+              className="rounded-lg px-4 py-3 text-sm flex items-center gap-2"
+              style={{
+                background: "rgba(124,58,237,0.08)",
+                border: "1px solid rgba(124,58,237,0.22)",
+                color: "var(--color-text-secondary)",
+              }}
+            >
+              <span style={{ color: "var(--color-text-muted)" }}>Posting as</span>
+              <span className="font-semibold" style={{ color: "var(--color-accent)" }}>
+                {profile.company_name}
+              </span>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             {/* Role Title */}
             <label className="flex flex-col gap-1.5 col-span-2">
@@ -153,24 +184,6 @@ function PostJobModal({
                 onChange={(e) => set("role_title", e.target.value)}
                 required
                 placeholder="e.g. Software Engineer Intern"
-                style={INPUT_STYLE}
-                className="theme-input"
-                onFocus={focusBorder}
-                onBlur={blurBorder}
-              />
-            </label>
-
-            {/* Company */}
-            <label className="flex flex-col gap-1.5">
-              <span
-                className="text-xs font-semibold uppercase tracking-wider"
-                style={{ color: "var(--color-text-muted)" }}
-              >
-                Company
-              </span>
-              <input
-                value={form.company_name}
-                onChange={(e) => set("company_name", e.target.value)}
                 style={INPUT_STYLE}
                 className="theme-input"
                 onFocus={focusBorder}
@@ -197,6 +210,43 @@ function PostJobModal({
               />
             </label>
 
+            {/* Job Type */}
+            <label className="flex flex-col gap-1.5">
+              <span
+                className="text-xs font-semibold uppercase tracking-wider"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                Job Type
+              </span>
+              <div className="relative">
+                <select
+                  value={form.job_type ?? "full_time"}
+                  onChange={(e) =>
+                    set("job_type", e.target.value as CompanyJobCreate["job_type"])
+                  }
+                  className="appearance-none w-full pr-8"
+                  style={INPUT_STYLE}
+                  onFocus={focusBorder}
+                  onBlur={blurBorder}
+                >
+                  {JOB_TYPES.map((t) => (
+                    <option
+                      key={t}
+                      value={t}
+                      style={{ background: "var(--color-bg-surface)" }}
+                    >
+                      {t === "full_time" ? "Full-time" : t === "intern" ? "Internship" : "Contract"}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={13}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                  style={{ color: "var(--color-text-muted)" }}
+                />
+              </div>
+            </label>
+
             {/* Salary Min */}
             <label className="flex flex-col gap-1.5">
               <span
@@ -208,12 +258,7 @@ function PostJobModal({
               <input
                 type="number"
                 value={form.salary_min ?? ""}
-                onChange={(e) =>
-                  set(
-                    "salary_min",
-                    e.target.value ? +e.target.value : undefined,
-                  )
-                }
+                onChange={(e) => set("salary_min", e.target.value ? +e.target.value : undefined)}
                 placeholder="e.g. 300000"
                 style={INPUT_STYLE}
                 className="theme-input"
@@ -233,12 +278,7 @@ function PostJobModal({
               <input
                 type="number"
                 value={form.salary_max ?? ""}
-                onChange={(e) =>
-                  set(
-                    "salary_max",
-                    e.target.value ? +e.target.value : undefined,
-                  )
-                }
+                onChange={(e) => set("salary_max", e.target.value ? +e.target.value : undefined)}
                 placeholder="e.g. 600000"
                 style={INPUT_STYLE}
                 className="theme-input"
@@ -247,52 +287,48 @@ function PostJobModal({
               />
             </label>
 
-            {/* Job Type */}
+            {/* Exp Min */}
             <label className="flex flex-col gap-1.5">
               <span
                 className="text-xs font-semibold uppercase tracking-wider"
                 style={{ color: "var(--color-text-muted)" }}
               >
-                Job Type
+                Exp Min (yrs)
               </span>
-              <div className="relative">
-                <select
-                  value={form.job_type ?? "full_time"}
-                  onChange={(e) =>
-                    set(
-                      "job_type",
-                      e.target.value as JobCreatePayload["job_type"],
-                    )
-                  }
-                  className="appearance-none w-full pr-8"
-                  style={INPUT_STYLE}
-                  onFocus={focusBorder}
-                  onBlur={blurBorder}
-                >
-                  {JOB_TYPES.map((t) => (
-                    <option
-                      key={t}
-                      value={t}
-                      style={{ background: "var(--color-bg-surface)" }}
-                    >
-                      {t === "full_time"
-                        ? "Full-time"
-                        : t === "intern"
-                          ? "Internship"
-                          : "Contract"}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  size={13}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                  style={{ color: "var(--color-text-muted)" }}
-                />
-              </div>
+              <input
+                type="number"
+                value={form.experience_min ?? ""}
+                onChange={(e) => set("experience_min", e.target.value ? +e.target.value : undefined)}
+                placeholder="0"
+                style={INPUT_STYLE}
+                className="theme-input"
+                onFocus={focusBorder}
+                onBlur={blurBorder}
+              />
+            </label>
+
+            {/* Exp Max */}
+            <label className="flex flex-col gap-1.5">
+              <span
+                className="text-xs font-semibold uppercase tracking-wider"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                Exp Max (yrs)
+              </span>
+              <input
+                type="number"
+                value={form.experience_max ?? ""}
+                onChange={(e) => set("experience_max", e.target.value ? +e.target.value : undefined)}
+                placeholder="3"
+                style={INPUT_STYLE}
+                className="theme-input"
+                onFocus={focusBorder}
+                onBlur={blurBorder}
+              />
             </label>
 
             {/* Deadline */}
-            <label className="flex flex-col gap-1.5">
+            <label className="flex flex-col gap-1.5 col-span-2">
               <span
                 className="text-xs font-semibold uppercase tracking-wider"
                 style={{ color: "var(--color-text-muted)" }}
@@ -342,16 +378,12 @@ function PostJobModal({
                 background: "transparent",
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background =
-                  "var(--color-accent-bg)";
-                (e.currentTarget as HTMLElement).style.borderColor =
-                  "var(--color-accent-border)";
+                (e.currentTarget as HTMLElement).style.background = "var(--color-accent-bg)";
+                (e.currentTarget as HTMLElement).style.borderColor = "var(--color-accent-border)";
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.background =
-                  "transparent";
-                (e.currentTarget as HTMLElement).style.borderColor =
-                  "var(--color-border)";
+                (e.currentTarget as HTMLElement).style.background = "transparent";
+                (e.currentTarget as HTMLElement).style.borderColor = "var(--color-border)";
               }}
             >
               Cancel
@@ -369,7 +401,7 @@ function PostJobModal({
                 (e.currentTarget as HTMLElement).style.background = "#7c3aed";
               }}
             >
-              {submitting ? "Posting…" : "Post Job"}
+              {submitting ? "Saving…" : submitLabel}
             </button>
           </div>
         </form>
@@ -379,18 +411,100 @@ function PostJobModal({
 }
 
 /* ─────────────────────────────────────────────
+   Post Job Modal
+───────────────────────────────────────────── */
+function PostJobModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const handleSubmit = async (form: JobFormState) => {
+    await companyJobsApi.create(form);
+    onSuccess();
+  };
+  return <JobForm title="Post New Job" onClose={onClose} onSubmit={handleSubmit} submitLabel="Post Job" />;
+}
+
+/* ─────────────────────────────────────────────
+   Edit Job Modal
+───────────────────────────────────────────── */
+function EditJobModal({
+  job,
+  onClose,
+  onSuccess,
+}: {
+  job: Job;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const handleSubmit = async (form: JobFormState) => {
+    await companyJobsApi.update(job.id, form);
+    onSuccess();
+  };
+  return (
+    <JobForm
+      title="Edit Job"
+      initialValues={{
+        role_title: job.role_title,
+        location: job.location,
+        salary_min: job.salary_min,
+        salary_max: job.salary_max,
+        experience_min: job.experience_min,
+        experience_max: job.experience_max,
+        job_type: job.job_type,
+        description: job.description,
+        deadline: job.deadline,
+      }}
+      onClose={onClose}
+      onSubmit={handleSubmit}
+      submitLabel="Save Changes"
+    />
+  );
+}
+
+/* ─────────────────────────────────────────────
    Main AdminJobs Page
 ───────────────────────────────────────────── */
 export default function AdminJobs() {
   const queryClient = useQueryClient();
-  const [showModal, setShowModal] = useState(false);
+  const [showPostModal, setShowPostModal] = useState(false);
+  const [editingJob, setEditingJob] = useState<Job | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admin-jobs"],
-    queryFn: () => adminApi.listJobs(1, 100),
+    queryKey: ["company-jobs"],
+    queryFn: () => companyJobsApi.list(1, 100),
   });
 
-  const jobs: Job[] = data?.data?.data ?? [];
+  const jobs: Job[] = (data?.data as { data?: Job[] } | undefined)?.data ?? [];
+
+  const invalidate = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: ["company-jobs"] }),
+    [queryClient],
+  );
+
+  /* Real-time: invalidate query on any job event from this company */
+  const { status: wsStatus } = useJobsRealtime({ onEvent: invalidate });
+
+  const toggleMutation = useMutation({
+    mutationFn: ({ id, is_active }: { id: string; is_active: boolean }) =>
+      companyJobsApi.setStatus(id, is_active),
+    onSuccess: () => invalidate(),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => companyJobsApi.delete(id),
+    onSuccess: () => invalidate(),
+  });
+
+  const wsIndicator = (
+    <div
+      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full"
+      style={{
+        background: wsStatus === "connected" ? "rgba(34,197,94,0.10)" : "rgba(148,163,184,0.10)",
+        border: wsStatus === "connected" ? "1px solid rgba(34,197,94,0.25)" : "1px solid rgba(148,163,184,0.2)",
+        color: wsStatus === "connected" ? "#22c55e" : "var(--color-text-muted)",
+      }}
+    >
+      {wsStatus === "connected" ? <Wifi size={12} /> : <WifiOff size={12} />}
+      {wsStatus === "connected" ? "Live" : "Offline"}
+    </div>
+  );
 
   return (
     <AdminLayout>
@@ -408,22 +522,25 @@ export default function AdminJobs() {
               className="text-sm mt-0.5"
               style={{ color: "var(--color-text-muted)" }}
             >
-              Manage your job postings
+              Manage your company's job postings
             </p>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all"
-            style={{ background: "#7c3aed", color: "#ffffff" }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = "#6d28d9";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.background = "#7c3aed";
-            }}
-          >
-            <Plus size={16} /> Post New Job
-          </button>
+          <div className="flex items-center gap-3">
+            {wsIndicator}
+            <button
+              onClick={() => setShowPostModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all"
+              style={{ background: "#7c3aed", color: "#ffffff" }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "#6d28d9";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "#7c3aed";
+              }}
+            >
+              <Plus size={16} /> Post New Job
+            </button>
+          </div>
         </div>
 
         {/* ── Loading skeletons ── */}
@@ -433,8 +550,8 @@ export default function AdminJobs() {
               <div key={i} className="skeleton rounded-xl h-52" />
             ))}
           </div>
-        ) : /* ── Empty state ── */
-        jobs.length === 0 ? (
+        ) : jobs.length === 0 ? (
+          /* ── Empty state ── */
           <div
             className="flex flex-col items-center justify-center py-24"
             style={{ color: "var(--color-text-muted)" }}
@@ -450,15 +567,11 @@ export default function AdminJobs() {
               Post your first job to start receiving applications
             </p>
             <button
-              onClick={() => setShowModal(true)}
+              onClick={() => setShowPostModal(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
               style={{ background: "#7c3aed", color: "#ffffff" }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background = "#6d28d9";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.background = "#7c3aed";
-              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#6d28d9"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "#7c3aed"; }}
             >
               <Plus size={15} /> Post New Job
             </button>
@@ -493,67 +606,30 @@ export default function AdminJobs() {
                   )}
 
                   <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
-                    {/* Job type */}
                     {job.job_type && (
-                      <div
-                        className="flex items-center gap-2 text-sm"
-                        style={{ color: "var(--color-text-secondary)" }}
-                      >
-                        <Briefcase
-                          size={14}
-                          className="shrink-0"
-                          style={{ color: "var(--color-text-muted)" }}
-                        />
-                        {job.job_type === "full_time"
-                          ? "Full-time"
-                          : job.job_type === "intern"
-                            ? "Internship"
-                            : "Contract"}
+                      <div className="flex items-center gap-2 text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                        <Briefcase size={14} className="shrink-0" style={{ color: "var(--color-text-muted)" }} />
+                        {job.job_type === "full_time" ? "Full-time" : job.job_type === "intern" ? "Internship" : "Contract"}
                       </div>
                     )}
-
-                    {/* Location */}
                     {job.location && (
-                      <div
-                        className="flex items-center gap-2 text-sm"
-                        style={{ color: "var(--color-text-secondary)" }}
-                      >
-                        <MapPin
-                          size={14}
-                          className="shrink-0"
-                          style={{ color: "var(--color-text-muted)" }}
-                        />
+                      <div className="flex items-center gap-2 text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                        <MapPin size={14} className="shrink-0" style={{ color: "var(--color-text-muted)" }} />
                         {job.location}
                       </div>
                     )}
-
-                    {/* Salary */}
                     {(job.salary_min || job.salary_max) && (
-                      <div
-                        className="flex items-center gap-2 text-sm"
-                        style={{ color: "var(--color-text-secondary)" }}
-                      >
+                      <div className="flex items-center gap-2 text-sm" style={{ color: "var(--color-text-secondary)" }}>
                         <span className="text-sm">💰</span>
                         {job.salary_min && job.salary_max
                           ? `₹${(job.salary_min / 100000).toFixed(0)}–${(job.salary_max / 100000).toFixed(0)} LPA`
-                          : job.salary_max
-                            ? `₹${(job.salary_max / 100000).toFixed(1)}L`
-                            : "—"}
+                          : job.salary_max ? `₹${(job.salary_max / 100000).toFixed(1)}L` : "—"}
                       </div>
                     )}
-
-                    {/* Deadline */}
                     {job.deadline && (
-                      <div
-                        className="flex items-center gap-2 text-sm"
-                        style={{ color: "var(--color-text-secondary)" }}
-                      >
+                      <div className="flex items-center gap-2 text-sm" style={{ color: "var(--color-text-secondary)" }}>
                         <span className="text-sm">🕐</span>
-                        {new Date(job.deadline).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
+                        {new Date(job.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </div>
                     )}
                   </div>
@@ -564,50 +640,92 @@ export default function AdminJobs() {
                   className="flex items-center justify-between px-5 py-3"
                   style={{ borderTop: "1px solid var(--color-border)" }}
                 >
-                  <div
-                    className="flex items-center gap-1.5 text-sm"
-                    style={{ color: "var(--color-text-muted)" }}
-                  >
-                    <Users
-                      size={15}
-                      className="shrink-0"
-                      style={{ color: "var(--color-text-muted)" }}
-                    />
-                    <span
-                      className="font-semibold"
-                      style={{ color: "var(--color-text)" }}
-                    >
-                      {(job as Job & { application_count?: number })
-                        .application_count ?? 0}
+                  {/* Applicant count */}
+                  <div className="flex items-center gap-1.5 text-sm" style={{ color: "var(--color-text-muted)" }}>
+                    <Users size={15} className="shrink-0" style={{ color: "var(--color-text-muted)" }} />
+                    <span className="font-semibold" style={{ color: "var(--color-text)" }}>
+                      {job.application_count ?? 0}
                     </span>
                     <span>applicants</span>
                   </div>
 
-                  <button
-                    onClick={() =>
-                      (window.location.href = `/admin/applicants?job=${job.id}`)
-                    }
-                    className="text-sm font-semibold px-4 py-1.5 rounded-lg transition-all"
-                    style={{
-                      background: "transparent",
-                      border: "1px solid var(--color-border)",
-                      color: "var(--color-text-secondary)",
-                    }}
-                    onMouseEnter={(e) => {
-                      const el = e.currentTarget as HTMLElement;
-                      el.style.borderColor = "var(--color-accent)";
-                      el.style.color = "var(--color-accent)";
-                      el.style.background = "var(--color-accent-bg)";
-                    }}
-                    onMouseLeave={(e) => {
-                      const el = e.currentTarget as HTMLElement;
-                      el.style.borderColor = "var(--color-border)";
-                      el.style.color = "var(--color-text-secondary)";
-                      el.style.background = "transparent";
-                    }}
-                  >
-                    View Details
-                  </button>
+                  {/* Action buttons */}
+                  <div className="flex items-center gap-1.5">
+                    {/* View applicants */}
+                    <button
+                      onClick={() => (window.location.href = `/admin/applicants?job=${job.id}`)}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
+                      style={{ background: "transparent", border: "1px solid var(--color-border)", color: "var(--color-text-secondary)" }}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget as HTMLElement;
+                        el.style.borderColor = "var(--color-accent)";
+                        el.style.color = "var(--color-accent)";
+                        el.style.background = "var(--color-accent-bg)";
+                      }}
+                      onMouseLeave={(e) => {
+                        const el = e.currentTarget as HTMLElement;
+                        el.style.borderColor = "var(--color-border)";
+                        el.style.color = "var(--color-text-secondary)";
+                        el.style.background = "transparent";
+                      }}
+                    >
+                      Applicants
+                    </button>
+
+                    {/* Edit */}
+                    <button
+                      onClick={() => setEditingJob(job)}
+                      title="Edit job"
+                      className="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
+                      style={{ border: "1px solid var(--color-border)", color: "var(--color-text-muted)", background: "transparent" }}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget as HTMLElement;
+                        el.style.borderColor = "var(--color-accent)";
+                        el.style.color = "var(--color-accent)";
+                        el.style.background = "var(--color-accent-bg)";
+                      }}
+                      onMouseLeave={(e) => {
+                        const el = e.currentTarget as HTMLElement;
+                        el.style.borderColor = "var(--color-border)";
+                        el.style.color = "var(--color-text-muted)";
+                        el.style.background = "transparent";
+                      }}
+                    >
+                      <Pencil size={13} />
+                    </button>
+
+                    {/* Toggle active */}
+                    <button
+                      onClick={() => toggleMutation.mutate({ id: job.id, is_active: !job.is_active })}
+                      title={job.is_active ? "Deactivate" : "Activate"}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
+                      style={{
+                        border: job.is_active ? "1px solid rgba(234,179,8,0.35)" : "1px solid rgba(34,197,94,0.35)",
+                        color: job.is_active ? "#eab308" : "#22c55e",
+                        background: job.is_active ? "rgba(234,179,8,0.08)" : "rgba(34,197,94,0.08)",
+                      }}
+                    >
+                      {job.is_active ? <PowerOff size={13} /> : <Power size={13} />}
+                    </button>
+
+                    {/* Delete */}
+                    <button
+                      onClick={() => {
+                        if (confirm(`Remove "${job.role_title}"? This cannot be undone.`)) {
+                          deleteMutation.mutate(job.id);
+                        }
+                      }}
+                      title="Remove job"
+                      className="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
+                      style={{
+                        border: "1px solid rgba(239,68,68,0.30)",
+                        color: "#ef4444",
+                        background: "rgba(239,68,68,0.07)",
+                      }}
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -616,12 +734,22 @@ export default function AdminJobs() {
       </div>
 
       {/* Post Job Modal */}
-      {showModal && (
+      {showPostModal && (
         <PostJobModal
-          onClose={() => setShowModal(false)}
-          onSuccess={() =>
-            queryClient.invalidateQueries({ queryKey: ["admin-jobs"] })
-          }
+          onClose={() => setShowPostModal(false)}
+          onSuccess={invalidate}
+        />
+      )}
+
+      {/* Edit Job Modal */}
+      {editingJob && (
+        <EditJobModal
+          job={editingJob}
+          onClose={() => setEditingJob(null)}
+          onSuccess={() => {
+            setEditingJob(null);
+            invalidate();
+          }}
         />
       )}
     </AdminLayout>

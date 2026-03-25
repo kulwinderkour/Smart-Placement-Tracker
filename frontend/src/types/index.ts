@@ -26,15 +26,56 @@ export interface Student {
 export interface Job {
   id: string
   company_name: string
+  company_profile_id?: string
   role_title: string
   location?: string
   salary_min?: number
   salary_max?: number
+  experience_min?: number
+  experience_max?: number
   job_type?: 'full_time' | 'intern' | 'contract'
   description?: string
   deadline?: string
   is_active: boolean
+  application_count?: number
   created_at: string
+  updated_at?: string
+}
+
+export interface CompanyJobCreate {
+  role_title: string
+  location?: string
+  salary_min?: number
+  salary_max?: number
+  experience_min?: number
+  experience_max?: number
+  job_type?: 'full_time' | 'intern' | 'contract'
+  description?: string
+  deadline?: string
+}
+
+export interface CompanyStats {
+  company_name: string
+  company_id: string
+  total_jobs: number
+  active_jobs: number
+  total_applications: number
+  status_breakdown: Record<string, number>
+  offer_count: number
+  offer_rate: number
+  recent_jobs: Job[]
+  recent_applications: {
+    id: string
+    student_name: string
+    role_title: string
+    status: string
+    applied_at: string
+  }[]
+}
+
+export interface RealtimeJobEvent {
+  event: 'job_created' | 'job_updated' | 'job_deleted' | 'job_activated' | 'job_deactivated'
+  job: Partial<Job> & { id: string }
 }
 
 export interface Application {

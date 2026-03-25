@@ -10,7 +10,7 @@ import {
   FileText,
   ChevronDown,
 } from "lucide-react";
-import { adminApi } from "../../api/admin";
+import { companyJobsApi } from "../../api/companyJobs";
 import StatusBadge from "../../components/admin/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
 import type { ApplicationWithStudent, Job } from "../../types";
@@ -326,24 +326,24 @@ export default function AdminApplicants() {
   );
 
   const { data: appsData, isLoading } = useQuery({
-    queryKey: ["admin-applicants", jobFilter, statusFilter],
+    queryKey: ["company-applicants", jobFilter, statusFilter],
     queryFn: () =>
-      adminApi.listApplicants(
+      companyJobsApi.listApplicants(
         jobFilter === "all" ? undefined : jobFilter,
         statusFilter === "all" ? undefined : statusFilter,
       ),
   });
 
   const { data: jobsData } = useQuery({
-    queryKey: ["admin-jobs"],
-    queryFn: () => adminApi.listJobs(1, 100),
+    queryKey: ["company-jobs"],
+    queryFn: () => companyJobsApi.list(1, 100),
   });
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
-      adminApi.updateApplicationStatus(id, status),
+      companyJobsApi.updateApplicantStatus(id, status),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["admin-applicants"] }),
+      queryClient.invalidateQueries({ queryKey: ["company-applicants"] }),
   });
 
   const apps: ApplicationWithStudent[] = appsData?.data?.data ?? [];

@@ -10,7 +10,7 @@ import {
   CalendarDays,
   BarChart2,
 } from "lucide-react";
-import { adminApi } from "../../api/admin";
+import { companyJobsApi } from "../../api/companyJobs";
 import { useAuthStore } from "../../store/authStore";
 import { useCompanyProfileStore } from "../../store/companyProfileStore";
 import StatusBadge from "../../components/admin/StatusBadge";
@@ -33,44 +33,42 @@ export default function AdminDashboard() {
     profile?.company_name ?? user?.email?.split("@")[0] ?? "Admin";
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admin-stats"],
-    queryFn: () => adminApi.getStats(),
+    queryKey: ["company-stats"],
+    queryFn: () => companyJobsApi.getStats(),
     refetchInterval: 30_000,
   });
 
-  const stats = data?.data;
+  const stats = data?.data?.data;
   const shortlisted =
-    stats?.recent_applications?.filter(
-      (a: { status: string }) =>
-        a.status === "hr_round" || a.status === "offer",
-    ).length ?? 0;
+    (stats?.status_breakdown?.["hr_round"] ?? 0) +
+    (stats?.status_breakdown?.["offer"] ?? 0);
 
   const METRIC_CARDS = [
     {
       title: "Active Jobs",
-      value: isLoading ? "—" : (stats?.total_jobs ?? 0),
-      subtitle: "+3 this week",
+      value: isLoading ? "—" : (stats?.active_jobs ?? 0),
+      subtitle: `${stats?.total_jobs ?? 0} total`,
       icon: <Briefcase size={20} />,
       ...CARD_ICONS[0],
     },
     {
       title: "Total Applicants",
       value: isLoading ? "—" : (stats?.total_applications ?? 0),
-      subtitle: "+24 today",
+      subtitle: "across all jobs",
       icon: <Users size={20} />,
       ...CARD_ICONS[1],
     },
     {
       title: "Shortlisted",
       value: isLoading ? "—" : shortlisted,
-      subtitle: "+8 this week",
+      subtitle: "HR round + offers",
       icon: <CheckCircle size={20} />,
       ...CARD_ICONS[2],
     },
     {
-      title: "Students Placed",
-      value: isLoading ? "—" : (stats?.total_students ?? 0),
-      subtitle: "+2 this month",
+      title: "Offers Made",
+      value: isLoading ? "—" : (stats?.offer_count ?? 0),
+      subtitle: `${stats?.offer_rate ?? 0}% offer rate`,
       icon: <GraduationCap size={20} />,
       ...CARD_ICONS[3],
     },
