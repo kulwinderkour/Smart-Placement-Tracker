@@ -31,13 +31,19 @@ export default function GoogleCallback() {
         // This setUser is safe to call inside the effect because we extracted 
         // the function itself at the top level of the component 
         setUser(meRes.data);
-        
-        const userId = meRes.data.id
-        const onboardingComplete = localStorage.getItem(`onboardingComplete_${userId}`);
-        if (onboardingComplete === 'true') {
-          navigate('/dashboard', { replace: true });
+        if (meRes.data.role === 'admin') {
+          navigate(
+            meRes.data.is_onboarding_completed ? '/admin/dashboard' : '/onboarding',
+            { replace: true }
+          );
         } else {
-          navigate('/onboarding', { replace: true });
+          const userId = meRes.data.id
+          const onboardingComplete = localStorage.getItem(`onboardingComplete_${userId}`);
+          if (onboardingComplete === 'true') {
+            navigate('/dashboard', { replace: true });
+          } else {
+            navigate('/onboarding', { replace: true });
+          }
         }
 
       } catch (err) {

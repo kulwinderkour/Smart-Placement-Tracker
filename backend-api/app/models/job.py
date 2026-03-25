@@ -2,8 +2,8 @@ import enum
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Boolean, Date, DateTime, Enum, Integer, SmallInteger, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, Integer, SmallInteger, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
@@ -18,6 +18,9 @@ class Job(Base):
     __tablename__ = "jobs"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    company_profile_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("company_profiles.id"), nullable=True, index=True
+    )
     source_url: Mapped[str | None] = mapped_column(unique=True)
     source_hash: Mapped[str | None] = mapped_column(String(32))
     company_name: Mapped[str] = mapped_column(String(200), nullable=False)
@@ -39,3 +42,5 @@ class Job(Base):
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
     )
+
+    company_profile = relationship("CompanyProfile", backref="jobs", lazy="select")
