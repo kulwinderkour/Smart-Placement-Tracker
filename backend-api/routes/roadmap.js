@@ -4,18 +4,21 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
-// Redis setup (for cache only, not primary storage)
+// Upstash Redis setup (REST based)
 let redis = null;
+
 try {
-    redis = require('redis').createClient({
-        host: 'redis-16757-0.cloudclusters.net',
-        port: 16757,
-        password: 'p5aF2uE9JdQco2tF'
+    const { Redis } = require("@upstash/redis");
+
+    redis = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
     });
-    redis.connect().catch(console.error);
-    console.log('Redis initialized correctly.');
+
+    console.log("Upstash Redis connected successfully");
+
 } catch (error) {
-    console.log('Redis initialization failed:', error.message);
+    console.log("Upstash Redis initialization failed:", error.message);
 }
 
 // Database setup (for permanent storage)
@@ -189,15 +192,15 @@ router.get('/generate', async (req, res) => {
       // Also cache in Redis for faster access
       if (redis) {
         try {
-          await redis.setex(
+          await redis.set(
             `roadmap:${normalizedField}`, 
-            3600, // 1 hour cache
             JSON.stringify({
               data: dbRoadmap.data,
               fromCache: true,
               fromDatabase: true,
               usage_count: dbRoadmap.usage_count
-            })
+            }),
+            { ex: 3600 }
           );
         } catch (e) {
           console.log('Redis cache set error:', e.message);
@@ -301,11 +304,11 @@ Rules:
     // Stage 5: Cache in Redis (Temporary Cache)
     if (redis) {
       try {
-        await redis.setex(`roadmap:${normalizedField}`, 604800, JSON.stringify({ // 7 days
+        await redis.set(`roadmap:${normalizedField}`, JSON.stringify({
           data: roadmapData,
           fromCache: false,
           fromDatabase: true
-        }));
+        }), { ex: 604800 });
         console.log('Saved to cache: roadmap:' + normalizedField);
       } catch (e) {
         console.log('Redis cache set error:', e.message);
@@ -466,7 +469,7 @@ router.get('/stats', async (req, res) => {
 router.get('/cached', async (req, res) => {
   try {
     if (!redis) {
-        return res.json({ roadmaps: [], count: 0, warning: 'Redis not configured' });
+        return res.json({ roadmaps: [], count: 0, warning: 'Redis not configured or not connected' });
     }
     const keys = await redis.keys('roadmap:*');
     const names = keys.map(k => k.replace('roadmap:', '').replace(/-/g, ' '));
@@ -479,7 +482,7 @@ router.get('/cached', async (req, res) => {
 
 router.delete('/cache/:field', async (req, res) => {
   try {
-    if (!redis) throw new Error('Redis not configured');
+    if (!redis) throw new Error('Redis not configured or not connected');
     const key = `roadmap:${normalizeKey(req.params.field)}`;
     await redis.del(key);
     return res.json({ deleted: key });
