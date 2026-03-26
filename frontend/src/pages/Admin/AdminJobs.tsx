@@ -80,6 +80,10 @@ function JobForm({
       setError("Role title is required");
       return;
     }
+    if (!form.deadline) {
+      setError("Deadline is required");
+      return;
+    }
     setSubmitting(true);
     setError("");
     try {
@@ -333,12 +337,14 @@ function JobForm({
                 className="text-xs font-semibold uppercase tracking-wider"
                 style={{ color: "var(--color-text-muted)" }}
               >
-                Deadline
+                Deadline{" "}
+                <span style={{ color: "#ef4444" }}>*</span>
               </span>
               <input
                 type="date"
                 value={form.deadline ?? ""}
                 onChange={(e) => set("deadline", e.target.value)}
+                required
                 style={INPUT_STYLE}
                 onFocus={focusBorder}
                 onBlur={blurBorder}
