@@ -9,4 +9,6 @@ export const authApi = {
     apiClient.post<LoginResponse>('/auth/login', { email, password }),
 
   me: () => apiClient.get<User>('/auth/me'),
+
+  completeOnboarding: () => apiClient.patch<User>('/auth/complete-onboarding'),
 }
