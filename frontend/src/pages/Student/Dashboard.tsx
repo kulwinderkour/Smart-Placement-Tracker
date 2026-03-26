@@ -149,7 +149,6 @@ export default function Dashboard() {
             <ActionCard title="Browse Jobs" subtitle="Roles for you" to="/jobs" icon="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             <ActionCard title="Resume Analyser" subtitle="Check ATS Score" to="/resume" icon="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <ActionCard title="Application Tracker" subtitle="Manage pipeline" to="/tracker" icon="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6" />
-            <ActionCard title="Mock Interviews" subtitle="Skill practice" to="/mock" icon="M15 10l4.5 2.5L15 15v-5zM4 8h11v8H4V8z" />
           </div>
 
           {/* Recent Apps */}

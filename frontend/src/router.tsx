@@ -12,8 +12,6 @@ import Tracker from "./pages/Student/Tracker";
 import ResumeAnalyser from "./pages/Student/ResumeAnalyser";
 import Roadmap from "./pages/Student/Roadmap";
 import Questions from "./pages/Student/Questions";
-import MockInterview from "./pages/Student/MockInterview";
-import InterviewRoom from "./pages/Student/InterviewRoom";
 import Onboarding from "./pages/Student/Onboarding";
 import Profile from "./pages/Student/Profile";
 import ManageStudents from "./pages/Admin/ManageStudents";
@@ -153,24 +151,6 @@ export const router = createBrowserRouter([
         <DashboardLayout>
           <Questions />
         </DashboardLayout>
-      </OnboardingGuard>
-    ),
-  },
-  {
-    path: "/student/mock-interviews",
-    element: (
-      <OnboardingGuard>
-        <DashboardLayout>
-          <MockInterview />
-        </DashboardLayout>
-      </OnboardingGuard>
-    ),
-  },
-  {
-    path: "/student/mock-interviews/room",
-    element: (
-      <OnboardingGuard>
-        <InterviewRoom />
       </OnboardingGuard>
     ),
   },
