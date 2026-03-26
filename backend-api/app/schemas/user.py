@@ -22,6 +22,7 @@ class UserResponse(BaseModel):
     email: str
     role: UserRole
     is_active: bool
+    is_onboarding_completed: bool
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -31,3 +32,11 @@ class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+
+
+class LoginResponse(TokenResponse):
+    """Extended token response that includes role and profile-completion flag
+    so the frontend can route in a single API call."""
+    role: str
+    is_onboarding_completed: bool
+    is_company_profile_completed: bool = False

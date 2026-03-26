@@ -39,6 +39,8 @@ jobs:
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:testpass@localhost/testdb
           JWT_SECRET: test-secret-key
+          GOOGLE_CLIENT_ID: test-client-id
+          GOOGLE_CLIENT_SECRET: test-client-secret
         run: |
           cd backend-api
           if [ -d "tests" ]; then

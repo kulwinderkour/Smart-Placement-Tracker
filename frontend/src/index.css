@@ -1,5 +1,78 @@
 @import "tailwindcss";
 
+/* ─── Light theme tokens (default) ──────────────── */
+
+:root {
+    /* Page background — neutral cool gray, not lavender */
+    --color-bg-base: #f0f2f5;
+    /* Card / sidebar / top-bar surfaces — clean white */
+    --color-bg-surface: #ffffff;
+    /* Slightly off-white elevated areas */
+    --color-bg-elevated: #f8f9fb;
+    /* Borders — subtle neutral gray */
+    --color-border: #e2e5ea;
+    /* Stronger border (used on hover / active rings) */
+    --color-border-strong: #bbbfca;
+    /* Text — near-black, no purple tint */
+    --color-text: #111827;
+    /* Secondary text — dark gray */
+    --color-text-secondary: #374151;
+    /* Muted text — medium gray */
+    --color-text-muted: #6b7280;
+    /* Purple accent — kept the same for icons, badges, active states */
+    --color-accent: #7c3aed;
+    --color-accent-light: #7c3aed;
+    --color-accent-bg: rgba(124, 58, 237, 0.07);
+    --color-accent-bg-hover: rgba(124, 58, 237, 0.05);
+    --color-accent-border: rgba(124, 58, 237, 0.22);
+    --color-accent-glow: rgba(124, 58, 237, 0.1);
+    --color-danger: #dc2626;
+    --color-danger-bg: rgba(220, 38, 38, 0.07);
+    --color-skeleton-from: #e9eaed;
+    --color-skeleton-mid: #d4d6db;
+    --color-scrollbar-track: #f0f2f5;
+    --color-scrollbar-thumb: #d1d5db;
+    --color-scrollbar-hover: #a78bfa;
+    /* Student theme variables */
+    --text: #6b6375;
+    --text-h: #08060d;
+    --bg: #fff;
+    --border: #e5e4e7;
+    --code-bg: #f4f3ec;
+    --accent: #aa3bff;
+    --accent-bg: rgba(170, 59, 255, 0.1);
+    --accent-border: rgba(170, 59, 255, 0.5);
+    --social-bg: rgba(244, 243, 236, 0.5);
+    --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+    --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+    --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+    --mono: ui-monospace, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --border: #2e303a;
+    --code-bg: #1f2028;
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --accent-border: rgba(192, 132, 252, 0.5);
+    --social-bg: rgba(47, 48, 58, 0.5);
+    --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  }
+
+  #social .button-icon {
+    filter: invert(1) brightness(2);
+  }
+}
+
+#root {
+  width: 100%;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
 :root {
   --text: #6b6375;
   --text-h: #08060d;
@@ -60,7 +133,367 @@
   box-sizing: border-box;
 }
 
+/* ─── Dark theme tokens ──────────────────────────── */
+
+.dark {
+    --color-bg-base: #0f0d1a;
+    --color-bg-surface: #1a1625;
+    --color-bg-elevated: #14111f;
+    --color-border: #2d2540;
+    --color-border-strong: #4a3575;
+    --color-text: #ffffff;
+    --color-text-secondary: #c4b8e0;
+    --color-text-muted: #7c6fa0;
+    --color-accent: #7c3aed;
+    --color-accent-light: #a78bfa;
+    --color-accent-bg: rgba(124, 58, 237, 0.18);
+    --color-accent-bg-hover: rgba(124, 58, 237, 0.08);
+    --color-accent-border: rgba(124, 58, 237, 0.35);
+    --color-accent-glow: rgba(124, 58, 237, 0.22);
+    --color-danger: #f87171;
+    --color-danger-bg: rgba(239, 68, 68, 0.1);
+    --color-skeleton-from: #1a1625;
+    --color-skeleton-mid: #2d2540;
+    --color-scrollbar-track: #0f0d1a;
+    --color-scrollbar-thumb: #2d2540;
+    --color-scrollbar-hover: #4a3575;
+}
+
+/* ─── Base ───────────────────────────────────────── */
+
 body {
+    font-family:
+        "Inter",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    background-color: #0f0d1a;
+    color: #ffffff;
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+}
+
+/* ─── Admin shell: theme-aware background & text ── */
+
+.admin-shell {
+    background-color: var(--color-bg-base);
+    color: var(--color-text);
+    transition:
+        background-color 0.25s ease,
+        color 0.2s ease;
+    min-height: 100vh;
+}
+
+/* ─── Keyframes ──────────────────────────────────── */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.93);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -400px 0;
+    }
+    100% {
+        background-position: 400px 0;
+    }
+}
+
+/* ─── Page / Card entrance animations ───────────── */
+
+.page-enter,
+.animate-fade-in {
+    animation: fadeInUp 0.35s ease-out both;
+}
+
+.card-enter,
+.animate-scale-in {
+    animation: scaleIn 0.3s ease-out both;
+}
+
+/* nth-child stagger */
+.card-enter:nth-child(1) {
+    animation-delay: 0ms;
+}
+.card-enter:nth-child(2) {
+    animation-delay: 60ms;
+}
+.card-enter:nth-child(3) {
+    animation-delay: 120ms;
+}
+.card-enter:nth-child(4) {
+    animation-delay: 180ms;
+}
+
+/* Named stagger classes */
+.animate-stagger-1 {
+    animation-delay: 0ms;
+}
+.animate-stagger-2 {
+    animation-delay: 60ms;
+}
+.animate-stagger-3 {
+    animation-delay: 120ms;
+}
+.animate-stagger-4 {
+    animation-delay: 180ms;
+}
+
+/* ─── Skeleton loader ────────────────────────────── */
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--color-skeleton-from) 25%,
+        var(--color-skeleton-mid) 50%,
+        var(--color-skeleton-from) 75%
+    );
+    background-size: 400px 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* ─── Glass card ─────────────────────────────────── */
+
+.glass-card {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    transition:
+        background-color 0.25s ease,
+        border-color 0.15s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+/* ─── Hover utilities ────────────────────────────── */
+
+.hover-scale:hover {
+    transform: scale(1.02);
+}
+
+.hover-glow:hover {
+    box-shadow: 0 8px 32px var(--color-accent-glow);
+    border-color: var(--color-border-strong);
+}
+
+.hover-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 32px var(--color-accent-glow);
+    border-color: var(--color-border-strong);
+}
+
+/* ─── User avatar — light lavender in light, dark gradient in dark ── */
+
+.user-avatar {
+    background: rgba(124, 58, 237, 0.12);
+    color: #7c3aed;
+}
+
+.dark .user-avatar {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    color: #ffffff;
+}
+
+/* ─── Admin badge pill ───────────────────────────── */
+
+.admin-badge {
+    background: rgba(124, 58, 237, 0.12);
+    color: #7c3aed;
+}
+
+.dark .admin-badge {
+    background: rgba(124, 58, 237, 0.25);
+    color: #a78bfa;
+}
+
+/* ─── Theme-aware input placeholder ─────────────── */
+
+.theme-input::placeholder {
+    color: var(--color-text-muted);
+    opacity: 1;
+}
+
+/* ─── Light mode overrides — SCOPED to .admin-shell ─
+   Only admin pages get these overrides.
+   Public pages (login, landing) are never affected.  */
+
+/* Tailwind text-white inside admin shell */
+html:not(.dark) .admin-shell .text-white {
+    color: var(--color-text) !important;
+}
+
+html:not(.dark) .admin-shell .text-gray-400,
+html:not(.dark) .admin-shell .text-gray-500 {
+    color: var(--color-text-muted) !important;
+}
+
+/* Glass card subtle shadow in light mode */
+html:not(.dark) .admin-shell .glass-card {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Page headings */
+html:not(.dark) .admin-shell .page-enter h1,
+html:not(.dark) .admin-shell .page-enter h2,
+html:not(.dark) .admin-shell .page-enter h3 {
+    color: var(--color-text) !important;
+}
+
+/* Stat number values */
+html:not(.dark) .admin-shell .text-4xl {
+    color: var(--color-text) !important;
+}
+
+/* Inline-style muted colour (#7c6fa0) */
+html:not(.dark) .admin-shell [style*="color: #7c6fa0"],
+html:not(.dark) .admin-shell [style*="color:#7c6fa0"] {
+    color: var(--color-text-muted) !important;
+}
+
+/* Inline-style secondary colours (#a78bfa / #c4b8e0) */
+html:not(.dark) .admin-shell [style*="color: #a78bfa"],
+html:not(.dark) .admin-shell [style*="color:#a78bfa"] {
+    color: var(--color-accent) !important;
+}
+
+html:not(.dark) .admin-shell [style*="color: #c4b8e0"],
+html:not(.dark) .admin-shell [style*="color:#c4b8e0"] {
+    color: var(--color-text-secondary) !important;
+}
+
+/* Inline-style white text */
+html:not(.dark) .admin-shell [style*="color: #ffffff"],
+html:not(.dark) .admin-shell [style*="color:#ffffff"],
+html:not(.dark) .admin-shell [style*="color: white"],
+html:not(.dark) .admin-shell [style*="color:white"] {
+    color: var(--color-text) !important;
+}
+
+/* Hardcoded dark surface backgrounds */
+html:not(.dark) .admin-shell [style*="background: #1a1625"],
+html:not(.dark) .admin-shell [style*="background:#1a1625"],
+html:not(.dark) .admin-shell [style*="background-color: #1a1625"],
+html:not(.dark) .admin-shell [style*="background-color:#1a1625"] {
+    background: var(--color-bg-surface) !important;
+}
+
+html:not(.dark) .admin-shell [style*="background: #0f0d1a"],
+html:not(.dark) .admin-shell [style*="background:#0f0d1a"],
+html:not(.dark) .admin-shell [style*="background-color: #0f0d1a"],
+html:not(.dark) .admin-shell [style*="background-color:#0f0d1a"] {
+    background: var(--color-bg-base) !important;
+}
+
+html:not(.dark) .admin-shell [style*="background: #14111f"],
+html:not(.dark) .admin-shell [style*="background:#14111f"] {
+    background: var(--color-bg-elevated) !important;
+}
+
+/* Hardcoded dark borders */
+html:not(.dark) .admin-shell [style*="border-bottom: 1px solid #2d2540"],
+html:not(.dark) .admin-shell [style*="border-bottom:1px solid #2d2540"] {
+    border-bottom-color: var(--color-border) !important;
+}
+
+html:not(.dark) .admin-shell [style*="border: 1px solid #2d2540"],
+html:not(.dark) .admin-shell [style*="border:1px solid #2d2540"] {
+    border-color: var(--color-border) !important;
+}
+
+html:not(.dark) .admin-shell [style*="border-right: 1px solid #2d2540"],
+html:not(.dark) .admin-shell [style*="border-right:1px solid #2d2540"] {
+    border-right-color: var(--color-border) !important;
+}
+
+html:not(.dark) .admin-shell [style*="border-top: 1px solid #2d2540"],
+html:not(.dark) .admin-shell [style*="border-top:1px solid #2d2540"] {
+    border-top-color: var(--color-border) !important;
+}
+
+/* Scrollbar ──────────────────────────────────────── */
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-scrollbar-thumb);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-scrollbar-hover);
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+
   margin: 0;
 }
 

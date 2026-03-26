@@ -9,7 +9,11 @@ export default function Navbar() {
   const email = user?.email || 'user@example.com'
   const initials = email.substring(0, 2).toUpperCase()
 
-  const navLinks = [
+  const navLinks = user?.role === 'admin' ? [
+    { name: 'Dashboard', path: '/admin/dashboard' },
+    { name: 'Students', path: '/admin/students' },
+    { name: 'Jobs', path: '/admin/jobs' }
+  ] : [
     { name: 'Jobs', path: '/jobs' },
     { name: 'Dashboard', path: '/dashboard' },
     { name: 'Questions', path: '/questions' },

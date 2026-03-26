@@ -1,3 +1,34 @@
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import { useAuthStore } from "./store/authStore";
+import GoogleCallback from "./pages/Auth/GoogleCallback";
+import Navbar from "./components/layout/Navbar";
+import DashboardLayout from "./components/layout/DashboardLayout";
+import Login from "./pages/Auth/Login";
+import LoginForm from "./pages/Auth/LoginForm";
+import Register from "./pages/Auth/Register";
+import StudentJobBoard from "./pages/Student/JobBoard";
+import Dashboard from "./pages/Student/Dashboard";
+import Tracker from "./pages/Student/Tracker";
+import ResumeAnalyser from "./pages/Student/ResumeAnalyser";
+import Roadmap from "./pages/Student/Roadmap";
+import Questions from "./pages/Student/Questions";
+import Onboarding from "./pages/Student/Onboarding";
+import Profile from "./pages/Student/Profile";
+import ManageStudents from "./pages/Admin/ManageStudents";
+import ManageCompanies from "./pages/Admin/ManageCompanies";
+import CompanyProfileView from "./pages/Admin/CompanyProfileView";
+import JobPosting from "./pages/Admin/JobPosting";
+import AdminNavbar from "./components/layout/AdminNavbar";
+import CompanyProfileForm from "./pages/Company/CompanyProfileForm";
+import CompanyOnboardingGate from "./components/company/CompanyOnboardingGate";
+import OnboardingPreview from "./pages/Company/OnboardingPreview";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
+import AdminJobs from "./pages/Admin/AdminJobs";
+import AdminApplicants from "./pages/Admin/AdminApplicants";
+import AdminInterviews from "./pages/Admin/AdminInterviews";
+import AdminAnalytics from "./pages/Admin/AdminAnalytics";
+import AdminCompanyProfile from "./pages/Admin/AdminCompanyProfile";
+import AdminSettings from "./pages/Admin/AdminSettings";
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
 import GoogleCallback from './pages/Auth/GoogleCallback'
@@ -17,82 +48,292 @@ import Profile from './pages/Student/Profile'
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#f4f4f8] font-sans">
-      <div className="w-full min-h-screen relative shadow-sm bg-[#f4f4f8] flex flex-col">
-        <Navbar />
-        <main className="flex-1 w-full">{children}</main>
-      </div>
+    <div className="min-h-screen bg-slate-50 font-sans flex flex-col w-full">
+      <Navbar />
+      <main className="flex-1 w-full">{children}</main>
     </div>
-  )
+  );
+}
+
+function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-[#070b18] text-white font-sans flex flex-col w-full selection:bg-blue-500/30">
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Sora:wght@400;600;700;800&display=swap');
+      `,
+        }}
+      />
+      <AdminNavbar />
+      <main className="flex-1 w-full">{children}</main>
+    </div>
+  );
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuthStore()
-  if (!isAuthenticated) return <Navigate to="/login" replace />
-  return <>{children}</>
+  const { isAuthenticated, user } = useAuthStore();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user && user.role === "admin")
+    return <Navigate to="/admin/dashboard" replace />;
+  return <>{children}</>;
+}
+
+function RootRedirect() {
+  const { isAuthenticated, user } = useAuthStore();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user && user.role === "admin") {
+    return (
+      <Navigate
+        to={user.is_onboarding_completed ? "/admin/dashboard" : "/onboarding"}
+        replace
+      />
+    );
+  }
+  return <Navigate to="/dashboard" replace />;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user } = useAuthStore();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user && user.role !== "admin")
+    return <Navigate to="/dashboard" replace />;
+  if (user && !user.is_onboarding_completed)
+    return <Navigate to="/onboarding" replace />;
+  return <>{children}</>;
+}
+
+function AdminPageRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user } = useAuthStore();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user && user.role !== "admin")
+    return <Navigate to="/dashboard" replace />;
+  if (user && !user.is_onboarding_completed)
+    return <Navigate to="/onboarding" replace />;
+  return <>{children}</>;
 }
 
 function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuthStore()
 
-  // Check per-user key first, then the generic fallback key
-  const userKey = user ? `onboardingComplete_${user.id}` : null
-  const onboardingDone =
-    (userKey && localStorage.getItem(userKey) === 'true') ||
-    localStorage.getItem('onboardingComplete') === 'true'
-
   if (!isAuthenticated) return <Navigate to="/login" replace />
-  if (!onboardingDone) return <Navigate to="/onboarding" replace />
+  if (user && !user.is_onboarding_completed) return <Navigate to="/onboarding" replace />
 
   return <>{children}</>
 }
 
+function SmartOnboarding() {
+  const { user } = useAuthStore()
+  if (user?.role === 'admin') {
+    return <CompanyOnboardingGate><CompanyProfileForm /></CompanyOnboardingGate>
+  }
+  return <ProtectedRoute><Onboarding /></ProtectedRoute>
+}
+
 export const router = createBrowserRouter([
-  { path: '/login',    element: <Login /> },
-  { path: '/login-form', element: <LoginForm /> },
-  { path: '/register', element: <Register /> },
+  { path: "/login", element: <Login /> },
+  { path: "/login-form", element: <LoginForm /> },
+  { path: "/register", element: <Register /> },
   {
-    path: '/',
-    element: <Navigate to="/login" replace />
+    path: "/",
+    element: (
+      <Layout>
+        <RootRedirect />
+      </Layout>
+    ),
   },
   {
-    path: '/jobs',
-    element: <Layout><OnboardingGuard><JobBoard /></OnboardingGuard></Layout>
+    path: "/jobs",
+    element: (
+      <Layout>
+        <OnboardingGuard>
+          <StudentJobBoard />
+        </OnboardingGuard>
+      </Layout>
+    ),
   },
   {
-    path: '/dashboard',
-    element: <OnboardingGuard><DashboardLayout><Dashboard /></DashboardLayout></OnboardingGuard>
+    path: "/dashboard",
+    element: (
+      <OnboardingGuard>
+        <DashboardLayout>
+          <Dashboard />
+        </DashboardLayout>
+      </OnboardingGuard>
+    ),
   },
   {
-    path: '/roadmap',
-    element: <OnboardingGuard><DashboardLayout><Roadmap /></DashboardLayout></OnboardingGuard>
+    path: "/roadmap",
+    element: (
+      <OnboardingGuard>
+        <DashboardLayout>
+          <Roadmap />
+        </DashboardLayout>
+      </OnboardingGuard>
+    ),
   },
   {
     path: '/questions',
     element: <OnboardingGuard><DashboardLayout><Questions /></DashboardLayout></OnboardingGuard>
   },
   {
-    path: '/tracker',
-    element: <Layout><OnboardingGuard><Tracker /></OnboardingGuard></Layout>
+    path: "/questions",
+    element: (
+      <OnboardingGuard>
+        <DashboardLayout>
+          <Questions />
+        </DashboardLayout>
+      </OnboardingGuard>
+    ),
   },
   {
-    path: '/resume',
-    element: <Layout><OnboardingGuard><ResumeAnalyser /></OnboardingGuard></Layout>
+    path: "/tracker",
+    element: (
+      <Layout>
+        <OnboardingGuard>
+          <Tracker />
+        </OnboardingGuard>
+      </Layout>
+    ),
   },
   {
-    path: '/profile',
-    element: <Layout><OnboardingGuard><Profile /></OnboardingGuard></Layout>
+    path: "/profile",
+    element: (
+      <Layout>
+        <OnboardingGuard>
+          <Profile />
+        </OnboardingGuard>
+      </Layout>
+    ),
   },
   {
-    path: '/auth/callback',
-    element: <GoogleCallback />
+    path: "/resume",
+    element: (
+      <Layout>
+        <OnboardingGuard>
+          <ResumeAnalyser />
+        </OnboardingGuard>
+      </Layout>
+    ),
   },
   {
-    path: '/onboarding',
-    element: <ProtectedRoute><Onboarding /></ProtectedRoute>
+    path: "/auth/callback",
+    element: <GoogleCallback />,
   },
   {
-    path: '*',
-    element: <Navigate to="/" replace />
-  }
-])
+    path: "/admin/dashboard",
+    element: (
+      <AdminPageRoute>
+        <AdminDashboard />
+      </AdminPageRoute>
+    ),
+  },
+  {
+    path: "/admin-dashboard",
+    element: (
+      <AdminPageRoute>
+        <AdminDashboard />
+      </AdminPageRoute>
+    ),
+  },
+  {
+    path: "/admin/jobs",
+    element: (
+      <AdminPageRoute>
+        <AdminJobs />
+      </AdminPageRoute>
+    ),
+  },
+  {
+    path: "/admin/applicants",
+    element: (
+      <AdminPageRoute>
+        <AdminApplicants />
+      </AdminPageRoute>
+    ),
+  },
+  {
+    path: "/admin/interviews",
+    element: (
+      <AdminPageRoute>
+        <AdminInterviews />
+      </AdminPageRoute>
+    ),
+  },
+  {
+    path: "/admin/analytics",
+    element: (
+      <AdminPageRoute>
+        <AdminAnalytics />
+      </AdminPageRoute>
+    ),
+  },
+  {
+    path: "/admin/company-profile",
+    element: (
+      <AdminPageRoute>
+        <AdminCompanyProfile />
+      </AdminPageRoute>
+    ),
+  },
+  {
+    path: "/admin/settings",
+    element: (
+      <AdminPageRoute>
+        <AdminSettings />
+      </AdminPageRoute>
+    ),
+  },
+  {
+    path: "/admin/students",
+    element: (
+      <AdminLayout>
+        <AdminRoute>
+          <ManageStudents />
+        </AdminRoute>
+      </AdminLayout>
+    ),
+  },
+  {
+    path: "/admin/companies",
+    element: (
+      <AdminLayout>
+        <AdminRoute>
+          <ManageCompanies />
+        </AdminRoute>
+      </AdminLayout>
+    ),
+  },
+  {
+    path: "/admin/companies/:id",
+    element: (
+      <AdminLayout>
+        <AdminRoute>
+          <CompanyProfileView />
+        </AdminRoute>
+      </AdminLayout>
+    ),
+  },
+  {
+    path: "/admin/jobs/post",
+    element: (
+      <AdminLayout>
+        <AdminRoute>
+          <JobPosting />
+        </AdminRoute>
+      </AdminLayout>
+    ),
+  },
+  {
+    path: "/onboarding",
+    element: <SmartOnboarding />,
+  },
+  {
+    path: "/onboarding-preview",
+    element: <OnboardingPreview />,
+  },
+  {
+    path: "*",
+    element: <Navigate to="/" replace />,
+  },
+]);
