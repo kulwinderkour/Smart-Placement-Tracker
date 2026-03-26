@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '../../store/authStore'
+import { authApi } from '../../api/auth'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface PastApp { company: string; status: string }
@@ -110,7 +111,7 @@ function SelectionRow({ index, label, selected, onClick }: { index: number; labe
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function Onboarding() {
   const navigate = useNavigate()
-  const { user } = useAuthStore()
+  const { updateUser } = useAuthStore()
   const [currentStep, setCurrentStep] = useState(1)
   const [dragging, setDragging] = useState(false)
 
@@ -132,11 +133,11 @@ export default function Onboarding() {
     reader.readAsDataURL(file)
   }
 
-  // ── Fix: only fires on step 5, saves per-user key ─────────────────────────
   useEffect(() => {
     if (currentStep === 5) {
-      const key = user?.id ? `onboardingComplete_${user.id}` : 'onboardingComplete'
-      localStorage.setItem(key, 'true')
+      authApi.completeOnboarding()
+        .then(() => updateUser({ is_onboarding_completed: true }))
+        .catch(() => {})
       localStorage.setItem('userProfile', JSON.stringify(data))
       const t = setTimeout(() => navigate('/dashboard'), 2800)
       return () => clearTimeout(t)
