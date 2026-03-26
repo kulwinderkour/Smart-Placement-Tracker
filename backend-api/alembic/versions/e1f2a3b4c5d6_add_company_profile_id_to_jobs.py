@@ -1,4 +1,4 @@
-docker compose exec backend-api alembic upgrade head"""add_company_profile_id_to_jobs
+"""add_company_profile_id_to_jobs
 
 Revision ID: e1f2a3b4c5d6
 Revises: d1e2f3a4b5c6
@@ -15,26 +15,48 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = 'e1f2a3b4c5d6'
-down_revision: Union[str, None] = 'd1e2f3a4b5c6'
+# revision identifiers, used by Alembic.
+revision: str = "e1f2a3b4c5d6"
+down_revision: Union[str, None] = "d1e2f3a4b5c6"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column('jobs', sa.Column('company_profile_id', sa.Uuid(), nullable=True))
-    op.create_foreign_key(
-        'fk_jobs_company_profile_id',
-        'jobs',
-        'company_profiles',
-        ['company_profile_id'],
-        ['id'],
-        ondelete='SET NULL',
+    op.add_column(
+        "jobs",
+        sa.Column("company_profile_id", sa.Uuid(), nullable=True)
     )
-    op.create_index('ix_jobs_company_profile_id', 'jobs', ['company_profile_id'])
+
+    op.create_foreign_key(
+        "fk_jobs_company_profile_id",
+        "jobs",
+        "company_profiles",
+        ["company_profile_id"],
+        ["id"],
+        ondelete="SET NULL",
+    )
+
+    op.create_index(
+        "ix_jobs_company_profile_id",
+        "jobs",
+        ["company_profile_id"]
+    )
 
 
 def downgrade() -> None:
-    op.drop_index('ix_jobs_company_profile_id', table_name='jobs')
-    op.drop_constraint('fk_jobs_company_profile_id', 'jobs', type_='foreignkey')
-    op.drop_column('jobs', 'company_profile_id')
+    op.drop_index(
+        "ix_jobs_company_profile_id",
+        table_name="jobs"
+    )
+
+    op.drop_constraint(
+        "fk_jobs_company_profile_id",
+        "jobs",
+        type_="foreignkey"
+    )
+
+    op.drop_column(
+        "jobs",
+        "company_profile_id"
+    )
