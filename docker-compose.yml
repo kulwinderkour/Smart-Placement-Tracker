@@ -47,19 +47,24 @@ services:
   ai-engine:
     build: ./ai-engine
     ports:
-      - '8002:8002'
+      - "8002:8002"
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://${DB_USER}:${DB_PASS}@postgres/${DB_NAME}
+      DATABASE_URL: postgresql+asyncpg://${DB_USER}:${DB_PASS}@postgres:5432/${DB_NAME}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   collector:
     build: ./collector
     ports:
-      - '8001:8001'
+      - "8001:8001"
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgresql://postgres:${DB_PASS}@postgres/${DB_NAME}
+      DATABASE_URL: postgresql://postgres:${DB_PASS}@postgres:5432/${DB_NAME}
       AI_ENGINE_URL: http://ai-engine:8002
       SCRAPE_INTERVAL_MINUTES: 60
       MAX_JOBS_PER_RUN: 100
