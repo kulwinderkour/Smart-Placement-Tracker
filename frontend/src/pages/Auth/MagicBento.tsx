@@ -3,49 +3,13 @@ import {
   Zap, 
   FileText, 
   LayoutDashboard, 
-  Video, 
   MessageSquare, 
   Bell,
   Users,
   Target
 } from 'lucide-react';
+import gsap from 'gsap';
 import './MagicBento.css';
-
-// Try to import GSAP, but provide fallback
-let gsap: any = null;
-try {
-  gsap = require('gsap');
-} catch (error) {
-  console.warn('GSAP not available, using fallback animations');
-}
-
-// Fallback animation helpers
-const gsapTo = (element: any, props: any, options?: any) => {
-  if (gsap) {
-    return gsap.to(element, props, options);
-  } else {
-    // Simple CSS fallback
-    if (element && element.style) {
-      Object.assign(element.style, props);
-    }
-    return { kill: () => {} };
-  }
-};
-
-const gsapFromTo = (element: any, fromProps: any, toProps: any, options?: any) => {
-  if (gsap) {
-    return gsap.fromTo(element, fromProps, toProps, options);
-  } else {
-    // Simple CSS fallback
-    if (element && element.style) {
-      Object.assign(element.style, fromProps);
-      setTimeout(() => {
-        Object.assign(element.style, toProps);
-      }, 50);
-    }
-    return { kill: () => {} };
-  }
-};
 
 export interface BentoCardProps {
   color?: string;
@@ -138,39 +102,6 @@ const cardData: BentoCardProps[] = [
           <div className="h-4 bg-white/5 border border-white/10 rounded flex items-center justify-center text-[8px] text-white/40">Applied</div>
           <div className="h-4 bg-blue-600/20 border border-blue-600/30 rounded flex items-center justify-center text-[8px] text-blue-300">Interview</div>
           <div className="h-4 bg-white/5 border border-white/10 rounded flex items-center justify-center text-[8px] text-white/40">Offer</div>
-        </div>
-      </div>
-    )
-  },
-  {
-    color: '#060010',
-    title: "Interview Prep",
-    description: "Practice with AI-driven mock interviews and real-time feedback.",
-    label: "Training",
-    icon: <Video className="w-5 h-5 text-rose-400" />,
-    content: (
-      <div className="mt-4 flex flex-col gap-3">
-        <div className="relative group">
-          <div className="w-full h-20 bg-rose-500/10 rounded-xl border border-rose-500/20 flex items-center justify-center overflow-hidden">
-             <div className="absolute inset-0 bg-gradient-to-t from-rose-500/20 to-transparent" />
-             <div className="w-8 h-8 rounded-full bg-rose-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <Video className="w-4 h-4 text-white" />
-             </div>
-             <div className="absolute bottom-1 right-2 flex gap-1">
-                <div className="w-1 h-1 bg-rose-500 rounded-full animate-ping" />
-                <span className="text-[8px] text-rose-400 font-bold uppercase">Recording</span>
-             </div>
-          </div>
-        </div>
-        <div className="flex justify-around">
-          <div className="text-center">
-            <div className="text-[12px] font-bold text-white">4.8</div>
-            <div className="text-[8px] text-white/40">Confidence</div>
-          </div>
-          <div className="text-center">
-            <div className="text-[12px] font-bold text-white">92%</div>
-            <div className="text-[8px] text-white/40">Clarity</div>
-          </div>
         </div>
       </div>
     )

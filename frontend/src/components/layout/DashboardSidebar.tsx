@@ -29,7 +29,6 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Job Board', path: '/jobs',      icon: <Icon d="M21 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" /> },
       { label: 'Prep Roadmap', path: '/roadmap', icon: <Icon d="M9 18l6-6-6-6" /> },
       { label: 'Question Bank', path: '/questions', icon: <Icon d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 014 17V4a2 2 0 012-2h14v13H6.5A2.5 2.5 0 004 17v2.5" /> },
-      { label: 'Mock Interviews', path: '/mock', icon: <Icon d="M15 10l4.5-2.5L15 15v-5zM4 8h11v8H4V8z" /> },
     ],
   },
   {
