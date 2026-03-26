@@ -31,14 +31,15 @@ export default function Register() {
     try {
       setError('')
       await authApi.register(data.email, data.password, data.role)
-      
+
       const loginRes = await authApi.login(data.email, data.password)
-      localStorage.setItem('access_token', loginRes.data.access_token)
-      localStorage.setItem('refresh_token', loginRes.data.refresh_token)
-      
+      const loginData = loginRes.data
+      localStorage.setItem('access_token', loginData.access_token)
+      localStorage.setItem('refresh_token', loginData.refresh_token)
+
       const meRes = await authApi.me()
       setUser(meRes.data)
-      
+
       navigate('/onboarding')
     } catch (err: any) {
       if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
@@ -70,7 +71,7 @@ export default function Register() {
         input::placeholder { color: rgba(255,255,255,0.4); }
       `}} />
 
-      <button onClick={() => navigate(-1)} style={{
+      <button onClick={() => navigate(-1)} title="Go back" aria-label="Go back" style={{
         position: 'fixed',
         top: 20, left: 20,
         background: 'rgba(255,255,255,0.08)',
