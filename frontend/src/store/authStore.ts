@@ -5,6 +5,7 @@ interface AuthState {
   user: User | null
   isAuthenticated: boolean
   setUser: (user: User) => void
+  updateUser: (patch: Partial<User>) => void
   logout: () => void
 }
 
@@ -12,6 +13,8 @@ export const useAuthStore = create<AuthState>()((set) => ({
   user: null,
   isAuthenticated: !!localStorage.getItem('access_token'),
   setUser: (user: User) => set({ user, isAuthenticated: true }),
+  updateUser: (patch: Partial<User>) =>
+    set((state) => ({ user: state.user ? { ...state.user, ...patch } : state.user })),
   logout: () => {
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')

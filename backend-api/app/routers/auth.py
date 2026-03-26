@@ -75,6 +75,17 @@ async def login(data: UserLogin, db: AsyncSession = Depends(get_db)):
     )
 
 
+@router.patch("/complete-onboarding", response_model=UserResponse)
+async def complete_onboarding(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    current_user.is_onboarding_completed = True
+    await db.commit()
+    await db.refresh(current_user)
+    return current_user
+
+
 @router.get("/me", response_model=UserResponse)
 async def me(current_user: User = Depends(get_current_user)):
     return current_user
