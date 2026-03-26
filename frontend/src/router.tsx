@@ -100,14 +100,8 @@ function AdminPageRoute({ children }: { children: React.ReactNode }) {
 function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuthStore()
 
-  // Check per-user key first, then the generic fallback key
-  const userKey = user ? `onboardingComplete_${user.id}` : null
-  const onboardingDone =
-    (userKey && localStorage.getItem(userKey) === 'true') ||
-    localStorage.getItem('onboardingComplete') === 'true'
-
   if (!isAuthenticated) return <Navigate to="/login" replace />
-  if (!onboardingDone) return <Navigate to="/onboarding" replace />
+  if (user && !user.is_onboarding_completed) return <Navigate to="/onboarding" replace />
 
   return <>{children}</>
 }

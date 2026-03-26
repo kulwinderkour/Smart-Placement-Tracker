@@ -47,13 +47,7 @@ export default function LoginForm() {
             : '/onboarding'
         )
       } else {
-        const userId = meRes.data.id
-        const onboardingComplete = localStorage.getItem(`onboardingComplete_${userId}`)
-        if (onboardingComplete === 'true') {
-          navigate('/dashboard')
-        } else {
-          navigate('/onboarding')
-        }
+        navigate(loginData.is_onboarding_completed ? '/dashboard' : '/onboarding')
       }
     } catch (err: any) {
       if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
