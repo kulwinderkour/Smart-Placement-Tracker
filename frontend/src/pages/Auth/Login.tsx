@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { GradientBlinds } from '../../components/common/GradientBlinds'
 import CurvedLoop from '../../components/common/CurvedLoop'
-import MagicBento from './MagicBento'
+import MagicBento from './MagicBentoSimple'
 
 function AnimatedCounter({ end, label, prefix = '', suffix = '' }: { end: number, label: string, prefix?: string, suffix?: string }) {
   const [count, setCount] = useState(0)

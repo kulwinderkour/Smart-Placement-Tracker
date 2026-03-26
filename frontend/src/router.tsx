@@ -12,6 +12,8 @@ import Tracker from "./pages/Student/Tracker";
 import ResumeAnalyser from "./pages/Student/ResumeAnalyser";
 import Roadmap from "./pages/Student/Roadmap";
 import Questions from "./pages/Student/Questions";
+import MockInterview from "./pages/Student/MockInterview/index";
+import InterviewRoom from "./pages/Student/MockInterview/InterviewRoom";
 import Onboarding from "./pages/Student/Onboarding";
 import Profile from "./pages/Student/Profile";
 import ManageStudents from "./pages/Admin/ManageStudents";
@@ -29,22 +31,6 @@ import AdminInterviews from "./pages/Admin/AdminInterviews";
 import AdminAnalytics from "./pages/Admin/AdminAnalytics";
 import AdminCompanyProfile from "./pages/Admin/AdminCompanyProfile";
 import AdminSettings from "./pages/Admin/AdminSettings";
-import { createBrowserRouter, Navigate } from 'react-router-dom'
-import { useAuthStore } from './store/authStore'
-import GoogleCallback from './pages/Auth/GoogleCallback'
-import Navbar from './components/layout/Navbar'
-import DashboardLayout from './components/layout/DashboardLayout'
-import Login from './pages/Auth/Login'
-import LoginForm from './pages/Auth/LoginForm'
-import Register from './pages/Auth/Register'
-import JobBoard from './pages/Student/JobBoard'
-import Dashboard from './pages/Student/Dashboard'
-import Tracker from './pages/Student/Tracker'
-import ResumeAnalyser from './pages/Student/ResumeAnalyser'
-import Roadmap from './pages/Student/Roadmap'
-import Questions from './pages/Student/Questions'
-import Onboarding from './pages/Student/Onboarding'
-import Profile from './pages/Student/Profile'
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -103,22 +89,10 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function AdminPageRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, user } = useAuthStore();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (user && user.role !== "admin")
-    return <Navigate to="/dashboard" replace />;
-  if (user && !user.is_onboarding_completed)
-    return <Navigate to="/onboarding" replace />;
-  return <>{children}</>;
-}
-
 function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuthStore()
-
   if (!isAuthenticated) return <Navigate to="/login" replace />
   if (user && !user.is_onboarding_completed) return <Navigate to="/onboarding" replace />
-
   return <>{children}</>
 }
 
@@ -173,16 +147,30 @@ export const router = createBrowserRouter([
     ),
   },
   {
-    path: '/questions',
-    element: <OnboardingGuard><DashboardLayout><Questions /></DashboardLayout></OnboardingGuard>
-  },
-  {
     path: "/questions",
     element: (
       <OnboardingGuard>
         <DashboardLayout>
           <Questions />
         </DashboardLayout>
+      </OnboardingGuard>
+    ),
+  },
+  {
+    path: "/student/mock-interviews",
+    element: (
+      <OnboardingGuard>
+        <DashboardLayout>
+          <MockInterview />
+        </DashboardLayout>
+      </OnboardingGuard>
+    ),
+  },
+  {
+    path: "/student/mock-interviews/room",
+    element: (
+      <OnboardingGuard>
+        <InterviewRoom />
       </OnboardingGuard>
     ),
   },
@@ -216,72 +204,61 @@ export const router = createBrowserRouter([
       </Layout>
     ),
   },
-  {
-    path: "/auth/callback",
-    element: <GoogleCallback />,
-  },
+  { path: "/auth/callback", element: <GoogleCallback /> },
   {
     path: "/admin/dashboard",
     element: (
-      <AdminPageRoute>
+      <AdminRoute>
         <AdminDashboard />
-      </AdminPageRoute>
-    ),
-  },
-  {
-    path: "/admin-dashboard",
-    element: (
-      <AdminPageRoute>
-        <AdminDashboard />
-      </AdminPageRoute>
+      </AdminRoute>
     ),
   },
   {
     path: "/admin/jobs",
     element: (
-      <AdminPageRoute>
+      <AdminRoute>
         <AdminJobs />
-      </AdminPageRoute>
+      </AdminRoute>
     ),
   },
   {
     path: "/admin/applicants",
     element: (
-      <AdminPageRoute>
+      <AdminRoute>
         <AdminApplicants />
-      </AdminPageRoute>
+      </AdminRoute>
     ),
   },
   {
     path: "/admin/interviews",
     element: (
-      <AdminPageRoute>
+      <AdminRoute>
         <AdminInterviews />
-      </AdminPageRoute>
+      </AdminRoute>
     ),
   },
   {
     path: "/admin/analytics",
     element: (
-      <AdminPageRoute>
+      <AdminRoute>
         <AdminAnalytics />
-      </AdminPageRoute>
+      </AdminRoute>
     ),
   },
   {
     path: "/admin/company-profile",
     element: (
-      <AdminPageRoute>
+      <AdminRoute>
         <AdminCompanyProfile />
-      </AdminPageRoute>
+      </AdminRoute>
     ),
   },
   {
     path: "/admin/settings",
     element: (
-      <AdminPageRoute>
+      <AdminRoute>
         <AdminSettings />
-      </AdminPageRoute>
+      </AdminRoute>
     ),
   },
   {
@@ -324,16 +301,7 @@ export const router = createBrowserRouter([
       </AdminLayout>
     ),
   },
-  {
-    path: "/onboarding",
-    element: <SmartOnboarding />,
-  },
-  {
-    path: "/onboarding-preview",
-    element: <OnboardingPreview />,
-  },
-  {
-    path: "*",
-    element: <Navigate to="/" replace />,
-  },
+  { path: "/onboarding", element: <SmartOnboarding /> },
+  { path: "/onboarding-preview", element: <OnboardingPreview /> },
+  { path: "*", element: <Navigate to="/" replace /> },
 ]);

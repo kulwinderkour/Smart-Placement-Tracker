@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 
 
@@ -106,6 +108,8 @@ export default function JobBoard() {
     experience: '',   // Fresher / 1-3 years / 3+ years
     salary: '',       // Any / Paid only
   });
+
+  const navigate = useNavigate();
 
   const searchTimeout = useRef<any>(null);
 
@@ -266,57 +270,91 @@ export default function JobBoard() {
     return true;
   });
 
-  const activeFilterCount = Object.values(filters).filter(Boolean).length;
-  const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-  const userSkills = profile.skills || [];
+const activeFilterCount = Object.values(filters).filter(Boolean).length;
+const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+const userSkills = profile.skills || [];
 
-  return (
-    <div style={{ padding: "2rem", background: "#0d1117", minHeight: "100vh", color: "#e6edf3" }}>
-      <div style={{
-        background: "linear-gradient(135deg, #0d1117 0%, #161b22 100%)",
-        border: "1px solid #21262d",
-        borderRadius: "12px",
-        padding: "1.5rem",
-        marginBottom: "1.5rem",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between"
-      }}>
-        <div>
-          <h1 style={{ fontSize: "22px", fontWeight: 600, marginBottom: "4px", display: 'flex', alignItems: 'center', gap: '10px' }}>
-            Job Board
-            {activeFilterCount > 0 && (
-              <span style={{
-                background: '#20c99718',
-                color: '#20c997',
-                border: '1px solid #20c99740',
-                borderRadius: '4px',
-                padding: '2px 8px',
-                fontSize: '11px',
-                fontWeight: 600,
-              }}>
-                {activeFilterCount} active
-              </span>
-            )}
-          </h1>
-          <p style={{ color: "#7d8590", fontSize: "13px", margin: 0 }}>Live job opportunities curated for your profile</p>
-        </div>
-        <button
-          onClick={() => fetchJobs()}
-          style={{
-            background: '#161b22',
-            border: '1px solid #21262d',
-            borderRadius: '6px',
-            color: '#7d8590',
-            padding: '7px 14px',
-            fontSize: '13px',
-            cursor: 'pointer'
-          }}
-        >
-          ↻ Refresh
-        </button>
-      </div>
+return (
+<div style={{ padding: "2rem", background: "#0d1117", minHeight: "100vh", color: "#e6edf3" }}>
+{/* Back to Dashboard Button */}
+<button
+onClick={() => navigate('/dashboard')}
+style={{
+display: 'flex',
+alignItems: 'center',
+gap: '8px',
+background: '#161b22',
+border: '1px solid #21262d',
+borderRadius: '8px',
+color: '#7d8590',
+padding: '8px 12px',
+fontSize: '14px',
+cursor: 'pointer',
+transition: 'all 0.2s ease',
+marginBottom: '1rem'
+}}
+onMouseOver={(e) => {
+e.currentTarget.style.background = '#21262d';
+e.currentTarget.style.color = '#e6edf3';
+e.currentTarget.style.borderColor = '#20c997';
+}}
+onMouseOut={(e) => {
+e.currentTarget.style.background = '#161b22';
+e.currentTarget.style.color = '#7d8590';
+e.currentTarget.style.borderColor = '#21262d';
+}}
+>
+<ArrowLeft size={16} />
+Back to Dashboard
+</button>
 
+{/* Compact Header */}
+<div style={{
+background: "linear-gradient(135deg, #0d1117 0%, #161b22 100%)",
+border: "1px solid #21262d",
+borderRadius: "12px",
+padding: "1rem 1.5rem",
+marginBottom: "1.5rem",
+display: "flex",
+alignItems: "center",
+justifyContent: "space-between"
+}}>
+<div>
+<h1 style={{ fontSize: "20px", fontWeight: 600, marginBottom: "2px", display: 'flex', alignItems: 'center', gap: '10px' }}>
+Job Board
+{activeFilterCount > 0 && (
+<span style={{
+background: '#20c99718',
+color: '#20c997',
+border: '1px solid #20c99740',
+borderRadius: '4px',
+padding: '2px 8px',
+fontSize: '11px',
+fontWeight: 600,
+}}>
+{activeFilterCount} active
+</span>
+)}
+</h1>
+<p style={{ color: "#7d8590", fontSize: "12px", margin: 0 }}>Live job opportunities curated for your profile</p>
+</div>
+<button
+onClick={() => fetchJobs()}
+style={{
+background: '#161b22',
+border: '1px solid #21262d',
+borderRadius: '6px',
+color: '#7d8590',
+padding: '6px 12px',
+fontSize: '13px',
+cursor: 'pointer'
+}}
+>
+↻ Refresh
+</button>
+</div>
+
+      {/* Search Bar */}
       <input
         type="text"
         placeholder="Search any role — sales, marketing, engineer..."

@@ -1,4 +1,4 @@
-"""add_company_profile_id_to_jobs
+docker compose exec backend-api alembic upgrade head"""add_company_profile_id_to_jobs
 
 Revision ID: e1f2a3b4c5d6
 Revises: d1e2f3a4b5c6
