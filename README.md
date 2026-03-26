@@ -1,34 +1,3 @@
-# 🎯 Smart Placement Tracker
-
-AI-powered platform for student job discovery, resume analysis, and placement tracking.
-
----
-
-## 🧱 Tech Stack
-
-| Layer | Technology |
-|---|---|
-| **Frontend** | React 18 + Vite + TypeScript + TailwindCSS |
-| **Backend API** | FastAPI + SQLAlchemy + PostgreSQL |
-| **AI Engine** | spaCy + sentence-transformers + OpenAI |
-| **Collector** | Playwright + APScheduler |
-| **Infra** | Docker Compose + Redis + PostgreSQL |
-
----
-
-## 💡 Why Only Docker? Why No Manual Commands?
-
-This project uses **Docker Compose** to run every service — frontend, backend, AI engine, database, cache, and collector — all inside isolated containers.
-
-**You do not need to:**
-- Install Node.js or run any frontend commands
-- Install Python or any backend dependencies
-- Install PostgreSQL or Redis locally
-- Run anything per-service manually
-
-Docker handles all of that internally. Every service starts, connects to each other, and is accessible on your browser automatically. **One command starts the entire application.**
-
----
 
 ## ✅ Prerequisites — Install Once
 
@@ -141,7 +110,6 @@ make build
 docker compose up --build -d
 ```
 
-> ⏳ The **first build takes 5–15 minutes** — Docker is downloading images and installing all dependencies inside the containers. This only happens once. Every restart after this is instant.
 
 You will see output like:
 ```
@@ -346,3 +314,28 @@ placement_tracker=# \q
 - **OPENAI_API_KEY** is required for AI features. The app works without it, but resume parsing and job matching will return errors
 - Always ensure **Docker Desktop is open and running** before starting the app
 - Migrations only need to be run **once** on first setup, or when a teammate adds new migration files
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 2) Start all services
+docker compose up -d
+
+# 3) Run DB migrations (first time / after new migrations)
+docker compose exec backend-api alembic upgrade head
+
+# 4) Check everything is running
+docker compose ps

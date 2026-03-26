@@ -1,5 +1,4 @@
 import React, { useRef, useEffect, useCallback, useState } from 'react';
-import { gsap } from 'gsap';
 import { 
   Zap, 
   FileText, 
@@ -11,6 +10,42 @@ import {
   Target
 } from 'lucide-react';
 import './MagicBento.css';
+
+// Try to import GSAP, but provide fallback
+let gsap: any = null;
+try {
+  gsap = require('gsap');
+} catch (error) {
+  console.warn('GSAP not available, using fallback animations');
+}
+
+// Fallback animation helpers
+const gsapTo = (element: any, props: any, options?: any) => {
+  if (gsap) {
+    return gsap.to(element, props, options);
+  } else {
+    // Simple CSS fallback
+    if (element && element.style) {
+      Object.assign(element.style, props);
+    }
+    return { kill: () => {} };
+  }
+};
+
+const gsapFromTo = (element: any, fromProps: any, toProps: any, options?: any) => {
+  if (gsap) {
+    return gsap.fromTo(element, fromProps, toProps, options);
+  } else {
+    // Simple CSS fallback
+    if (element && element.style) {
+      Object.assign(element.style, fromProps);
+      setTimeout(() => {
+        Object.assign(element.style, toProps);
+      }, 50);
+    }
+    return { kill: () => {} };
+  }
+};
 
 export interface BentoCardProps {
   color?: string;
@@ -253,7 +288,7 @@ const ParticleCard: React.FC<{
   const isHoveredRef = useRef(false);
   const memoizedParticles = useRef<HTMLDivElement[]>([]);
   const particlesInitialized = useRef(false);
-  const magnetismAnimationRef = useRef<gsap.core.Tween | null>(null);
+  const magnetismAnimationRef = useRef<any>(null);
 
   const initializeParticles = useCallback(() => {
     if (particlesInitialized.current || !cardRef.current) return;
@@ -271,7 +306,7 @@ const ParticleCard: React.FC<{
     magnetismAnimationRef.current?.kill();
 
     particlesRef.current.forEach(particle => {
-      gsap.to(particle, {
+      gsapTo(particle, {
         scale: 0,
         opacity: 0,
         duration: 0.3,

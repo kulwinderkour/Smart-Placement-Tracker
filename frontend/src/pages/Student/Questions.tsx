@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "../../store/authStore";
+import { aiApi } from "../../api/ai";
 import {
   Brain,
   BookOpen,
@@ -186,46 +187,23 @@ export default function Questions() {
     setUserAnswers({});
 
     try {
-      const BASE = import.meta.env.VITE_EXPRESS_URL || "http://localhost:8081";
-      const response = await fetch(`${BASE}/questions/generate`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          topic: useCustomQuestion ? customQuestion.trim() : selectedTopic,
-          difficulty: selectedDifficulty,
-          type: selectedType,
-          count: questionCount,
-          userSkills: userSkills,
-          customQuestion: useCustomQuestion,
-        }),
-      });
+      // Use the AI API instead of direct fetch
+      const topic = useCustomQuestion ? customQuestion.trim() : selectedTopic;
+      const response = await aiApi.getInterviewQuestions(topic, userSkills, selectedDifficulty);
+      
+      // Transform the response to match expected format
+      const questionSet: QuestionSet = {
+        topic: topic,
+        difficulty: selectedDifficulty,
+        type: selectedType,
+        totalQuestions: response.data?.questions?.length || questionCount,
+        questions: response.data?.questions || []
+      };
 
-      const contentType = response.headers.get("content-type") || "";
-      if (!response.ok) {
-        let errorMsg = "Failed to generate questions";
-        if (contentType.includes("application/json")) {
-          const errBody = await response.json();
-          errorMsg = errBody.error || errBody.detail || errorMsg;
-        } else {
-          errorMsg = `Server error ${response.status}: ${response.statusText}`;
-        }
-        throw new Error(errorMsg);
-      }
-
-      if (!contentType.includes("application/json")) {
-        throw new Error(
-          `Unexpected response type "${contentType}". Is the backend running on port 8081?`,
-        );
-      }
-
-      const data = await response.json();
-      setQuestions(data);
+      setQuestions(questionSet);
       setCurrentQuestionIndex(0);
       setShowResults(false);
-      setFromCache(data.fromCache || false);
+      setFromCache(false); // AI API doesn't use cache
     } catch (error: unknown) {
       const msg =
         error instanceof Error

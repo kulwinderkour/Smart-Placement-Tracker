@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
+import { useNavigate } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { applicationsApi } from '../../api/applications'
 import type { Application } from '../../types'
 
@@ -14,6 +16,7 @@ const COLUMNS = [
 
 export default function Tracker() {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
   const { data, isLoading } = useQuery({
     queryKey: ['my-applications'],
@@ -44,10 +47,44 @@ export default function Tracker() {
   )
 
   return (
-    <div className="max-w-full px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Application Tracker</h1>
-        <p className="text-gray-500 mt-1">Drag cards to update your application status</p>
+    <>
+      <div className="max-w-full px-4 py-8">
+        <div className="mb-8" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button
+            onClick={() => navigate('/dashboard')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: '#f3f4f6',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              color: '#6b7280',
+              padding: '8px 12px',
+              fontSize: '14px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = '#e5e7eb';
+              e.currentTarget.style.color = '#374151';
+              e.currentTarget.style.borderColor = '#9ca3af';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = '#f3f4f6';
+              e.currentTarget.style.color = '#6b7280';
+              e.currentTarget.style.borderColor = '#d1d5db';
+            }}
+          >
+            <ArrowLeft size={16} />
+            Back to Dashboard
+          </button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Application Tracker</h1>
+            <p className="text-gray-600 mt-1">Track your job application progress</p>
+            <p className="text-gray-500 mt-1">Drag cards to update your application status</p>
+          </div>
+        </div>
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
@@ -77,19 +114,25 @@ export default function Tracker() {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className={`bg-white rounded-lg border p-3 mb-2 cursor-grab active:cursor-grabbing transition-shadow ${
-                              snapshot.isDragging ? 'shadow-lg border-blue-300' : 'border-gray-200 shadow-sm'
+                            className={`bg-white p-3 mb-2 rounded-lg shadow-sm border transition-all cursor-move ${
+                              snapshot.isDragging ? 'shadow-lg border-blue-300' : 'border-gray-200'
                             }`}
                           >
-                            <p className="font-medium text-gray-900 text-sm">
-                              {app.job?.role_title || 'Unknown Role'}
-                            </p>
-                            <p className="text-gray-500 text-xs mt-0.5">
-                              {app.job?.company_name || ''}
-                            </p>
+                            <div className="flex justify-between items-start mb-2">
+                              <h4 className="font-medium text-sm text-gray-900 flex-1">{app.job?.role_title || 'Unknown Role'}</h4>
+                              <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                app.priority === 'high' ? 'bg-red-100 text-red-700' :
+                                app.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-gray-100 text-gray-600'
+                              }`}>
+                                {app.priority}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-600 mb-1">{app.job?.company_name || ''}</p>
+                            <p className="text-xs text-gray-500 mb-2">{app.job?.location || ''}</p>
                             {app.next_step_date && (
-                              <p className="text-blue-500 text-xs mt-2">
-                                📅 {new Date(app.next_step_date).toLocaleDateString()}
+                              <p className="text-xs text-gray-400">
+                                Applied: {new Date(app.next_step_date).toLocaleDateString()}
                               </p>
                             )}
                             {app.offer_ctc && (
@@ -109,6 +152,6 @@ export default function Tracker() {
           ))}
         </div>
       </DragDropContext>
-    </div>
+    </>
   )
 }
