@@ -83,6 +83,8 @@ export default function Dashboard() {
   const profile: UserProfile = JSON.parse(localStorage.getItem('userProfile') || '{}')
   const readiness = calcReadiness(profile)
   const firstName = profile.fullName?.split(' ')[0] || user?.email?.split('@')[0] || 'Member'
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : hour < 21 ? 'Good evening' : 'Good night'
 
   const companies = profile.previousCompanies?.filter(c => c.company) || []
   const skills = profile.skills || []
@@ -101,7 +103,7 @@ export default function Dashboard() {
       }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 18, fontWeight: 500, color: '#e6edf3' }}>
-            Good morning, {firstName} 👋
+            {greeting}, {firstName} 👋
           </h1>
           <p style={{ margin: '2px 0 0', fontSize: 13, color: '#7d8590' }}>
             {skills.length > 0 ? `Track your profile and skills efficiently.` : `Complete your profile to boost placement readiness.`}

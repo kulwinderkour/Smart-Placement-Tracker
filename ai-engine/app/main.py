@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import internal, interview, recommend, resume, skill_gap
+from app.routers import agent, internal, interview, recommend, resume, skill_gap
 
 app = FastAPI(
     title="Student Placement Tracker — AI Engine",
@@ -21,6 +21,7 @@ app.include_router(recommend.router)
 app.include_router(skill_gap.router)
 app.include_router(interview.router)
 app.include_router(internal.router)
+app.include_router(agent.router)
 
 
 @app.get("/health")
