@@ -31,12 +31,14 @@ import AdminInterviews from "./pages/Admin/AdminInterviews";
 import AdminAnalytics from "./pages/Admin/AdminAnalytics";
 import AdminCompanyProfile from "./pages/Admin/AdminCompanyProfile";
 import AdminSettings from "./pages/Admin/AdminSettings";
+import FloatingAgent from "./components/FloatingAgent";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-50 font-sans flex flex-col w-full">
       <Navbar />
       <main className="flex-1 w-full">{children}</main>
+      <FloatingAgent />
     </div>
   );
 }
