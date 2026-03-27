@@ -15,7 +15,7 @@ interface AnalysisResult {
   summary: string
 }
 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${import.meta.env.GEMINI_API_KEY}`
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${import.meta.env.GEMINI_API_KEY}`
 
 function scoreColor(n: number) {
   return n >= 70 ? '#00e5a0' : n >= 50 ? '#f0b429' : '#f85149'
@@ -229,196 +229,218 @@ Use exactly this structure:
   }
 
   return (
-    <div style={{ background: '#0f1117', minHeight: '100vh', color: '#e6edf3', padding: '28px 28px 48px' }}>
+    <div style={{ background: '#0f1117', minHeight: '100vh', color: '#e6edf3' }}>
       <style>{`
-        .ra-drop:hover { border-color: #00e5a0 !important; background: #00e5a018 !important; }
-        .ra-drop.dragging { border-color: #00e5a0 !important; background: #00e5a018 !important; }
-        .ra-textarea:focus { border-color: #00e5a0 !important; outline: none; }
-        .ra-results { opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; }
+        .ra-page { padding: 32px 16px 60px; }
+        .ra-drop { border: 2px dashed #2d3748; border-radius: 14px; padding: 36px 20px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: transparent; }
+        .ra-drop:hover, .ra-drop.dragging { border-color: #00e5a0; background: rgba(0,229,160,0.06); box-shadow: 0 0 20px rgba(0,229,160,0.1); }
+        .ra-textarea { width: 100%; padding: 12px 14px; resize: vertical; background: rgba(255,255,255,0.04); border: 1px solid #2d3748; border-radius: 10px; color: #e6edf3; font-size: 13px; line-height: 1.6; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; font-family: inherit; }
+        .ra-textarea:focus { border-color: #00e5a0; box-shadow: 0 0 0 3px rgba(0,229,160,0.12); outline: none; }
+        .ra-textarea::placeholder { color: #4a5568; }
+        .ra-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; letter-spacing: 0.02em; }
+        .ra-btn:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,229,160,0.3); }
+        .ra-btn:disabled { cursor: not-allowed; }
+        .ra-results { opacity: 0; transform: translateY(12px); transition: opacity 0.5s ease, transform 0.5s ease; }
         .ra-results.visible { opacity: 1; transform: translateY(0); }
+        .ra-glass { background: rgba(22,27,34,0.8); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; }
+        @media (max-width: 768px) {
+          .ra-two-col { grid-template-columns: 1fr !important; }
+          .ra-page { padding: 20px 12px 48px; }
+        }
       `}</style>
 
-      {/* ── Header ── */}
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 8, background: '#00e5a018', color: '#00e5a0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
-            📄
-          </div>
-          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 600, color: '#e6edf3' }}>Resume Analyser</h1>
-        </div>
-        <p style={{ margin: '0 0 0 48px', fontSize: 13, color: '#7d8590' }}>
-          Upload your PDF resume and get a detailed ATS compatibility report powered by Gemini AI.
-        </p>
-      </div>
+      {/* ── Upload section — vertically centered when no results ── */}
+      {!result ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 60px)', padding: '32px 16px' }}>
+          <div className="ra-glass" style={{ width: '100%', maxWidth: 680, padding: '40px 40px 32px' }}>
 
-      {/* ── Two-column layout ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: result ? '1fr 1fr' : '1fr', gap: 20, alignItems: 'start', maxWidth: result ? '100%' : 560 }}>
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: 32 }}>
+              <div style={{ width: 56, height: 56, borderRadius: 16, background: 'rgba(0,229,160,0.12)', border: '1px solid rgba(0,229,160,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, margin: '0 auto 16px' }}>
+                📄
+              </div>
+              <h1 style={{ margin: '0 0 8px', fontSize: 24, fontWeight: 700, color: '#e6edf3', letterSpacing: '-0.02em' }}>Resume Analyser</h1>
+              <p style={{ margin: 0, fontSize: 14, color: '#7d8590', lineHeight: 1.6 }}>
+                Upload your PDF resume and get a detailed ATS compatibility<br />report powered by Gemini AI.
+              </p>
+            </div>
 
-        {/* ══ LEFT PANEL ══ */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-
-          {/* Drop zone */}
-          <Panel>
-            <SectionLabel>Resume (PDF)</SectionLabel>
+            {/* Drop zone */}
             <div
               className={`ra-drop${isDragging ? ' dragging' : ''}`}
               onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
               onDragLeave={() => setIsDragging(false)}
               onDrop={onDrop}
               onClick={() => fileInputRef.current?.click()}
-              style={{
-                border: '2px dashed #30363d', borderRadius: 10,
-                padding: '28px 20px', textAlign: 'center', cursor: 'pointer',
-                transition: 'all 0.15s ease', background: 'transparent',
-              }}
             >
               <input ref={fileInputRef} type="file" accept=".pdf" style={{ display: 'none' }} onChange={onInputChange} />
               {file ? (
                 <>
-                  <div style={{ fontSize: 28, marginBottom: 8 }}>✅</div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#00e5a0', marginBottom: 4 }}>{file.name}</div>
-                  <div style={{ fontSize: 11, color: '#484f58' }}>Click to change file</div>
+                  <div style={{ fontSize: 32, marginBottom: 10 }}>✅</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#00e5a0', marginBottom: 4 }}>{file.name}</div>
+                  <div style={{ fontSize: 12, color: '#4a5568' }}>Click to change file</div>
                 </>
               ) : (
                 <>
-                  <div style={{ fontSize: 28, marginBottom: 8 }}>📎</div>
-                  <div style={{ fontSize: 13, color: '#7d8590', marginBottom: 4 }}>Drag & drop your PDF here</div>
-                  <div style={{ fontSize: 11, color: '#484f58' }}>or click to browse</div>
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#4a5568" strokeWidth="1.5" style={{ marginBottom: 12 }}>
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M12 12v6M9 15l3-3 3 3" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <div style={{ fontSize: 14, color: '#7d8590', marginBottom: 4, fontWeight: 500 }}>Drag & drop your PDF here</div>
+                  <div style={{ fontSize: 12, color: '#4a5568' }}>or <span style={{ color: '#00e5a0', textDecoration: 'underline' }}>click to browse</span></div>
                 </>
               )}
             </div>
-          </Panel>
 
-          {/* Job description */}
-          <Panel>
-            <SectionLabel>Target Job Description (optional)</SectionLabel>
-            <textarea
-              className="ra-textarea"
-              value={jobDescription}
-              onChange={e => setJobDescription(e.target.value)}
-              placeholder="Paste the job description you're applying for..."
-              rows={5}
-              style={{
-                width: '100%', height: 120, padding: '10px 12px', resize: 'vertical',
-                background: '#0f1117', border: '1px solid #30363d', borderRadius: 8,
-                color: '#e6edf3', fontSize: 13, lineHeight: 1.6, boxSizing: 'border-box',
-                transition: 'border-color 0.15s',
-              }}
-            />
-          </Panel>
-
-          {/* Error */}
-          {error && (
-            <div style={{ background: '#f8514910', border: '1px solid #f8514940', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#f85149' }}>
-              {error}
+            {/* Job description */}
+            <div style={{ marginTop: 20 }}>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#4a5568', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
+                Target Job Description (optional)
+              </label>
+              <textarea
+                className="ra-textarea"
+                value={jobDescription}
+                onChange={e => setJobDescription(e.target.value)}
+                placeholder="Paste the job description you're applying for..."
+                rows={4}
+              />
             </div>
-          )}
 
-          {/* Analyze button */}
-          <button
-            onClick={handleAnalyze}
-            disabled={isLoading}
-            style={{
-              width: '100%', padding: '13px', borderRadius: 10, border: 'none',
-              background: isLoading ? '#484f58' : '#00e5a0',
-              color: '#0f1117', fontSize: 14, fontWeight: 600, cursor: isLoading ? 'not-allowed' : 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              transition: 'background 0.15s',
-            }}
-          >
-            {isLoading ? (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0f1117" strokeWidth="2.5">
-                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83">
-                    <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite" />
-                  </path>
-                </svg>
-                Analyzing…
-              </>
-            ) : (
-              <>✨ Analyze Resume</>
+            {/* Error */}
+            {error && (
+              <div style={{ marginTop: 14, background: 'rgba(248,81,73,0.08)', border: '1px solid rgba(248,81,73,0.25)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#f85149' }}>
+                {error}
+              </div>
             )}
-          </button>
-          <p style={{ margin: 0, textAlign: 'center', fontSize: 11, color: '#484f58' }}>Powered by Gemini AI</p>
-        </div>
 
-        {/* ══ RIGHT PANEL — Results ══ */}
-        {result && (
-          <div className={`ra-results${visible ? ' visible' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {/* Button */}
+            <button
+              className="ra-btn"
+              onClick={handleAnalyze}
+              disabled={isLoading}
+              style={{ marginTop: 20, background: isLoading ? '#2d3748' : 'linear-gradient(135deg, #00e5a0, #00c8c8)', color: '#0a0f1a' }}
+            >
+              {isLoading ? (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e6edf3" strokeWidth="2.5">
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83">
+                      <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite" />
+                    </path>
+                  </svg>
+                  <span style={{ color: '#e6edf3' }}>Analyzing your resume…</span>
+                </>
+              ) : (
+                <>✨ Analyze Resume</>
+              )}
+            </button>
 
-            {/* ATS Score ring */}
-            <Panel>
-              <SectionLabel>ATS Score</SectionLabel>
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 4px' }}>
-                <RingGauge score={result.atsScore} size={150} strokeW={14} large />
-              </div>
-              <p style={{ margin: '10px 0 0', textAlign: 'center', fontSize: 12, color: '#7d8590' }}>
-                {result.atsScore >= 70 ? 'Good ATS compatibility' : result.atsScore >= 50 ? 'Needs improvement' : 'Significant improvements needed'}
-              </p>
-            </Panel>
-
-            {/* Breakdown */}
-            <Panel>
-              <SectionLabel>Score Breakdown</SectionLabel>
-              <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-                <RingGauge score={result.breakdown.keywordsMatch}   size={76} strokeW={7} label="Keywords" />
-                <RingGauge score={result.breakdown.formatScore}      size={76} strokeW={7} label="Format" />
-                <RingGauge score={result.breakdown.skillsRelevance}  size={76} strokeW={7} label="Skills" />
-                <RingGauge score={result.breakdown.experienceMatch}  size={76} strokeW={7} label="Experience" />
-              </div>
-            </Panel>
-
-            {/* Strengths */}
-            <Panel>
-              <SectionLabel>Strengths</SectionLabel>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {result.strengths.map((s, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: '#00e5a010', border: '1px solid #00e5a030', borderRadius: 8, padding: '9px 12px' }}>
-                    <span style={{ color: '#00e5a0', fontSize: 14, flexShrink: 0, marginTop: 1 }}>✓</span>
-                    <span style={{ fontSize: 13, color: '#e6edf3', lineHeight: 1.5 }}>{s}</span>
-                  </div>
-                ))}
-              </div>
-            </Panel>
-
-            {/* Improvements */}
-            <Panel>
-              <SectionLabel>Areas to Improve</SectionLabel>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {result.improvements.map((s, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: '#f8514910', border: '1px solid #f8514930', borderRadius: 8, padding: '9px 12px' }}>
-                    <span style={{ color: '#f85149', fontSize: 14, flexShrink: 0, marginTop: 1 }}>⚠</span>
-                    <span style={{ fontSize: 13, color: '#e6edf3', lineHeight: 1.5 }}>{s}</span>
-                  </div>
-                ))}
-              </div>
-            </Panel>
-
-            {/* Missing keywords */}
-            <Panel>
-              <SectionLabel>Missing Keywords</SectionLabel>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {result.missingKeywords.map((k, i) => <Pill key={i} text={k} color="#f85149" />)}
-              </div>
-            </Panel>
-
-            {/* Suggested keywords */}
-            <Panel>
-              <SectionLabel>Suggested Keywords to Add</SectionLabel>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {result.suggestedKeywords.map((k, i) => <Pill key={i} text={k} color="#00e5a0" />)}
-              </div>
-            </Panel>
-
-            {/* Summary */}
-            <Panel>
-              <SectionLabel>Overall Assessment</SectionLabel>
-              <p style={{ margin: 0, fontSize: 13, color: '#e6edf3', lineHeight: 1.7 }}>{result.summary}</p>
-            </Panel>
-
+            <p style={{ margin: '14px 0 0', textAlign: 'center', fontSize: 11, color: '#2d3748' }}>
+              Powered by Gemini AI · Your resume is never stored
+            </p>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        /* ── Results view — two column ── */
+        <div className="ra-page">
+          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+
+            {/* Top bar with score + re-analyze */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>
+              <div>
+                <h1 style={{ margin: '0 0 4px', fontSize: 20, fontWeight: 700, color: '#e6edf3' }}>Analysis Complete</h1>
+                <p style={{ margin: 0, fontSize: 13, color: '#7d8590' }}>{file?.name}</p>
+              </div>
+              <button
+                onClick={() => { setResult(null); setVisible(false); setFile(null); setBase64(''); setError(''); }}
+                style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #2d3748', background: 'transparent', color: '#e6edf3', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+              >
+                ← Analyze Another
+              </button>
+            </div>
+
+            <div className={`ra-results ra-two-col${visible ? ' visible' : ''}`} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, alignItems: 'start' }}>
+
+              {/* LEFT col */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+                {/* ATS Score */}
+                <Panel>
+                  <SectionLabel>ATS Score</SectionLabel>
+                  <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 8px' }}>
+                    <RingGauge score={result.atsScore} size={160} strokeW={14} large />
+                  </div>
+                  <p style={{ margin: '10px 0 0', textAlign: 'center', fontSize: 12, color: '#7d8590' }}>
+                    {result.atsScore >= 70 ? '✅ Good ATS compatibility' : result.atsScore >= 50 ? '⚠️ Needs improvement' : '❌ Significant improvements needed'}
+                  </p>
+                </Panel>
+
+                {/* Breakdown */}
+                <Panel>
+                  <SectionLabel>Score Breakdown</SectionLabel>
+                  <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: 12 }}>
+                    <RingGauge score={result.breakdown.keywordsMatch}  size={80} strokeW={7} label="Keywords" />
+                    <RingGauge score={result.breakdown.formatScore}     size={80} strokeW={7} label="Format" />
+                    <RingGauge score={result.breakdown.skillsRelevance} size={80} strokeW={7} label="Skills" />
+                    <RingGauge score={result.breakdown.experienceMatch} size={80} strokeW={7} label="Experience" />
+                  </div>
+                </Panel>
+
+                {/* Summary */}
+                <Panel>
+                  <SectionLabel>Overall Assessment</SectionLabel>
+                  <p style={{ margin: 0, fontSize: 13, color: '#c9d1d9', lineHeight: 1.8 }}>{result.summary}</p>
+                </Panel>
+
+                {/* Missing keywords */}
+                <Panel>
+                  <SectionLabel>Missing Keywords</SectionLabel>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {result.missingKeywords.map((k, i) => <Pill key={i} text={k} color="#f85149" />)}
+                  </div>
+                </Panel>
+              </div>
+
+              {/* RIGHT col */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+                {/* Strengths */}
+                <Panel>
+                  <SectionLabel>Strengths</SectionLabel>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {result.strengths.map((s, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.18)', borderRadius: 8, padding: '9px 12px' }}>
+                        <span style={{ color: '#00e5a0', fontSize: 15, flexShrink: 0, marginTop: 1 }}>✓</span>
+                        <span style={{ fontSize: 13, color: '#c9d1d9', lineHeight: 1.5 }}>{s}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Panel>
+
+                {/* Improvements */}
+                <Panel>
+                  <SectionLabel>Areas to Improve</SectionLabel>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {result.improvements.map((s, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'rgba(248,81,73,0.06)', border: '1px solid rgba(248,81,73,0.18)', borderRadius: 8, padding: '9px 12px' }}>
+                        <span style={{ color: '#f85149', fontSize: 14, flexShrink: 0, marginTop: 1 }}>⚠</span>
+                        <span style={{ fontSize: 13, color: '#c9d1d9', lineHeight: 1.5 }}>{s}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Panel>
+
+                {/* Suggested keywords */}
+                <Panel>
+                  <SectionLabel>Suggested Keywords to Add</SectionLabel>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {result.suggestedKeywords.map((k, i) => <Pill key={i} text={k} color="#00e5a0" />)}
+                  </div>
+                </Panel>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

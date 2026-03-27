@@ -1,13 +1,14 @@
+import json
 import logging
 
-from openai import OpenAI
+import httpx
 
 from app.config import settings
 
 logger = logging.getLogger(__name__)
 
 
-def generate_interview_questions(
+async def generate_interview_questions(
     job_title: str,
     job_description: str,
     skills: list[str],
@@ -15,14 +16,12 @@ def generate_interview_questions(
     num_questions: int = 10,
 ) -> dict:
     """
-    Generate interview Q&A using GPT-4o based on the specific JD.
+    Generate interview Q&A using Gemini based on the specific JD.
     difficulty: easy | medium | hard
-    """
-    if not settings.OPENAI_API_KEY:
-        logger.warning("No OpenAI API key — returning mock questions")
+    """     
+    if not settings.GEMINI_API_KEY:
+        logger.warning("No Gemini API key — returning mock questions")
         return _mock_questions(job_title, skills)
-
-    client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
     skills_str = ", ".join(skills[:15]) if skills else "general software development"
     prompt = f"""You are an expert technical interviewer. Generate {num_questions} interview questions 
@@ -40,28 +39,39 @@ For each question provide:
 Format as JSON array:
 [
   {{
-    \"question\": \"...\",
-    \"answer\": \"...\",
-    \"category\": \"technical\"
+    "question": "...",
+    "answer": "...",
+    "category": "technical"
   }}
 ]
 
 Return ONLY the JSON array, no other text."""
 
-    try:
-        response = client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=2000,
-        )
-        import json
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.GEMINI_MODEL}:generateContent?key={settings.GEMINI_API_KEY}"
 
-        content = response.choices[0].message.content.strip()
-        questions = json.loads(content)
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                url,
+                json={"contents": [{"parts": [{"text": prompt}]}]},
+            )
+
+        if response.status_code != 200:
+            raise Exception(f"Gemini API error: {response.status_code} - {response.text}")
+
+        result = response.json()
+        text = result["candidates"][0]["content"]["parts"][0]["text"]
+        cleaned = text.replace("```json", "").replace("```", "").strip()
+
+        import re
+        match = re.search(r'\[[\s\S]*\]', cleaned)
+        if not match:
+            raise Exception("Could not parse JSON array from Gemini response")
+
+        questions = json.loads(match.group())
         return {"questions": questions, "job_title": job_title, "difficulty": difficulty}
     except Exception as e:
-        logger.error(f"OpenAI call failed: {e}")
+        logger.error(f"Gemini call failed: {e}")
         return _mock_questions(job_title, skills)
 
 

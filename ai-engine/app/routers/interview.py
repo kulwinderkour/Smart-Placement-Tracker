@@ -23,7 +23,7 @@ async def get_interview_questions(request: InterviewRequest):
             status_code=400, detail="Difficulty must be easy, medium, or hard."
         )
 
-    result = generate_interview_questions(
+    result = await generate_interview_questions(
         job_title=request.job_title,
         job_description=request.job_description,
         skills=request.skills,
