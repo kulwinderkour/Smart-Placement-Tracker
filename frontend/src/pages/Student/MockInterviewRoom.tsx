@@ -216,6 +216,7 @@ export default function MockInterviewRoom() {
   return (
     <div style={{ background: '#0f1117', height: '100vh', color: '#e6edf3', display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: 'inherit' }}>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
         .room-scroll::-webkit-scrollbar { width: 4px; }
         .room-scroll::-webkit-scrollbar-thumb { background: #21262d; border-radius: 4px; }
         .spin { animation: spin 1s linear infinite; }
@@ -225,32 +226,36 @@ export default function MockInterviewRoom() {
         .tag-green { background: rgba(0,229,160,0.1); border: 1px solid rgba(0,229,160,0.25); color: #00e5a0; border-radius: 20px; padding: 3px 10px; font-size: 11px; }
         .tag-red   { background: rgba(248,81,73,0.1);  border: 1px solid rgba(248,81,73,0.25);  color: #f85149; border-radius: 20px; padding: 3px 10px; font-size: 11px; }
         .tag-yellow{ background: rgba(240,180,41,0.1); border: 1px solid rgba(240,180,41,0.25); color: #f0b429; border-radius: 20px; padding: 3px 10px; font-size: 11px; }
+        .end-btn { transition: background 0.15s !important; }
+        .end-btn:hover { background: rgba(220,60,60,0.12) !important; }
+        .cam-on-btn { transition: background 0.15s !important; }
+        .cam-on-btn:hover { background: rgba(0,229,160,0.1) !important; }
       `}</style>
 
       {/* ── Top bar ── */}
-      <div style={{ height: 54, borderBottom: '1px solid #21262d', background: '#0d1117', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 12, flexShrink: 0 }}>
-        <span style={{ fontSize: 16 }}>🎙</span>
-        <span style={{ fontWeight: 600, fontSize: 14 }}>Mock Interview</span>
-        <div style={{ width: 1, height: 16, background: '#30363d' }} />
-        <span style={{ fontSize: 12, color: '#7d8590' }}>{setup.role}</span>
-        <span style={{ color: '#30363d' }}>·</span>
-        <span style={{ fontSize: 12, color: '#7d8590' }}>{COMPANY_LABELS[setup.companyType]}</span>
+      <div style={{ height: 56, borderBottom: '1px solid #1E1E28', background: '#0d1117', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 12, flexShrink: 0 }}>
+        <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1A1A22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>🎙</div>
+        <span style={{ fontWeight: 600, fontSize: 14, color: '#E0E0E8' }}>Mock Interview</span>
+        <div style={{ width: 1, height: 16, background: '#2A2A36' }} />
+        <span style={{ fontSize: 12, color: '#F0F0F5', fontWeight: 500 }}>{setup.role}</span>
+        <span style={{ color: '#3A3A4A', fontSize: 12 }}>→</span>
+        <span style={{ fontSize: 12, color: '#00E5A0', fontWeight: 500 }}>{COMPANY_LABELS[setup.companyType]}</span>
         {phase !== 'loading' && phase !== 'complete' && (
           <>
-            <span style={{ color: '#30363d' }}>·</span>
-            <span style={{ fontSize: 12, color: '#484f58' }}>Q {currentIdx + 1} / {questions.length}</span>
+            <span style={{ color: '#3A3A4A', fontSize: 12 }}>·</span>
+            <span style={{ fontSize: 12, color: '#404050' }}>Q {currentIdx + 1} / {questions.length}</span>
           </>
         )}
         <div style={{ flex: 1 }} />
         <div style={{
-          fontFamily: 'monospace', fontSize: 16, fontWeight: 700, letterSpacing: '0.05em',
+          fontFamily: "'JetBrains Mono', monospace", fontSize: 20, fontWeight: 500, letterSpacing: '2px',
           color: timerRed ? '#f85149' : '#e6edf3',
-          background: timerRed ? 'rgba(248,81,73,0.1)' : '#161b22',
-          border: `1px solid ${timerRed ? 'rgba(248,81,73,0.4)' : '#30363d'}`,
-          borderRadius: 8, padding: '4px 12px', transition: 'all 0.4s',
+          background: timerRed ? 'rgba(248,81,73,0.1)' : '#1A1A22',
+          border: `1px solid ${timerRed ? 'rgba(248,81,73,0.4)' : '#2A2A36'}`,
+          borderRadius: 8, padding: '6px 14px', transition: 'all 0.4s',
         }}>{fmtTime(timeLeft)}</div>
-        <button onClick={() => setPhase('complete')}
-          style={{ padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(248,81,73,0.4)', background: 'rgba(248,81,73,0.08)', color: '#f85149', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+        <button className="end-btn" onClick={() => setPhase('complete')}
+          style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(220,60,60,0.5)', background: 'transparent', color: '#E05555', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
           End
         </button>
       </div>
@@ -263,7 +268,7 @@ export default function MockInterviewRoom() {
 
           {/* LOADING */}
           {phase === 'loading' && (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, background: 'radial-gradient(ellipse at center, #111116 0%, #0C0C0F 100%)' }}>
               {loadErr ? (
                 <>
                   <div style={{ fontSize: 13, color: '#f85149' }}>⚠ {loadErr}</div>
@@ -271,9 +276,9 @@ export default function MockInterviewRoom() {
                 </>
               ) : (
                 <>
-                  <div className="spin" style={{ width: 36, height: 36, borderRadius: '50%', border: '3px solid #21262d', borderTopColor: '#00e5a0' }} />
-                  <p style={{ margin: 0, fontSize: 13, color: '#7d8590' }}>Generating questions for <strong style={{ color: '#e6edf3' }}>{setup.role}</strong>…</p>
-                  <p style={{ margin: 0, fontSize: 11, color: '#484f58' }}>Gemini AI is tailoring questions based on your role and company type</p>
+                  <div className="spin" style={{ width: 36, height: 36, borderRadius: '50%', border: '3px solid #1E1E28', borderTopColor: '#00E5A0' }} />
+                  <p style={{ margin: 0, fontSize: 13, color: '#606070' }}>Generating questions for <strong style={{ color: '#F0F0F5', fontWeight: 700 }}>{setup.role}</strong>…</p>
+                  <p style={{ margin: 0, fontSize: 13, color: '#404050' }}>Gemini AI is tailoring questions based on your role and company type</p>
                 </>
               )}
             </div>
@@ -453,31 +458,46 @@ export default function MockInterviewRoom() {
         </div>
 
         {/* ── Right panel: webcam ── */}
-        <div style={{ width: 260, borderLeft: '1px solid #21262d', background: '#0d1117', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-          <div style={{ padding: '14px 16px', borderBottom: '1px solid #21262d' }}>
+        <div style={{ width: 260, borderLeft: '1px solid #1E1E28', background: '#0d1117', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+          <div style={{ padding: '22px 16px 14px', borderBottom: '1px solid #1E1E28' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#484f58', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Camera</span>
-              <button onClick={webcamOn ? stopWebcam : startWebcam}
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 500, color: '#404050', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Camera</span>
+              <button onClick={webcamOn ? stopWebcam : startWebcam} className={webcamOn ? '' : 'cam-on-btn'}
                 style={{
-                  fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 6, cursor: 'pointer',
-                  border: `1px solid ${webcamOn ? 'rgba(248,81,73,0.4)' : 'rgba(0,229,160,0.4)'}`,
-                  background: webcamOn ? 'rgba(248,81,73,0.08)' : 'rgba(0,229,160,0.08)',
-                  color: webcamOn ? '#f85149' : '#00e5a0',
+                  fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 8, cursor: 'pointer',
+                  border: `1px solid ${webcamOn ? 'rgba(220,60,60,0.5)' : '#00E5A0'}`,
+                  background: webcamOn ? 'rgba(220,60,60,0.08)' : 'transparent',
+                  color: webcamOn ? '#E05555' : '#00E5A0',
                 }}>
                 {webcamOn ? 'Turn Off' : 'Turn On'}
               </button>
             </div>
-            <div style={{ width: '100%', aspectRatio: '4/3', borderRadius: 10, background: '#0a0e14', border: '1px solid #21262d', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '100%', aspectRatio: '4/3', borderRadius: 12, background: '#0F0F13', border: '1px solid #1E1E28', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <video ref={videoRef} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', display: webcamOn ? 'block' : 'none' }} />
-              {!webcamOn && <div style={{ textAlign: 'center', color: '#30363d' }}><div style={{ fontSize: 28 }}>📷</div><div style={{ fontSize: 10, marginTop: 4 }}>Camera off</div></div>}
+              {!webcamOn && (
+                <div style={{ textAlign: 'center' }}>
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2A2A36" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: '0 auto 6px' }}>
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                  <div style={{ fontSize: 10, color: '#404050' }}>Camera off</div>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Score history */}
-          <div style={{ padding: '14px 16px', flex: 1, overflowY: 'auto' }}>
-            <p style={{ margin: '0 0 12px', fontSize: 11, fontWeight: 600, color: '#484f58', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Score History</p>
+          <div style={{ padding: '22px 16px 14px', flex: 1, overflowY: 'auto' }}>
+            <p style={{ margin: '0 0 12px', fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 500, color: '#404050', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Score History</p>
             {results.length === 0
-              ? <p style={{ fontSize: 12, color: '#30363d' }}>No answers yet</p>
+              ? (
+                <div style={{ textAlign: 'center', paddingTop: 12 }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2A2A36" strokeWidth="1.5" style={{ display: 'block', margin: '0 auto 8px' }}>
+                    <circle cx="12" cy="12" r="8"/>
+                  </svg>
+                  <p style={{ margin: 0, fontSize: 12, color: '#404050' }}>No answers yet</p>
+                </div>
+              )
               : results.map((r, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, padding: '6px 10px', background: '#0f1117', borderRadius: 8, border: '1px solid #21262d' }}>
                   <span style={{ fontSize: 12, color: '#7d8590' }}>Q{i + 1}</span>
@@ -494,14 +514,22 @@ export default function MockInterviewRoom() {
           </div>
 
           {/* How analysis works — always visible */}
-          <div style={{ padding: '12px 16px', borderTop: '1px solid #21262d' }}>
-            <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 600, color: '#484f58', textTransform: 'uppercase', letterSpacing: '0.06em' }}>How it works</p>
-            <p style={{ margin: 0, fontSize: 10, color: '#484f58', lineHeight: 1.6 }}>
-              📢 <strong style={{ color: '#7d8590' }}>Voice:</strong> Browser's built-in Speech API<br />
-              🧠 <strong style={{ color: '#7d8590' }}>Score:</strong> Gemini AI semantic match<br />
-              📷 <strong style={{ color: '#7d8590' }}>Camera:</strong> Local preview only, not recorded<br />
-              🌐 <strong style={{ color: '#7d8590' }}>No WebRTC</strong> — all local + Gemini API
-            </p>
+          <div style={{ padding: '20px 16px 16px', borderTop: '1px solid #1E1E28' }}>
+            <p style={{ margin: '0 0 10px', fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 500, color: '#404050', textTransform: 'uppercase', letterSpacing: '1.5px' }}>How it works</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+              {[
+                { dot: '#00E5A0', label: 'Voice',     value: "Browser's Speech API" },
+                { dot: '#A0A0FF', label: 'Score',     value: 'Gemini semantic match' },
+                { dot: '#E0A050', label: 'Camera',    value: 'Local preview only' },
+                { dot: '#6090E0', label: 'No WebRTC', value: 'All local + Gemini API' },
+              ].map(item => (
+                <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: item.dot, flexShrink: 0, display: 'inline-block' }} />
+                  <span style={{ fontSize: 10, color: '#9090A8' }}>{item.label}:</span>
+                  <span style={{ fontSize: 10, color: '#C0C0C8' }}>{item.value}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
