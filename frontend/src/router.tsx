@@ -10,6 +10,8 @@ import StudentJobBoard from "./pages/Student/JobBoard";
 import Dashboard from "./pages/Student/Dashboard";
 import Tracker from "./pages/Student/Tracker";
 import ResumeAnalyser from "./pages/Student/ResumeAnalyser";
+import MockInterviewSetup from "./pages/Student/MockInterviewSetup";
+import MockInterviewRoom from "./pages/Student/MockInterviewRoom";
 import Roadmap from "./pages/Student/Roadmap";
 import Questions from "./pages/Student/Questions";
 import Onboarding from "./pages/Student/Onboarding";
@@ -182,6 +184,24 @@ export const router = createBrowserRouter([
           <ResumeAnalyser />
         </OnboardingGuard>
       </Layout>
+    ),
+  },
+  {
+    path: "/mock-interview",
+    element: (
+      <OnboardingGuard>
+        <DashboardLayout>
+          <MockInterviewSetup />
+        </DashboardLayout>
+      </OnboardingGuard>
+    ),
+  },
+  {
+    path: "/mock-interview/room",
+    element: (
+      <OnboardingGuard>
+        <MockInterviewRoom />
+      </OnboardingGuard>
     ),
   },
   { path: "/auth/callback", element: <GoogleCallback /> },

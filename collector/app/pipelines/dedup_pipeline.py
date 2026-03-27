@@ -49,11 +49,11 @@ class DeduplicationPipeline:
                     INSERT INTO jobs (
                         id, source_url, source_hash, company_name,
                         role_title, location, description,
-                        job_type, is_active, collected_at
+                        job_type, is_active, collected_at, created_at
                     ) VALUES (
                         gen_random_uuid(), :url, :hash, :company,
                         :title, :location, :description,
-                        :job_type, true, NOW()
+                        :job_type, true, NOW(), NOW()
                     )
                     """
                 ),
