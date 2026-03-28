@@ -6,10 +6,17 @@ import { applicationsApi, type TrackedApplication } from '../../api/applications
 // ── Types & Helpers ──────────────────────────────────────────────────────────
 interface PastApp { company: string; status: string }
 interface UserProfile {
-  fullName?: string; college?: string; branch?: string; cgpa?: string;
-  graduationYear?: string; skills?: string[]; jobType?: string;
-  resumeName?: string; resumeBase64?: string; resumeUrl?: string;
-  hasExperience?: boolean; previousCompanies?: PastApp[]
+  fullName?: string; full_name?: string;
+  college?: string; branch?: string; 
+  cgpa?: string | number;
+  graduationYear?: string | number; graduation_year?: string | number;
+  skills?: string[]; 
+  jobType?: string; job_type?: string;
+  resumeName?: string; resume_name?: string; 
+  resumeBase64?: string; resume_base64?: string;
+  resumeUrl?: string; resume_url?: string;
+  hasExperience?: boolean; 
+  previousCompanies?: PastApp[]; previous_companies?: PastApp[]
 }
 
 const STATUS_STYLES: Record<string, { bg: string; color: string; border: string }> = {
@@ -21,11 +28,16 @@ const STATUS_STYLES: Record<string, { bg: string; color: string; border: string 
 
 function calcReadiness(profile: UserProfile): number {
   let score = 0
-  if (profile.fullName && profile.college) score += 20
+  const fullName = profile.fullName || profile.full_name
+  const resume = profile.resumeName || profile.resume_name || profile.resumeUrl || profile.resume_url
+  const prevApps = profile.previousCompanies || profile.previous_companies
+  const cgpa = typeof profile.cgpa === 'string' ? parseFloat(profile.cgpa) : (profile.cgpa || 0)
+
+  if (fullName && profile.college) score += 20
   if (profile.skills?.length) score += 20
-  if (profile.resumeName || profile.resumeUrl) score += 20
-  if (profile.hasExperience && profile.previousCompanies?.length) score += 20
-  if (parseFloat(profile.cgpa || '0') >= 7.0) score += 20
+  if (resume) score += 20
+  if (profile.hasExperience && prevApps?.length) score += 20
+  if (cgpa >= 7.0) score += 20
   return score
 }
 
@@ -83,7 +95,8 @@ export default function Dashboard() {
   const { user } = useAuthStore()
   const profile: UserProfile = JSON.parse(localStorage.getItem('userProfile') || '{}')
   const readiness = calcReadiness(profile)
-  const firstName = profile.fullName?.split(' ')[0] || user?.email?.split('@')[0] || 'Member'
+  const fullName = profile.fullName || profile.full_name
+  const firstName = fullName?.split(' ')[0] || user?.email?.split('@')[0] || 'Member'
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : hour < 21 ? 'Good evening' : 'Good night'
 
@@ -100,8 +113,12 @@ export default function Dashboard() {
 
   const skills = profile.skills || []
 
-  const gradYear = parseInt(profile.graduationYear || '2025', 10)
+  const gradYearStr = (profile.graduationYear || profile.graduation_year || '2025').toString()
+  const gradYear = parseInt(gradYearStr, 10)
   const diffDays = Math.max(0, Math.ceil((new Date(gradYear, 5, 1).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
+  const cgpaNum = typeof profile.cgpa === 'string' ? parseFloat(profile.cgpa) : (profile.cgpa || 0)
+  const resumeName = profile.resumeName || profile.resume_name || 'resume.pdf'
+  const resumeBase = profile.resumeBase64 || profile.resume_base64
 
   return (
     <div style={{ width: '100%', minHeight: '100vh', background: '#0d1117' }}>
@@ -235,10 +252,10 @@ export default function Dashboard() {
           <div style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
               <span style={{ fontSize: 12, color: '#7d8590' }}>Academic CGPA</span>
-              <span style={{ fontSize: 12, fontWeight: 500, color: '#e6edf3' }}>{profile.cgpa} / 10</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: '#e6edf3' }}>{profile.cgpa || profile.cgpa} / 10</span>
             </div>
             <div style={{ height: 4, background: '#21262d', borderRadius: 2 }}>
-              <div style={{ width: `${(parseFloat(profile.cgpa || '0') / 10) * 100}%`, height: '100%', background: '#20c997', borderRadius: 2 }} />
+              <div style={{ width: `${(cgpaNum / 10) * 100}%`, height: '100%', background: '#20c997', borderRadius: 2 }} />
             </div>
           </div>
 
@@ -260,9 +277,21 @@ export default function Dashboard() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ color: '#3fb950', fontSize: 12 }}>✓</span>
-              <span style={{ fontSize: 12, color: '#3fb950', fontWeight: 500 }}>resume.pdf</span>
+              <span style={{ fontSize: 12, color: '#3fb950', fontWeight: 500 }}>{resumeName}</span>
             </div>
-            <Link to="/resume" style={{ fontSize: 12, fontWeight: 500, color: '#58a6ff', textDecoration: 'none' }}>View →</Link>
+            {resumeBase ? (
+              <button 
+                onClick={() => {
+                  const win = window.open('', '_blank')
+                  if (win) win.document.write(`<html><body style="margin:0"><iframe src="${resumeBase}" width="100%" height="100%" style="border:none;position:fixed;inset:0"></iframe></body></html>`)
+                }}
+                style={{ background: 'none', border: 'none', padding: 0, fontSize: 12, fontWeight: 500, color: '#58a6ff', textDecoration: 'none', cursor: 'pointer' }}
+              >
+                View →
+              </button>
+            ) : (
+              <Link to="/profile" style={{ fontSize: 12, fontWeight: 500, color: '#58a6ff', textDecoration: 'none' }}>Add →</Link>
+            )}
           </div>
 
           <Link to="/profile" style={{

@@ -19,6 +19,9 @@ class Student(Base):
     graduation_year: Mapped[int | None] = mapped_column(SmallInteger)
     cgpa: Mapped[float | None] = mapped_column(Numeric(4, 2))
     resume_url: Mapped[str | None] = mapped_column()
+    resume_base64: Mapped[str | None] = mapped_column()
+    resume_name: Mapped[str | None] = mapped_column()
+    job_type: Mapped[str | None] = mapped_column()
     ats_score: Mapped[int | None] = mapped_column(SmallInteger)
     linkedin_url: Mapped[str | None] = mapped_column()
     github_url: Mapped[str | None] = mapped_column()
@@ -30,3 +33,4 @@ class Student(Base):
     )
 
     user = relationship("User", backref="student")
+    skills = relationship("Skill", secondary="student_skills", backref="students")

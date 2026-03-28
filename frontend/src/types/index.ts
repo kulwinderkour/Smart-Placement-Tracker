@@ -16,12 +16,18 @@ export interface Student {
   branch?: string
   graduation_year?: number
   cgpa?: number
+  job_type?: string
   resume_url?: string
+  resume_base64?: string
+  resume_name?: string
+  skills?: string[]
   ats_score?: number
   linkedin_url?: string
   github_url?: string
   created_at: string
 }
+
+export type StudentProfile = Student
 
 export interface Job {
   id: string
