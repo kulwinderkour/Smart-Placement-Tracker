@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     GEMINI_MODEL: str = "gemini-2.5-flash"
     MAX_RESUME_SIZE_MB: int = 5
     SKILLS_TAXONOMY_PATH: str = "app/data/skills_taxonomy.json"
+    BACKEND_URL: str = "http://backend-api:8000/api/v1"
 
     class Config:
         env_file = ".env"

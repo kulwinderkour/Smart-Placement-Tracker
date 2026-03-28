@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, jobs, applications, admin, company, roadmap, questions
+from app.routers.agent_internal import router as agent_internal_router
 from app.routers.google_auth import router as google_router
 from app.routers.company_jobs import router as company_jobs_router
 from app.routers.student_api import router as student_api_router
@@ -57,6 +58,7 @@ app.include_router(company_jobs_router,prefix="/api/v1")
 app.include_router(student_api_router, prefix="/api/v1")
 app.include_router(roadmap.router,     prefix="/api/v1")
 app.include_router(questions.router,   prefix="/api/v1")
+app.include_router(agent_internal_router, prefix="/api/v1")
 
 @app.get("/health")
 def health():

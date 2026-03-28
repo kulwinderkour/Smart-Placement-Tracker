@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
+import { applicationsApi, type TrackedApplication } from '../../api/applications'
 
 // ── Types & Helpers ──────────────────────────────────────────────────────────
 interface PastApp { company: string; status: string }
@@ -86,7 +87,17 @@ export default function Dashboard() {
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : hour < 21 ? 'Good evening' : 'Good night'
 
-  const companies = profile.previousCompanies?.filter(c => c.company) || []
+  const [applications, setApplications] = useState<TrackedApplication[]>([])
+  const [appsLoading, setAppsLoading] = useState(true)
+
+  useEffect(() => {
+    if (!user?.id) return
+    applicationsApi.getMyApplications(user.id)
+      .then(res => setApplications(res.data))
+      .catch(() => setApplications([]))
+      .finally(() => setAppsLoading(false))
+  }, [user?.id])
+
   const skills = profile.skills || []
 
   const gradYear = parseInt(profile.graduationYear || '2025', 10)
@@ -128,7 +139,7 @@ export default function Dashboard() {
           <div style={{ display: 'flex', gap: 16 }}>
             <StatCard value={`${readiness}%`} label="Readiness" icon="M22 12h-4l-3 9L9 3l-3 9H2" accent="#20c997" />
             <StatCard value={skills.length} label="Skills" icon="M13 2L3 14h9l-1 8 10-12h-9l1-8z" accent="#7c3aed" />
-            <StatCard value={companies.length} label="Apps" icon="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" accent="#1f6feb" />
+            <StatCard value={appsLoading ? '…' : applications.length} label="Apps" icon="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" accent="#1f6feb" />
             <StatCard value={`${diffDays}d`} label="To Season" icon="M12 6v6l4 2" accent="#da3633" />
           </div>
 
@@ -155,33 +166,48 @@ export default function Dashboard() {
 
           {/* Recent Apps */}
           <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '20px 24px' }}>
-            <h2 style={{ margin: '0 0 16px', fontSize: 14, fontWeight: 500, color: '#e6edf3' }}>Recent Applications</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ margin: 0, fontSize: 14, fontWeight: 500, color: '#e6edf3' }}>Recent Applications</h2>
+              <Link to="/jobs" style={{ fontSize: 12, color: '#20c997', textDecoration: 'none', fontWeight: 500 }}>Browse Jobs →</Link>
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {companies.length > 0 ? companies.map((app, i) => {
-                const s = STATUS_STYLES[app.status] || STATUS_STYLES['Applied']
+              {appsLoading ? (
+                <p style={{ fontSize: 13, color: '#7d8590', margin: 0 }}>Loading…</p>
+              ) : applications.length > 0 ? applications.slice(0, 5).map((app, i) => {
+                const statusKey = app.status === 'applied' ? 'Applied'
+                  : app.status === 'offer' ? 'Offered'
+                  : app.status === 'rejected' ? 'Rejected'
+                  : 'Interviewed'
+                const s = STATUS_STYLES[statusKey] || STATUS_STYLES['Applied']
+                const appliedDate = app.applied_at
+                  ? new Date(app.applied_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                  : '—'
                 return (
                   <div key={i} style={{ 
                     padding: '12px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    borderBottom: i === companies.length - 1 ? 'none' : '1px solid #21262d'
+                    borderBottom: i === Math.min(applications.length, 5) - 1 ? 'none' : '1px solid #21262d'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{
                         width: 32, height: 32, borderRadius: 6, background: '#21262d', color: '#7d8590',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 500
-                      }}>{app.company[0].toUpperCase()}</div>
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 500,
+                        flexShrink: 0
+                      }}>{app.company[0]?.toUpperCase() ?? '?'}</div>
                       <div>
                         <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: '#e6edf3' }}>{app.company}</p>
-                        <p style={{ margin: 0, fontSize: 12, color: '#7d8590' }}>Mar 2024</p>
+                        <p style={{ margin: 0, fontSize: 12, color: '#7d8590' }}>{app.role} · {appliedDate}</p>
                       </div>
                     </div>
                     <span style={{
                       fontSize: 11, fontWeight: 500, padding: '3px 8px', borderRadius: 4,
-                      background: s.bg, color: s.color, border: s.border
-                    }}>{app.status}</span>
+                      background: s.bg, color: s.color, border: s.border, flexShrink: 0
+                    }}>{statusKey}</span>
                   </div>
                 )
               }) : (
-                <p style={{ fontSize: 13, color: '#7d8590', margin: 0 }}>No active applications.</p>
+                <p style={{ fontSize: 13, color: '#7d8590', margin: 0 }}>
+                  No applications yet. <Link to="/jobs" style={{ color: '#20c997', textDecoration: 'none' }}>Browse jobs →</Link>
+                </p>
               )}
             </div>
           </div>

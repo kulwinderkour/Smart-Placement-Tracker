@@ -32,11 +32,14 @@ async def list_jobs(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     location: Optional[str] = None,
+    min_salary_lpa: Optional[int] = None,
     db: AsyncSession = Depends(get_db),
 ):
     query = select(Job).where(Job.is_active == True)
     if location:
         query = query.where(Job.location.ilike(f"%{location}%"))
+    if min_salary_lpa is not None:
+        query = query.where(Job.salary_min >= min_salary_lpa)
 
     total = await db.scalar(select(func.count()).select_from(query.subquery()))
     result = await db.execute(query.offset((page - 1) * limit).limit(limit))
