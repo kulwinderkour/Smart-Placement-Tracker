@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '../../store/authStore'
 import { authApi } from '../../api/auth'
+import { studentApi } from '../../api/student'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface PastApp { company: string; status: string }
@@ -135,10 +136,28 @@ export default function Onboarding() {
 
   useEffect(() => {
     if (currentStep === 5) {
+      // Mark onboarding as completed
       authApi.completeOnboarding()
         .then(() => updateUser({ is_onboarding_completed: true }))
         .catch(() => {})
-      localStorage.setItem('userProfile', JSON.stringify(data))
+      
+      // Save profile data to backend
+      studentApi.updateProfile({
+        full_name: data.fullName,
+        college: data.college,
+        branch: data.branch,
+        cgpa: data.cgpa ? parseFloat(data.cgpa) : undefined,
+        graduation_year: data.graduationYear ? parseInt(data.graduationYear) : undefined,
+        skills: data.skills,
+        job_type: data.jobType,
+        resume_name: data.resumeName,
+        resume_base64: data.resumeBase64
+      }).then(res => {
+        localStorage.setItem('userProfile', JSON.stringify(res.data))
+      }).catch(err => {
+        console.error('Failed to sync profile to backend:', err)
+        localStorage.setItem('userProfile', JSON.stringify(data))
+      })
       const t = setTimeout(() => navigate('/dashboard'), 2800)
       return () => clearTimeout(t)
     }

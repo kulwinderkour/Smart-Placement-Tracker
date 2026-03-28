@@ -12,7 +12,11 @@ class StudentCreate(BaseModel):
     branch: Optional[str] = None
     graduation_year: Optional[int] = None
     cgpa: Optional[float] = None
+    skills: Optional[list[str]] = None
+    job_type: Optional[str] = None
     resume_url: Optional[str] = None
+    resume_base64: Optional[str] = None
+    resume_name: Optional[str] = None
     linkedin_url: Optional[str] = None
     github_url: Optional[str] = None
 
@@ -24,7 +28,11 @@ class StudentUpdate(BaseModel):
     branch: Optional[str] = None
     graduation_year: Optional[int] = None
     cgpa: Optional[float] = None
+    skills: Optional[list[str]] = None
+    job_type: Optional[str] = None
     resume_url: Optional[str] = None
+    resume_base64: Optional[str] = None
+    resume_name: Optional[str] = None
     ats_score: Optional[int] = None
     linkedin_url: Optional[str] = None
     github_url: Optional[str] = None
@@ -39,10 +47,14 @@ class StudentResponse(BaseModel):
     branch: Optional[str]
     graduation_year: Optional[int]
     cgpa: Optional[float]
+    job_type: Optional[str]
     resume_url: Optional[str]
+    resume_base64: Optional[str]
+    resume_name: Optional[str]
     ats_score: Optional[int]
     linkedin_url: Optional[str]
     github_url: Optional[str]
     created_at: datetime
+    skills: Optional[list] = None
 
     model_config = {"from_attributes": True}
