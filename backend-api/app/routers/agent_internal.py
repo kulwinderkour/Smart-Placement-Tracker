@@ -110,6 +110,7 @@ async def agent_get_applications(user_id: str, db: AsyncSession = Depends(get_db
 
     return [
         {
+            "id": str(app.id),
             "company": company_name,
             "role": role_title,
             "package_lpa": salary_min,
@@ -118,3 +119,33 @@ async def agent_get_applications(user_id: str, db: AsyncSession = Depends(get_db
         }
         for app, company_name, role_title, salary_min in apps_result.all()
     ]
+
+
+@router.delete("/applications/{user_id}/{application_id}")
+async def agent_delete_application(
+    user_id: str, application_id: str, db: AsyncSession = Depends(get_db)
+):
+    try:
+        user_uuid = uuid.UUID(user_id)
+        app_uuid = uuid.UUID(application_id)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="Invalid user_id or application_id")
+
+    result = await db.execute(select(Student).where(Student.user_id == user_uuid))
+    student = result.scalar_one_or_none()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    app_result = await db.execute(
+        select(Application).where(
+            Application.id == app_uuid,
+            Application.student_id == student.id,
+        )
+    )
+    application = app_result.scalar_one_or_none()
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    await db.delete(application)
+    await db.commit()
+    return {"deleted": True, "application_id": application_id}
