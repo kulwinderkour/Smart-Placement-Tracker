@@ -103,7 +103,8 @@ export default function JobBoard() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
-  const [visitedIds, setVisitedIds] = useState<Set<string>>(new Set());
+  const [pendingJobs, setPendingJobs] = useState<Job[]>([]);
+  const [confirmJob, setConfirmJob] = useState<Job | null>(null);
   const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set());
   const [applyingIds, setApplyingIds] = useState<Set<string>>(new Set());
   const [filters, setFilters] = useState({
@@ -131,6 +132,20 @@ export default function JobBoard() {
 
   useEffect(() => {
     fetchJobs();
+  }, []);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setPendingJobs(prev => {
+          if (prev.length === 0) return prev;
+          setConfirmJob(prev[0]);
+          return prev;
+        });
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
   const fetchRemotiveJobs = async (skills: string[]) => {
@@ -544,6 +559,82 @@ export default function JobBoard() {
         </div>
       )}
 
+      {/* ── Confirmation Modal — fires on tab return ─────────────────────── */}
+      {confirmJob && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{
+            background: '#161b22', border: '1px solid #30363d',
+            borderRadius: '14px', padding: '28px 32px',
+            maxWidth: '420px', width: '90%', boxShadow: '0 24px 48px rgba(0,0,0,0.5)',
+          }}>
+            <p style={{ margin: '0 0 6px', fontSize: '11px', color: '#7d8590', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              Application check
+            </p>
+            <h2 style={{ margin: '0 0 8px', fontSize: '17px', fontWeight: 600, color: '#e6edf3', lineHeight: 1.4 }}>
+              Did you apply to this job?
+            </h2>
+            <div style={{
+              background: '#0d1117', border: '1px solid #21262d',
+              borderRadius: '8px', padding: '12px 14px', margin: '16px 0 24px',
+            }}>
+              <p style={{ margin: 0, fontSize: '14px', fontWeight: 500, color: '#e6edf3' }}>{confirmJob.title}</p>
+              <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#7d8590' }}>{confirmJob.company} · {confirmJob.location}</p>
+            </div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                disabled={applyingIds.has(confirmJob.applyUrl)}
+                onClick={async () => {
+                  if (!user?.id) return;
+                  const job = confirmJob;
+                  setApplyingIds(prev => new Set(prev).add(job.applyUrl));
+                  try {
+                    await applicationsApi.trackJobBoardApplication(user.id, {
+                      applyUrl: job.applyUrl, title: job.title,
+                      company: job.company, salary: job.salary,
+                      description: job.description,
+                    });
+                    setAppliedIds(prev => new Set(prev).add(job.applyUrl));
+                    setPendingJobs(prev => prev.filter(j => j.applyUrl !== job.applyUrl));
+                    setConfirmJob(null);
+                  } catch (e) {
+                    console.error('Failed to track:', e);
+                  } finally {
+                    setApplyingIds(prev => { const s = new Set(prev); s.delete(job.applyUrl); return s; });
+                  }
+                }}
+                style={{
+                  flex: 1, padding: '10px', borderRadius: '8px',
+                  background: applyingIds.has(confirmJob.applyUrl) ? '#1a2e22' : '#238636',
+                  color: '#fff', border: 'none', fontSize: '14px', fontWeight: 500,
+                  cursor: applyingIds.has(confirmJob.applyUrl) ? 'wait' : 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {applyingIds.has(confirmJob.applyUrl) ? 'Saving…' : '✓ Yes, I Applied'}
+              </button>
+              <button
+                onClick={() => {
+                  setPendingJobs(prev => prev.filter(j => j.applyUrl !== confirmJob.applyUrl));
+                  setConfirmJob(null);
+                }}
+                style={{
+                  flex: 1, padding: '10px', borderRadius: '8px',
+                  background: 'transparent', color: '#7d8590',
+                  border: '1px solid #30363d', fontSize: '14px', fontWeight: 500,
+                  cursor: 'pointer', transition: 'all 0.15s',
+                }}
+              >
+                No, just browsing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <p style={{ color: "#8b949e" }}>Loading jobs...</p>
       ) : (
@@ -577,77 +668,45 @@ export default function JobBoard() {
                       <p style={{ color: "#8b949e", fontSize: "13px", marginTop: "6px" }}>{job.description}</p>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', marginLeft: '1rem', flexShrink: 0 }}>
-                      {/* Apply button — only opens URL, does NOT track */}
-                      {!appliedIds.has(job.applyUrl) && (
-                        <button
-                          onClick={() => {
-                            window.open(job.applyUrl, '_blank', 'noreferrer');
-                            setVisitedIds(prev => new Set(prev).add(job.applyUrl));
-                          }}
-                          style={{
-                            background: visitedIds.has(job.applyUrl) ? '#1c2128' : '#238636',
-                            color: visitedIds.has(job.applyUrl) ? '#7d8590' : '#fff',
-                            border: visitedIds.has(job.applyUrl) ? '1px solid #30363d' : 'none',
-                            padding: '6px 16px',
-                            borderRadius: '6px',
-                            fontSize: '13px',
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                            minWidth: '90px',
-                            transition: 'all 0.2s ease',
-                          }}
-                        >
-                          {visitedIds.has(job.applyUrl) ? 'Open Again ↗' : 'Apply →'}
-                        </button>
-                      )}
-                      {/* Confirm tracking — only shown after user has visited the URL */}
-                      {visitedIds.has(job.applyUrl) && !appliedIds.has(job.applyUrl) && (
-                        <button
-                          disabled={applyingIds.has(job.applyUrl)}
-                          onClick={async () => {
-                            if (!user?.id || applyingIds.has(job.applyUrl)) return;
-                            setApplyingIds(prev => new Set(prev).add(job.applyUrl));
-                            try {
-                              await applicationsApi.trackJobBoardApplication(user.id, {
-                                applyUrl: job.applyUrl,
-                                title: job.title,
-                                company: job.company,
-                                salary: job.salary,
-                                description: job.description,
-                              });
-                              setAppliedIds(prev => new Set(prev).add(job.applyUrl));
-                              setVisitedIds(prev => { const s = new Set(prev); s.delete(job.applyUrl); return s; });
-                            } catch (e) {
-                              console.error('Failed to track application:', e);
-                            } finally {
-                              setApplyingIds(prev => { const s = new Set(prev); s.delete(job.applyUrl); return s; });
-                            }
-                          }}
-                          style={{
-                            background: '#0d1f1a',
-                            color: applyingIds.has(job.applyUrl) ? '#7d8590' : '#3fb950',
-                            border: '1px solid #23863655',
-                            padding: '4px 12px',
-                            borderRadius: '6px',
-                            fontSize: '12px',
-                            cursor: applyingIds.has(job.applyUrl) ? 'wait' : 'pointer',
-                            whiteSpace: 'nowrap',
-                            transition: 'all 0.2s ease',
-                          }}
-                        >
-                          {applyingIds.has(job.applyUrl) ? 'Saving…' : '✓ I Applied — Track it'}
-                        </button>
-                      )}
-                      {/* Confirmed applied state */}
-                      {appliedIds.has(job.applyUrl) && (
+                      {appliedIds.has(job.applyUrl) ? (
                         <span style={{
                           background: '#1a2e22', color: '#3fb950',
                           border: '1px solid #23863633',
                           padding: '6px 14px', borderRadius: '6px',
                           fontSize: '13px', whiteSpace: 'nowrap'
-                        }}>
-                          ✓ Applied
-                        </span>
+                        }}>✓ Applied</span>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => {
+                              window.open(job.applyUrl, '_blank', 'noreferrer');
+                              setPendingJobs(prev =>
+                                prev.some(j => j.applyUrl === job.applyUrl) ? prev : [...prev, job]
+                              );
+                            }}
+                            style={{
+                              background: pendingJobs.some(j => j.applyUrl === job.applyUrl) ? '#1c2128' : '#238636',
+                              color: pendingJobs.some(j => j.applyUrl === job.applyUrl) ? '#7d8590' : '#fff',
+                              border: pendingJobs.some(j => j.applyUrl === job.applyUrl) ? '1px solid #30363d' : 'none',
+                              padding: '6px 16px', borderRadius: '6px', fontSize: '13px',
+                              cursor: 'pointer', whiteSpace: 'nowrap', minWidth: '90px',
+                              transition: 'all 0.2s ease',
+                            }}
+                          >
+                            {pendingJobs.some(j => j.applyUrl === job.applyUrl) ? 'Open Again ↗' : 'Apply →'}
+                          </button>
+                          {pendingJobs.some(j => j.applyUrl === job.applyUrl) && (
+                            <button
+                              onClick={() => setConfirmJob(job)}
+                              style={{
+                                background: 'transparent', color: '#3fb950',
+                                border: '1px solid #23863655',
+                                padding: '4px 12px', borderRadius: '6px',
+                                fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap',
+                              }}
+                            >✓ I Applied</button>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>

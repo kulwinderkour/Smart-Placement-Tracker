@@ -2,6 +2,7 @@ import { apiClient } from './client'
 import type { Application } from '../types'
 
 export interface TrackedApplication {
+  id: string
   company: string
   role: string
   package_lpa: number | null
@@ -40,4 +41,7 @@ export const applicationsApi = {
 
   getMyApplications: (userId: string) =>
     apiClient.get<TrackedApplication[]>(`/internal/agent/applications/${userId}`),
+
+  deleteApplication: (userId: string, applicationId: string) =>
+    apiClient.delete(`/internal/agent/applications/${userId}/${applicationId}`),
 }

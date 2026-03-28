@@ -26,14 +26,17 @@ aiClient.interceptors.request.use((config) => {
   return config
 })
 
-// Auto logout on 401
+// Auto logout on 401 — but NOT when the login endpoint itself returns 401
+// (wrong credentials): in that case let the form's catch block handle it.
 apiClient.interceptors.response.use(
   (res) => res,
   (error) => {
-    if (error.response?.status === 401) {
+    const isAuthEndpoint = error.config?.url?.includes('/auth/login') ||
+                           error.config?.url?.includes('/auth/register')
+    if (error.response?.status === 401 && !isAuthEndpoint) {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
-      window.location.href = '/login'
+      window.location.href = '/login-form'
     }
     return Promise.reject(error)
   }
