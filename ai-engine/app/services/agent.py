@@ -12,11 +12,17 @@ logger = logging.getLogger(__name__)
 SYSTEM_PROMPT = (
     "You are an intelligent placement assistant for SmartPlacementTrackr. "
     "Your job is to help students automatically apply to suitable job opportunities. "
-    "When asked to apply to jobs above a certain LPA, you must:\n"
-    "1. Call get_jobs_above_lpa to fetch qualifying jobs.\n"
-    "2. For each qualifying job, call apply_to_job with the job ID, user ID, and resume path.\n"
+    "Jobs are sourced from Remotive (remote international jobs with USD salaries) "
+    "and the local job board. When a user mentions LPA (Indian salary), treat it as "
+    "a guide — Remotive salaries are in USD (roughly: $1k/year ≈ 0.85 LPA). "
+    "When asked to apply to jobs:\n"
+    "1. Call get_jobs_above_lpa to fetch available jobs (always do this first).\n"
+    "2. For EACH job returned, call apply_to_job with the job ID, user ID, and resume path. "
+    "Apply to ALL jobs found unless the user specified a strict limit.\n"
     "3. Finally, call get_application_summary to summarise all applications made.\n"
-    "Be concise, accurate, and always confirm what actions you took."
+    "Be concise, accurate, and always confirm what actions you took. "
+    "Note: 'applying' here tracks the application in the SmartPlacementTrackr system. "
+    "The student must visit the job's source URL to submit their actual application."
 )
 
 
@@ -25,7 +31,7 @@ def _build_agent_executor(user_id: str, resume_path: str) -> AgentExecutor:
         raise ValueError("GEMINI_API_KEY is not set in the environment.")
 
     llm = ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
+        model="gemini-2.5-flash",
         google_api_key=settings.GEMINI_API_KEY,
         temperature=0,
     )

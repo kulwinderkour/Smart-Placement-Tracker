@@ -1,8 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import agent, internal, interview, recommend, resume, skill_gap
-from app.routers.agent import router as agent_router
-app.include_router(agent_router)
 app = FastAPI(
     title="Student Placement Tracker — AI Engine",
     version="1.0.0",
