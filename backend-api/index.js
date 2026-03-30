@@ -4,6 +4,7 @@ const cors = require("cors");
 const { scrapeInternshala } = require("./scrapers/internshala");
 const roadmapRouter = require("./routes/roadmap");
 const questionsRouter = require("./routes/questions");
+const skillsRouter = require("./routes/skills");
 
 const app = express();
 const port = 8081;
@@ -36,6 +37,9 @@ app.get("/api/jobs/internshala", async (req, res) => {
 
 // Roadmap routes
 app.use("/api/roadmap", roadmapRouter);
+
+// Skills routes
+app.use("/api/skills", skillsRouter);
 
 // Questions routes
 app.use("/questions", questionsRouter);

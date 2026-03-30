@@ -115,6 +115,8 @@ export default function Onboarding() {
   const { updateUser } = useAuthStore()
   const [currentStep, setCurrentStep] = useState(1)
   const [dragging, setDragging] = useState(false)
+  const [dynamicSkills, setDynamicSkills] = useState<string[]>([])
+  const [loadingSkills, setLoadingSkills] = useState(false)
 
   const [data, setData] = useState<OnboardingData>({
     fullName: '', college: '', branch: '', cgpa: '', graduationYear: '',
@@ -164,10 +166,22 @@ export default function Onboarding() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep])
 
+  useEffect(() => {
+    if (data.branch) {
+      setLoadingSkills(true)
+      fetch(`http://localhost:8081/api/skills/suggestions?field=${data.branch}`)
+        .then(res => res.json())
+        .then(resData => {
+          setDynamicSkills(resData.skills || [])
+        })
+        .catch(() => setDynamicSkills(['React', 'Python', 'Java', 'Node.js', 'SQL', 'DSA']))
+        .finally(() => setLoadingSkills(false))
+    }
+  }, [data.branch])
+
   const handleNext = () => { if (currentStep < 5) setCurrentStep(p => p + 1) }
   const handleBack = () => { if (currentStep > 1) setCurrentStep(p => p - 1) }
 
-  const ALL_SKILLS = ['React', 'Python', 'Java', 'Node.js', 'SQL', 'DSA', 'Machine Learning', 'C++']
   const JOB_TYPES = ['Internship', 'Full-time', 'Both']
 
   return (
@@ -208,7 +222,7 @@ export default function Onboarding() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                     <StyledSelect label="Branch" value={data.branch} onChange={v => update({ branch: v })}>
                       <option value="" disabled>Select branch</option>
-                      {['CSE','IT','ECE','Mechanical','Civil','Other'].map(b => <option key={b} value={b}>{b}</option>)}
+                      {['Computer Science','Information Technology','Electronics','Mechanical','Civil','Marketing','Finance','Law','Medicine','Design','Arts','Other'].map(b => <option key={b} value={b}>{b}</option>)}
                     </StyledSelect>
                     <StyledInput label="CGPA" type="number" placeholder="e.g. 8.5" min="0" max="10" step="0.01" value={data.cgpa} onChange={e => update({ cgpa: e.target.value })} />
                   </div>
@@ -230,7 +244,14 @@ export default function Onboarding() {
                     {data.skills.map(s => <span key={s} style={{ background: 'rgba(124,58,237,0.2)', border: '1px solid rgba(124,58,237,0.5)', color: '#c4b5fd', borderRadius: 50, padding: '4px 14px', fontSize: 13 }}>{s}</span>)}
                   </div>
                 )}
-                {ALL_SKILLS.map((s, i) => <SelectionRow key={s} index={i + 1} label={s} selected={data.skills.includes(s)} onClick={() => toggleSkill(s)} />)}
+                {loadingSkills ? (
+                  <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, padding: '20px', textAlign: 'center' }}>Loading suggested skills for {data.branch}...</div>
+                ) : (
+                  <div style={{ maxHeight: '200px', overflowY: 'auto', paddingRight: '8px' }}>
+                    {dynamicSkills.map((s, i) => <SelectionRow key={s} index={i + 1} label={s} selected={data.skills.includes(s)} onClick={() => toggleSkill(s)} />)}
+                    {dynamicSkills.length === 0 && <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, textAlign: 'center' }}>Select a branch to see skill suggestions</div>}
+                  </div>
+                )}
                 <div style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', margin: '20px 0 16px' }} />
                 <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Looking for</p>
                 {JOB_TYPES.map((t, i) => <SelectionRow key={t} index={i + 1} label={t} selected={data.jobType === t} onClick={() => update({ jobType: t })} />)}

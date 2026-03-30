@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 interface AnalysisResult {
   atsScore: number
@@ -119,6 +120,7 @@ function Panel({ children, style }: { children: React.ReactNode; style?: React.C
 }
 
 export default function ResumeAnalyser() {
+  const navigate = useNavigate()
   const [file, setFile]               = useState<File | null>(null)
   const [base64, setBase64]           = useState<string>('')
   const [jobDescription, setJobDescription] = useState('')
@@ -229,7 +231,44 @@ Use exactly this structure:
   }
 
   return (
-    <div style={{ background: '#0f1117', minHeight: '100vh', color: '#e6edf3' }}>
+    <div style={{ background: '#0f1117', minHeight: '100vh', color: '#e6edf3', position: 'relative' }}>
+      <button 
+        onClick={() => navigate('/dashboard')}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          left: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: 'rgba(33, 38, 45, 0.5)',
+          border: '1px solid #30363d',
+          borderRadius: '8px',
+          padding: '8px 14px',
+          color: '#8b949e',
+          fontSize: '13px',
+          fontWeight: 500,
+          cursor: 'pointer',
+          transition: 'all 0.2s',
+          zIndex: 30,
+          backdropFilter: 'blur(8px)'
+        }}
+        onMouseOver={(e) => {
+          e.currentTarget.style.background = '#30363d';
+          e.currentTarget.style.color = '#e6edf3';
+          e.currentTarget.style.borderColor = '#484f58';
+        }}
+        onMouseOut={(e) => {
+          e.currentTarget.style.background = 'rgba(33, 38, 45, 0.5)';
+          e.currentTarget.style.color = '#8b949e';
+          e.currentTarget.style.borderColor = '#30363d';
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back to Dashboard
+      </button>
       <style>{`
         .ra-page { padding: 32px 16px 60px; }
         .ra-drop { border: 2px dashed #2d3748; border-radius: 14px; padding: 36px 20px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: transparent; }

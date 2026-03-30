@@ -107,6 +107,7 @@ export default function JobBoard() {
   const [confirmJob, setConfirmJob] = useState<Job | null>(null);
   const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set());
   const [applyingIds, setApplyingIds] = useState<Set<string>>(new Set());
+  const [dynamicQuickFields, setDynamicQuickFields] = useState<string[]>(QUICK_FIELDS);
   const [filters, setFilters] = useState({
     field: '',        // job field/domain
     location: '',     // city filter
@@ -132,6 +133,14 @@ export default function JobBoard() {
 
   useEffect(() => {
     fetchJobs();
+    const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+    const field = profile.branch || 'Software';
+    fetch(`http://localhost:8081/api/skills/suggestions?field=${field}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.skills) setDynamicQuickFields(['🔥 Trending', ...data.skills.slice(0, 8)]);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -398,7 +407,7 @@ export default function JobBoard() {
 
       {/* Quick Picks */}
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
-        {QUICK_FIELDS.map(field => (
+        {dynamicQuickFields.map(field => (
           <button
             key={field}
             onClick={() => {
