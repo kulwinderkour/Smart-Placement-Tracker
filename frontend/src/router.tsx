@@ -33,6 +33,8 @@ import AdminAnalytics from "./pages/Admin/AdminAnalytics";
 import AdminCompanyProfile from "./pages/Admin/AdminCompanyProfile";
 import AdminSettings from "./pages/Admin/AdminSettings";
 import FloatingAgent from "./components/FloatingAgent";
+import DocumentVault from "./pages/Student/DocumentVault";
+import PrepChecklist from "./pages/Student/PrepChecklist";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -160,6 +162,16 @@ export const router = createBrowserRouter([
     ),
   },
   {
+    path: "/eligibility",
+    element: (
+      <OnboardingGuard>
+        <DashboardLayout>
+          <PrepChecklist />
+        </DashboardLayout>
+      </OnboardingGuard>
+    ),
+  },
+  {
     path: "/questions",
     element: (
       <OnboardingGuard>
@@ -197,6 +209,16 @@ export const router = createBrowserRouter([
           <ResumeAnalyser />
         </OnboardingGuard>
       </Layout>
+    ),
+  },
+  {
+    path: "/student/document-vault",
+    element: (
+      <OnboardingGuard>
+        <DashboardLayout>
+          <DocumentVault />
+        </DashboardLayout>
+      </OnboardingGuard>
     ),
   },
   {

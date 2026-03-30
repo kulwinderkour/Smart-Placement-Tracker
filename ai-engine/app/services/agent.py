@@ -31,7 +31,7 @@ def _build_agent_executor(user_id: str, resume_path: str) -> AgentExecutor:
         raise ValueError("GEMINI_API_KEY is not set in the environment.")
 
     llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
+        model=settings.GEMINI_MODEL or "gemini-1.5-flash",
         google_api_key=settings.GEMINI_API_KEY,
         temperature=0,
     )

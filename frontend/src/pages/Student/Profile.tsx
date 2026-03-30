@@ -207,14 +207,13 @@ export default function Profile() {
             </div>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <p style={{ color: '#7d8590', fontSize: 13, margin: 0 }}>No resume uploaded yet</p>
-              <button 
-                onClick={() => fileInputRef.current?.click()} 
-                disabled={uploading}
-                style={{ height: 34, padding: '0 16px', borderRadius: 8, background: '#20c997', border: 'none', color: '#0d1117', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+              <p style={{ color: '#7d8590', fontSize: 13, margin: 0 }}>Manage your resumes and other documents in the vault</p>
+              <Link 
+                to="/student/document-vault" 
+                style={{ height: 34, padding: '0 16px', borderRadius: 8, background: '#20c997', border: 'none', color: '#0d1117', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', textDecoration: 'none' }}
               >
-                {uploading ? 'Uploading...' : 'Upload Resume'}
-              </button>
+                Open Document Vault
+              </Link>
             </div>
           )}
         </>
