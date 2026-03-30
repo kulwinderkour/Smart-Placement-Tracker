@@ -217,7 +217,7 @@ Rules:
 - For theory: model answer must be 3-5 sentences minimum
 - Return ONLY the raw JSON, absolutely nothing else"""
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
         
         async with httpx.AsyncClient() as client:
             response = await client.post(
@@ -302,7 +302,7 @@ Return ONLY valid JSON:
 Scoring: 0-4 = Poor, 5-6 = Average, 7-8 = Good, 9-10 = Excellent
 Return ONLY the raw JSON."""
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
         
         async with httpx.AsyncClient() as client:
             response = await client.post(

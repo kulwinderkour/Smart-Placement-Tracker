@@ -103,12 +103,24 @@ export default function Dashboard() {
   const [applications, setApplications] = useState<TrackedApplication[]>([])
   const [appsLoading, setAppsLoading] = useState(true)
 
+  const [docCount, setDocCount] = useState({ total: 0, resumes: 0 })
+
   useEffect(() => {
     if (!user?.id) return
     applicationsApi.getMyApplications(user.id)
       .then(res => setApplications(res.data))
       .catch(() => setApplications([]))
       .finally(() => setAppsLoading(false))
+    
+    fetch(`http://localhost:8081/api/documents?userId=${user.id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const resumes = data.data.filter((d: any) => d.category === 'Resume').length
+          setDocCount({ total: data.data.length, resumes })
+        }
+      })
+      .catch(() => {})
   }, [user?.id])
 
   const skills = profile.skills || []
@@ -227,6 +239,25 @@ export default function Dashboard() {
                   No applications yet. <Link to="/jobs" style={{ color: '#20c997', textDecoration: 'none' }}>Browse jobs →</Link>
                 </p>
               )}
+            </div>
+          </div>
+
+          {/* Document Vault Summary */}
+          <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '20px 24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ margin: 0, fontSize: 14, fontWeight: 500, color: '#e6edf3' }}>Document Vault</h2>
+              <Link to="/student/document-vault" style={{ fontSize: 12, color: '#20c997', textDecoration: 'none', fontWeight: 500 }}>Manage Vault →</Link>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: '#20c99712', border: '1px solid #20c99722', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#20c997' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#e6edf3' }}>{docCount.total} Documents Stored</p>
+                <p style={{ margin: '2px 0 0', fontSize: 12, color: '#7d8590' }}>
+                  {docCount.resumes} {docCount.resumes === 1 ? 'Resume' : 'Resumes'} · High encryption enabled
+                </p>
+              </div>
             </div>
           </div>
         </div>
