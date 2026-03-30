@@ -16,6 +16,7 @@ import Roadmap from "./pages/Student/Roadmap";
 import Questions from "./pages/Student/Questions";
 import Onboarding from "./pages/Student/Onboarding";
 import Profile from "./pages/Student/Profile";
+import Skills from "./pages/Student/Skills";
 import ManageStudents from "./pages/Admin/ManageStudents";
 import ManageCompanies from "./pages/Admin/ManageCompanies";
 import CompanyProfileView from "./pages/Admin/CompanyProfileView";
@@ -144,6 +145,16 @@ export const router = createBrowserRouter([
       <OnboardingGuard>
         <DashboardLayout>
           <Roadmap />
+        </DashboardLayout>
+      </OnboardingGuard>
+    ),
+  },
+  {
+    path: "/skills",
+    element: (
+      <OnboardingGuard>
+        <DashboardLayout>
+          <Skills />
         </DashboardLayout>
       </OnboardingGuard>
     ),

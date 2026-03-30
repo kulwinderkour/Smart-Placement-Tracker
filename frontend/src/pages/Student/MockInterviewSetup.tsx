@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 /* ─── Monochrome SVG icons ─── */
@@ -38,11 +38,9 @@ const IconArrow = () => (
 )
 
 /* ─── Data ─── */
-const ROLE_GROUPS = [
-  { group: 'Engineering', roles: ['Frontend Developer', 'Backend Developer', 'Full Stack Developer', 'DevOps Engineer', 'SDE-1', 'SDE-2'] },
-  { group: 'Data & AI',   roles: ['Data Analyst', 'Machine Learning Engineer', 'Data Scientist'] },
-  { group: 'Product',     roles: ['Product Manager', 'UI/UX Designer'] },
-  { group: 'Business',    roles: ['HR', 'Finance Analyst', 'Marketing', 'Law'] },
+const DEFAULT_ROLES = [
+  'Software Engineer', 'Data Analyst', 'Product Manager', 'Marketing Manager', 
+  'Financial Analyst', 'HR Specialist', 'Legal Counsel', 'UI/UX Designer'
 ]
 
 const COMPANY_TYPES = [
@@ -69,7 +67,20 @@ export default function MockInterviewSetup() {
   const [companyType, setCompanyType] = useState('')
   const [persona, setPersona]       = useState('')
   const [duration, setDuration]     = useState(30)
+  const [dynamicRoles, setDynamicRoles] = useState<string[]>([])
+  const [loadingRoles, setLoadingRoles] = useState(false)
   const [errors, setErrors]         = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    const profile = JSON.parse(localStorage.getItem('userProfile') || '{}')
+    const field = profile.branch || 'Software'
+    setLoadingRoles(true)
+    fetch(`http://localhost:8081/api/skills/suggestions?field=${field}`)
+      .then(res => res.json())
+      .then(data => setDynamicRoles(data.skills || DEFAULT_ROLES))
+      .catch(() => setDynamicRoles(DEFAULT_ROLES))
+      .finally(() => setLoadingRoles(false))
+  }, [])
 
   const finalRole = useCustom ? customRole.trim() : role
 
@@ -248,11 +259,18 @@ export default function MockInterviewSetup() {
             <div className="si-select-wrap">
               <select className="si-select" value={role} onChange={e => setRole(e.target.value)}>
                 <option value="">Select a role…</option>
-                {ROLE_GROUPS.map(g => (
-                  <optgroup key={g.group} label={g.group}>
-                    {g.roles.map(r => <option key={r} value={r}>{r}</option>)}
-                  </optgroup>
-                ))}
+                {loadingRoles ? (
+                  <option disabled>Loading roles for your field...</option>
+                ) : (
+                  <>
+                    <optgroup label="Suggested for You">
+                      {dynamicRoles.map(r => <option key={r} value={r}>{r}</option>)}
+                    </optgroup>
+                    <optgroup label="Standard Roles">
+                      {DEFAULT_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                    </optgroup>
+                  </>
+                )}
               </select>
               <span className="si-select-arrow">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
