@@ -3,26 +3,27 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const API = "http://localhost:8081";
 
-// ─── Constants & Mock Data ───────────────────────────────────────────────────
+// --- Constants & Color System (Teal Theme) ---
 
 const COLORS = {
-  bg: '#0d0d0d',
-  cardBg: 'rgba(255, 255, 255, 0.04)',
-  border: 'rgba(255, 255, 255, 0.09)',
-  muted: 'rgba(255, 255, 255, 0.38)',
-  text: '#f0ede8',
-  amber: '#e8a045',
-  slate: '#6b8cba',
-  progress: '#c97d3a',
-  progressFaded: '#8a6040',
-  demandHigh: '#b5a28a',
-  demandMed: '#7a8fa6',
-  gapCritical: '#a05050',
-  gapHigh: '#8a6030',
-  gapMedium: '#4a6080',
+  bg: '#0d1117',
+  cardBg: '#161b22', 
+  border: '#21262d',
+  borderHover: '#30363d',
+  muted: '#8b949e',
+  text: '#e6edf3',
+  accent: '#20c997', // Teal
+  accentTint: '#20c99712',
+  progress: '#20c997',
+  progressFaded: '#161b22',
+  demandHigh: '#20c997',
+  demandMed: '#58a6ff',
+  gapCritical: '#f85149',
+  gapHigh: '#d29922',
+  gapMedium: '#58a6ff',
 };
 
-// ─── Components ───────────────────────────────────────────────────────────────
+// --- Components ---
 
 const CircularProgress = ({ score, size = 100 }: { score: number; size?: number }) => {
   const radius = (size - 10) / 2;
@@ -48,35 +49,22 @@ const CircularProgress = ({ score, size = 100 }: { score: number; size?: number 
   return (
     <div style={{ position: 'relative', width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#21262d" strokeWidth="8" />
         <motion.circle
-          cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={COLORS.progress} strokeWidth="8"
+          cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={COLORS.accent} strokeWidth="8"
           strokeDasharray={circumference} initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset: circumference - (score / 100) * circumference }}
-          transition={{ duration: 1.8, ease: "easeOut" }} strokeLinecap="round"
+          transition={{ duration: 1.8, delay: 0.5, ease: "easeOut" }} strokeLinecap="round"
         />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontSize: 24, fontWeight: 800, color: COLORS.text }}>{count}%</span>
+        <span style={{ fontSize: 24, fontWeight: 700, color: COLORS.text }}>{count}%</span>
       </div>
     </div>
   );
 };
 
-const FloatingDots = () => (
-  <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
-    {[...Array(12)].map((_, i) => (
-      <motion.div
-        key={i} initial={{ opacity: 0.15 + Math.random() * 0.15, x: `${Math.random() * 100}%`, y: `${Math.random() * 100}%` }}
-        animate={{ y: [0, Math.random() * 40 - 20, 0] }}
-        transition={{ duration: 10 + Math.random() * 8, repeat: Infinity, ease: "easeInOut" }}
-        style={{ width: 2, height: 2, background: COLORS.text, borderRadius: '50%', position: 'absolute' }}
-      />
-    ))}
-  </div>
-);
-
-// ─── Main Page ───────────────────────────────────────────────────────────────
+// --- Main Page ---
 
 export default function Skills() {
   const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
@@ -87,7 +75,7 @@ export default function Skills() {
   const [analysis, setAnalysis] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [loadingStep, setLoadingStep] = useState(0);
+  const [loadingStep, setNewLoadingStep] = useState(0);
 
   const [showSuggestions, setShowSuggestions] = useState(false);
   const debounceRef = useRef<any>(null);
@@ -147,7 +135,7 @@ export default function Skills() {
     setLoading(true);
     setError('');
     setAnalysis(null);
-    const steps = setInterval(() => setLoadingStep(prev => prev + 1), 500);
+    const steps = setInterval(() => setNewLoadingStep(prev => prev + 1), 600);
     try {
       const startTime = Date.now();
       const res = await fetch(`${API}/api/skills/analyze`, {
@@ -157,7 +145,7 @@ export default function Skills() {
       });
       const data = await res.json();
       const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, 2200 - elapsed);
+      const remaining = Math.max(0, 2400 - elapsed);
       await new Promise(r => setTimeout(r, remaining));
       if (data.error) throw new Error(data.error);
       setAnalysis(data);
@@ -166,67 +154,62 @@ export default function Skills() {
     } finally {
       clearInterval(steps);
       setLoading(false);
-      setLoadingStep(0);
+      setNewLoadingStep(0);
     }
   };
 
   const STYLES = {
     page: { 
-      background: COLORS.bg, minHeight: '100vh', padding: '40px 32px', 
-      color: COLORS.text, fontFamily: '"DM Sans", sans-serif', position: 'relative',
-      overflowX: 'hidden'
+      background: 'transparent', minHeight: '100vh', padding: '40px 28px', 
+      color: COLORS.text, fontFamily: '"Inter", sans-serif', position: 'relative',
     } as React.CSSProperties,
     card: {
       background: COLORS.cardBg, border: `1px solid ${COLORS.border}`,
-      borderRadius: '12px', padding: '24px', position: 'relative', zIndex: 1
+      borderRadius: '10px', padding: '24px', position: 'relative', zIndex: 1
     } as React.CSSProperties,
     label: {
-      color: COLORS.muted, fontSize: '10px', fontWeight: 700, 
-      textTransform: 'uppercase' as const, letterSpacing: '0.12em', marginBottom: '12px', display: 'block'
+      color: COLORS.muted, fontSize: '11px', fontWeight: 600, 
+      textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: '12px', display: 'block'
     },
     input: {
-      background: 'rgba(255,255,255,0.02)', border: `1px solid ${COLORS.border}`,
-      borderRadius: '8px', padding: '12px 16px', color: COLORS.text, fontSize: '14px',
+      background: '#0d1117', border: `1px solid ${COLORS.border}`,
+      borderRadius: '6px', padding: '10px 14px', color: COLORS.text, fontSize: '14px',
       width: '100%', outline: 'none'
     } as React.CSSProperties,
     btn: {
-      background: COLORS.progress, color: '#fff', border: 'none', borderRadius: '8px',
-      padding: '16px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', width: '100%'
+      background: COLORS.accent, color: '#0d1117', border: 'none', borderRadius: '6px',
+      padding: '14px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', width: '100%'
     } as React.CSSProperties,
     badge: {
-      background: 'rgba(232, 160, 69, 0.12)', color: COLORS.amber,
-      borderRadius: '4px', padding: '4px 8px', fontSize: '10px', fontWeight: 700,
+      background: '#20c99712', color: COLORS.accent, border: '1px solid #20c99722',
+      borderRadius: '4px', padding: '4px 8px', fontSize: '10px', fontWeight: 600,
       textTransform: 'uppercase' as const, letterSpacing: '0.05em'
     } as React.CSSProperties,
   };
 
   return (
     <div style={STYLES.page}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet" />
-      <FloatingDots />
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       
-      <div style={{ position: 'fixed', top: '-10%', right: '-10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(180, 120, 60, 0.04) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
-      <div style={{ position: 'fixed', bottom: '-10%', left: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(70, 90, 130, 0.03) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
-
-      <div style={{ display: 'grid', gridTemplateColumns: '500px 1fr', gap: '32px', maxWidth: '1300px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(400px, 480px) 1fr', gap: '28px', maxWidth: '1400px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
           
           <div style={STYLES.card}>
-            <span style={STYLES.label}>Target Role / Occupation</span>
+            <span style={STYLES.label}>Target Occupation</span>
             <div style={{ position: 'relative' }}>
-              <input style={STYLES.input} value={targetRole} onChange={e => handleRoleChange(e.target.value)} placeholder="Search occupations..." />
+              <input style={STYLES.input} value={targetRole} onChange={e => handleRoleChange(e.target.value)} placeholder="e.g. Software Engineer..." />
               <AnimatePresence>
                 {showSuggestions && suggestions.length > 0 && (
                   <motion.div 
                     ref={dropdownRef}
                     initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} 
-                    style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#141414', border: `1px solid ${COLORS.border}`, borderRadius: '8px', zIndex: 10, marginTop: '8px', overflow: 'hidden', maxHeight: '300px', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}
+                    style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#161b22', border: `1px solid ${COLORS.border}`, borderRadius: '8px', zIndex: 10, marginTop: '8px', overflow: 'hidden', maxHeight: '300px', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}
                   >
                     {suggestions.map(s => (
                       <div key={s} 
                         onClick={() => selectRole(s)}
-                        style={{ padding: '12px 16px', cursor: 'pointer', fontSize: '13px', borderBottom: `1px solid ${COLORS.border}` }}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+                        style={{ padding: '12px 16px', cursor: 'pointer', fontSize: '13px', borderBottom: `1px solid ${COLORS.border}`, color: COLORS.text }}
+                        onMouseEnter={e => (e.currentTarget.style.background = '#21262d')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
                         {s}
@@ -238,17 +221,17 @@ export default function Skills() {
             </div>
 
             <div style={{ marginTop: '24px' }}>
-              <span style={STYLES.label}>Your Current Skills</span>
+              <span style={STYLES.label}>Core Skills</span>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                <input style={{ ...STYLES.input, flex: 1 }} value={newSkill} onChange={e => setNewSkill(e.target.value)} onKeyDown={e => e.key === 'Enter' && addSkill(newSkill)} placeholder="e.g. React" />
-                <button onClick={() => addSkill(newSkill)} style={{ width: 44, height: 44, background: 'rgba(255,255,255,0.05)', border: `1px solid ${COLORS.border}`, borderRadius: '8px', color: COLORS.text, cursor: 'pointer' }}>+</button>
+                <input style={{ ...STYLES.input, flex: 1 }} value={newSkill} onChange={e => setNewSkill(e.target.value)} onKeyDown={e => e.key === 'Enter' && addSkill(newSkill)} placeholder="Add a skill..." />
+                <button onClick={() => addSkill(newSkill)} style={{ width: 42, height: 42, background: '#21262d', border: `1px solid ${COLORS.border}`, borderRadius: '6px', color: COLORS.text, cursor: 'pointer', fontWeight: 600 }}>+</button>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 <AnimatePresence mode="popLayout">
                   {userSkills.map(s => (
-                    <motion.span layout key={s} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '20px', padding: '6px 14px', fontSize: '12px', color: '#c8bfb0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <motion.span layout key={s} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} style={{ background: '#21262d', border: '1px solid #30363d', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', color: COLORS.text, display: 'flex', alignItems: 'center', gap: '8px' }}>
                       {s}
-                      <button onClick={() => removeSkill(s)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', padding: 0 }}>×</button>
+                      <button onClick={() => removeSkill(s)} style={{ background: 'none', border: 'none', color: COLORS.muted, cursor: 'pointer', padding: 0, fontSize: 16 }}>×</button>
                     </motion.span>
                   ))}
                 </AnimatePresence>
@@ -260,22 +243,22 @@ export default function Skills() {
                 <AnimatePresence mode="wait">
                   {loading ? (
                     <motion.div key="l" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                      <div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
-                      Analyzing your profile...
+                      <div style={{ width: 14, height: 14, border: '2px solid rgba(13,17,23,0.3)', borderTop: '2px solid #0d1117', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+                      Crunching market data...
                     </motion.div>
                   ) : <motion.span key="i" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>Analyze My Readiness →</motion.span>}
                 </AnimatePresence>
               </button>
               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginTop: '8px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginTop: '12px' }}>
                 {[
                   { label: '900+', val: 'Occupations' },
-                  { label: '20', val: 'Live Postings' },
-                  { label: 'O*NET', val: 'Verified' }
+                  { label: '20', val: 'Postings' },
+                  { label: 'O*NET', val: 'Standard' }
                 ].map(x => (
-                  <div key={x.val} style={{ border: `1px solid ${COLORS.border}`, background: 'rgba(255,255,255,0.02)', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '14px', fontWeight: 800, color: COLORS.text, marginBottom: '2px' }}>{x.label}</div>
-                    <div style={{ fontSize: '9px', color: COLORS.muted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{x.val}</div>
+                  <div key={x.val} style={{ border: `1px solid ${COLORS.border}`, background: '#0d1117', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: COLORS.text, marginBottom: '2px' }}>{x.label}</div>
+                    <div style={{ fontSize: '10px', color: COLORS.muted, textTransform: 'uppercase', fontWeight: 600 }}>{x.val}</div>
                   </div>
                 ))}
               </div>
@@ -287,23 +270,23 @@ export default function Skills() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <AnimatePresence mode="wait">
             {!loading && !analysis && (
-              <motion.div key="1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: '80px 0' }}>
-                <div style={{ fontSize: 48, color: 'rgba(255,255,255,0.05)', fontWeight: 900, marginBottom: 20 }}>◈</div>
-                <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 8px' }}>Ready to check your market value?</h2>
-                <p style={{ color: COLORS.muted, fontSize: 14 }}>Add your skills and target role to begin the analysis</p>
+              <motion.div key="1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 400 }}>
+                <div style={{ fontSize: 40, color: COLORS.accent, opacity: 0.1, marginBottom: 20 }}>
+                   <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </div>
+                <h2 style={{ fontSize: 20, fontWeight: 600, margin: '0 0 8px' }}>Ready for a market readiness check?</h2>
+                <p style={{ color: COLORS.muted, fontSize: 13 }}>Enter your skills and target role to begin AI analysis</p>
               </motion.div>
             )}
             {loading && (
-              <motion.div key="2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: '60px 0' }}>
-                <div style={{ position: 'relative', width: 60, height: 60, marginBottom: 40 }}>
-                  {[...Array(4)].map((_, i) => (
-                    <motion.div key={i} animate={{ rotate: 360 }} transition={{ duration: 2 - i * 0.3, repeat: Infinity, ease: "linear" }} style={{ position: 'absolute', inset: i * 6, border: `2px solid ${COLORS.progress}`, borderRadius: '50%', borderTopColor: 'transparent', borderLeftColor: 'transparent', opacity: 1 - i * 0.2 }} />
-                  ))}
+              <motion.div key="2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 400 }}>
+                <div style={{ position: 'relative', width: 50, height: 50, marginBottom: 40 }}>
+                   <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} style={{ position: 'absolute', inset: 0, border: `3px solid ${COLORS.accentTint}`, borderTopColor: COLORS.accent, borderRadius: '50%' }} />
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-start' }}>
-                  {['Fetching O*NET occupation codes...', 'Scanning live job postings...', 'Calculating skill weights...', 'Compiling gap analysis...'].map((t, i) => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'flex-start' }}>
+                  {['Accessing industry database...', 'Scanning job requirements...', 'Comparing skill weights...', 'finalizing score...'].map((t, i) => (
                     <motion.div key={t} initial={{ opacity: 0, x: -10 }} animate={loadingStep >= i ? { opacity: 1, x: 0 } : {}} style={{ display: 'flex', alignItems: 'center', gap: '12px', color: COLORS.muted, fontSize: '13px' }}>
-                      <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ width: 6, height: 6, borderRadius: '50%', background: COLORS.amber }} />
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: loadingStep >= i ? COLORS.accent : COLORS.border }} />
                       {t}
                     </motion.div>
                   ))}
@@ -316,48 +299,51 @@ export default function Skills() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                        <span style={STYLES.badge}>O*NET Verified</span>
-                        <span style={STYLES.badge}>20 Live Postings</span>
+                        <span style={STYLES.badge}>Verified Role</span>
+                        <span style={STYLES.badge}>Live Data</span>
                       </div>
-                      <h2 style={{ fontSize: '32px', fontWeight: 800, margin: '0 0 6px', letterSpacing: '-0.02em' }}>{analysis.occupationTitle}</h2>
-                      <div style={{ fontSize: '10px', color: COLORS.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>{analysis.readinessLabel}</div>
-                      <p style={{ margin: 0, fontSize: '14px', color: COLORS.muted, lineHeight: 1.6, maxWidth: '85%' }}>{analysis.topRecommendation || "Based on the latest industry standards..."}</p>
+                      <h2 style={{ fontSize: '28px', fontWeight: 700, margin: '0 0 8px', color: COLORS.text }}>{analysis.occupationTitle}</h2>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                         <div style={{ width: 8, height: 8, borderRadius: '50%', background: COLORS.accent }} />
+                         <span style={{ fontSize: '12px', color: COLORS.accent, fontWeight: 600, textTransform: 'uppercase' }}>{analysis.readinessLabel}</span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: '14px', color: COLORS.muted, lineHeight: 1.6, maxWidth: '90%' }}>{analysis.topRecommendation}</p>
                     </div>
                     <CircularProgress score={analysis.overallReadiness} />
                   </div>
                 </div>
-                <div style={STYLES.card}>
-                  <h3 style={STYLES.label}>Skill Relevance and Market Score</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '4px' }}>
-                    {analysis.analyzedSkills?.map((s: any, i: number) => (
-                      <div key={s.skill}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '14px', fontWeight: 600 }}>{s.skill}</span>
-                            <span style={{ fontSize: '8px', background: 'rgba(255,255,255,0.05)', color: COLORS.muted, padding: '2px 6px', borderRadius: '3px', fontWeight: 700 }}>GOV</span>
-                            <span style={{ fontSize: '8px', background: 'rgba(255,255,255,0.05)', color: COLORS.muted, padding: '2px 6px', borderRadius: '3px', fontWeight: 700 }}>MARKET</span>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                  <div style={STYLES.card}>
+                    <h3 style={STYLES.label}>Market Relevance</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', marginTop: 8 }}>
+                      {analysis.analyzedSkills?.map((s: any, i: number) => (
+                        <div key={s.skill}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', alignItems: 'center' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 600 }}>{s.skill}</span>
+                            <span style={{ fontSize: '10px', fontWeight: 700, color: s.demandScore >= 70 ? COLORS.demandHigh : COLORS.demandMed }}>{s.demandScore}%</span>
                           </div>
-                          <span style={{ fontSize: '12px', fontWeight: 700, color: s.demandScore >= 70 ? COLORS.demandHigh : COLORS.demandMed }}>{s.demandScore >= 70 ? 'HIGH' : 'MEDIUM'} DEMAND</span>
+                          <div style={{ height: '4px', background: '#21262d', borderRadius: '2px', overflow: 'hidden' }}>
+                            <motion.div initial={{ width: 0 }} animate={{ width: `${s.demandScore}%` }} transition={{ duration: 1.2, delay: i * 0.1, ease: "easeOut" }} style={{ height: '100%', background: COLORS.accent, borderRadius: '2px' }} />
+                          </div>
                         </div>
-                        <div style={{ height: '8px', background: 'rgba(255,255,255,0.02)', borderRadius: '4px', overflow: 'hidden' }}>
-                          <motion.div initial={{ width: 0 }} animate={{ width: `${s.demandScore}%` }} transition={{ duration: 1.2, delay: i * 0.1, ease: "easeOut" }} style={{ height: '100%', background: `linear-gradient(90deg, ${COLORS.progressFaded}, ${COLORS.progress})`, borderRadius: '4px' }} />
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div style={STYLES.card}>
-                  <h3 style={STYLES.label}>Critical Skill Gaps</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '4px' }}>
-                    {analysis.gapSkills?.map((gap: any, i: number) => {
-                      const bg = gap.importance === 'Critical' ? COLORS.gapCritical : gap.importance === 'Important' ? COLORS.gapHigh : COLORS.gapMedium;
-                      return (
-                        <motion.div key={gap.skill} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '14px 18px', borderRadius: '8px', borderLeft: `3px solid ${bg}` }}>
-                          <span style={{ fontSize: '14px', fontWeight: 600 }}>{gap.skill}</span>
-                          <span style={{ fontSize: '9px', fontWeight: 800, color: '#fff', background: bg, padding: '4px 8px', borderRadius: '4px', opacity: 0.8 }}>{gap.importance.toUpperCase()}</span>
-                        </motion.div>
-                      );
-                    })}
+                  
+                  <div style={STYLES.card}>
+                    <h3 style={STYLES.label}>Identified Gaps</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: 8 }}>
+                      {analysis.gapSkills?.map((gap: any, i: number) => {
+                        const borderColor = gap.importance === 'Critical' ? COLORS.gapCritical : gap.importance === 'Important' ? COLORS.gapHigh : COLORS.gapMedium;
+                        return (
+                          <motion.div key={gap.skill} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0d1117', padding: '12px 14px', borderRadius: '6px', borderLeft: `3px solid ${borderColor}`, border: `1px solid ${COLORS.border}` }}>
+                            <span style={{ fontSize: '13px', fontWeight: 500 }}>{gap.skill}</span>
+                            <span style={{ fontSize: '9px', fontWeight: 700, color: borderColor }}>{gap.importance.toUpperCase()}</span>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </motion.div>

@@ -35,6 +35,8 @@ import AdminSettings from "./pages/Admin/AdminSettings";
 import FloatingAgent from "./components/FloatingAgent";
 import DocumentVault from "./pages/Student/DocumentVault";
 import PrepChecklist from "./pages/Student/PrepChecklist";
+import ResourceBookmarks from "./pages/Student/ResourceBookmarks";
+import InterviewLog from "./pages/Student/InterviewLog";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -167,6 +169,26 @@ export const router = createBrowserRouter([
       <OnboardingGuard>
         <DashboardLayout>
           <PrepChecklist />
+        </DashboardLayout>
+      </OnboardingGuard>
+    ),
+  },
+  {
+    path: "/bookmarks",
+    element: (
+      <OnboardingGuard>
+        <DashboardLayout>
+          <ResourceBookmarks />
+        </DashboardLayout>
+      </OnboardingGuard>
+    ),
+  },
+  {
+    path: "/interview-log",
+    element: (
+      <OnboardingGuard>
+        <DashboardLayout>
+          <InterviewLog />
         </DashboardLayout>
       </OnboardingGuard>
     ),
