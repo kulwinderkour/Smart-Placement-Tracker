@@ -48,7 +48,7 @@ export default function GoogleCallback() {
 
       } catch (err) {
         console.error('Google Auth Error:', err);
-        navigate('/login-form', { replace: true });
+        navigate('/login', { replace: true });
       }
     };
 

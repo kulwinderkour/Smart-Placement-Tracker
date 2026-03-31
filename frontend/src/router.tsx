@@ -3,7 +3,7 @@ import { useAuthStore } from "./store/authStore";
 import GoogleCallback from "./pages/Auth/GoogleCallback";
 import Navbar from "./components/layout/Navbar";
 import DashboardLayout from "./components/layout/DashboardLayout";
-import Login from "./pages/Auth/Login";
+import LandingPage from "./pages/Auth/Login";
 import LoginForm from "./pages/Auth/LoginForm";
 import Register from "./pages/Auth/Register";
 import StudentJobBoard from "./pages/Student/JobBoard";
@@ -74,7 +74,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuthStore();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <LandingPage />;
   if (user && user.role === "admin") {
     return (
       <Navigate
@@ -112,16 +112,12 @@ function SmartOnboarding() {
 }
 
 export const router = createBrowserRouter([
-  { path: "/login", element: <Login /> },
-  { path: "/login-form", element: <LoginForm /> },
+  { path: "/login", element: <LoginForm /> },
+  { path: "/landing", element: <LandingPage /> },
   { path: "/register", element: <Register /> },
   {
     path: "/",
-    element: (
-      <Layout>
-        <RootRedirect />
-      </Layout>
-    ),
+    element: <RootRedirect />,
   },
   {
     path: "/jobs",

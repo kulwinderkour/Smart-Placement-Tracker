@@ -139,6 +139,119 @@ export default function Login() {
           .curved-marquee-title { font-size: 16px !important; padding: 6px 16px !important; margin-bottom: -10px !important; }
         }
         .mobile-menu-btn { display: none; }
+
+        /* Modern Premium Button Styles */
+        .glass-nav-pill {
+          padding: 8px 18px;
+          border-radius: 9999px;
+          border: 1px solid transparent;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 500;
+          font-family: 'DM Sans', sans-serif;
+          color: rgba(255, 255, 255, 0.6);
+          background: transparent;
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          white-space: nowrap;
+          position: relative;
+        }
+        .glass-nav-pill:hover {
+          color: #fff;
+          background: rgba(255, 255, 255, 0.05);
+          transform: translateY(-1px);
+        }
+        .glass-nav-pill-active {
+          color: #fff !important;
+          background: rgba(255, 255, 255, 0.08) !important;
+          border-color: rgba(255, 255, 255, 0.12) !important;
+          box-shadow: 0 0 25px rgba(99, 102, 241, 0.25), inset 0 0 10px rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+        }
+
+        .cta-glass-button {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 12px 10px 24px;
+          border-radius: 9999px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.06);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          color: #fff;
+          font-size: 14px;
+          font-weight: 600;
+          font-family: 'Sora', sans-serif;
+          cursor: pointer;
+          transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+        }
+        .cta-glass-button:hover {
+          transform: translateY(-3px) scale(1.02);
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.25);
+          box-shadow: 0 20px 40px rgba(99, 102, 241, 0.3);
+        }
+        .cta-glass-button::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2));
+          opacity: 0.6;
+          transition: opacity 0.4s;
+          pointer-events: none;
+        }
+        .cta-glass-button:hover::before {
+          opacity: 1;
+        }
+        
+        .cta-icon-wrap {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          position: relative;
+          z-index: 2;
+        }
+        .cta-glass-button:hover .cta-icon-wrap {
+          transform: rotate(-15deg) scale(1.1);
+          box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        .dark-neumorph-button {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 13px 28px;
+          border-radius: 9999px;
+          background: #0f111a;
+          border: 1px solid rgba(255, 255, 255, 0.04);
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 14px;
+          font-weight: 600;
+          font-family: 'DM Sans', sans-serif;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 6px 6px 14px rgba(0, 0, 0, 0.6), -3px -3px 12px rgba(255, 255, 255, 0.02);
+        }
+        .dark-neumorph-button:hover {
+          color: #fff;
+          transform: translateY(-2px);
+          background: #141724;
+          box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.7), -4px -4px 16px rgba(255, 255, 255, 0.03);
+          border-color: rgba(255, 255, 255, 0.08);
+        }
+        .dark-neumorph-button:active {
+          transform: translateY(0);
+          box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.8), inset -2px -2px 8px rgba(255, 255, 255, 0.02);
+        }
       `}} />
 
       {/* NEW STICKY NAVBAR */}
@@ -174,34 +287,12 @@ export default function Login() {
         </div>
 
         {/* CENTER — NAV LINKS */}
-        <div className="nav-center-links" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <div className="nav-center-links" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           {navLinks.map(link => (
             <button
               key={link.key}
               onClick={() => scrollTo(link.ref, link.key)}
-              style={{
-                padding: '7px 16px',
-                borderRadius: 100,
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: 14,
-                fontWeight: activeNav === link.key ? 600 : 400,
-                fontFamily: 'DM Sans, sans-serif',
-                color: activeNav === link.key ? '#1a0a2e' : 'rgba(255,255,255,0.75)',
-                background: activeNav === link.key
-                  ? 'rgba(255,255,255,0.92)'
-                  : 'transparent',
-                transition: 'all 0.2s',
-                whiteSpace: 'nowrap'
-              }}
-              onMouseEnter={e => {
-                if (activeNav !== link.key)
-                  (e.target as HTMLButtonElement).style.color = '#fff'
-              }}
-              onMouseLeave={e => {
-                if (activeNav !== link.key)
-                  (e.target as HTMLButtonElement).style.color = 'rgba(255,255,255,0.75)'
-              }}
+              className={`glass-nav-pill ${activeNav === link.key ? 'glass-nav-pill-active' : ''}`}
             >
               {link.label}
             </button>
@@ -231,33 +322,16 @@ export default function Login() {
 
           {/* RIGHT — "LET'S TALK" BUTTON */}
           <button
-            onClick={() => navigate('/login-form')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '9px 10px 9px 20px',
-              borderRadius: 100,
-              border: 'none',
-              background: '#0f0f0f',
-              color: '#fff',
-              fontSize: 14,
-              fontWeight: 600,
-              fontFamily: 'Sora, sans-serif',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              whiteSpace: 'nowrap'
-            }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#1e1e2e')}
-            onMouseLeave={e => (e.currentTarget.style.background = '#0f0f0f')}
+            onClick={() => navigate('/login')}
+            className="cta-glass-button"
           >
-            Get Started
-            <div style={{
-              width: 30, height: 30, borderRadius: '50%',
+            <span style={{ position: 'relative', zIndex: 2 }}>Get Started</span>
+            <div className="cta-icon-wrap" style={{ 
+              width: 32, height: 32, borderRadius: '50%',
               background: '#fff',
               display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0f0f0f" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0f0f0f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
             </div>
           </button>
         </div>
@@ -810,20 +884,9 @@ export default function Login() {
             </div>
 
             {/* Learn More button */}
-            <button style={{
-              display: 'inline-flex', alignItems: 'center', gap: 10,
-              padding: '12px 24px', borderRadius: 100,
-              background: 'rgba(129,140,248,0.12)',
-              border: '1px solid rgba(129,140,248,0.3)',
-              color: '#818cf8', fontSize: 14, fontWeight: 600,
-              fontFamily: 'DM Sans,sans-serif', cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(129,140,248,0.22)'; e.currentTarget.style.borderColor = 'rgba(129,140,248,0.5)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(129,140,248,0.12)'; e.currentTarget.style.borderColor = 'rgba(129,140,248,0.3)' }}
-            >
+            <button className="dark-neumorph-button" style={{ marginTop: 8 }}>
               Explore All Features
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
             </button>
           </motion.div>
 
@@ -1377,44 +1440,20 @@ export default function Login() {
             }}>
               {/* Get Started Free */}
               <button
-                onClick={() => navigate('/login-form')}
-                className="cta-btn"
-                style={{
-                  padding: '13px 32px',
-                  borderRadius: 100,
-                  border: 'none',
-                  background: '#fff',
-                  color: '#1e1b4b',
-                  fontSize: 15,
-                  fontWeight: 700,
-                  fontFamily: 'Sora, sans-serif',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
-                }}
-                onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 8px 28px rgba(0,0,0,0.3)' }}
-                onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 4px 20px rgba(0,0,0,0.2)' }}
+                onClick={() => navigate('/login')}
+                className="cta-glass-button"
+                style={{ padding: '14px 16px 14px 32px', fontSize: 16 }}
               >
-                Get Started Free
+                <span style={{ position: 'relative', zIndex: 2 }}>Get Started Free</span>
+                <div className="cta-icon-wrap" style={{ width: 44, height: 44 }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0f0f0f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
+                </div>
               </button>
 
               {/* Watch Demo */}
               <button
-                className="cta-btn"
-                style={{
-                  padding: '13px 32px',
-                  borderRadius: 100,
-                  border: '1.5px solid rgba(255,255,255,0.35)',
-                  background: 'transparent',
-                  color: '#fff',
-                  fontSize: 15,
-                  fontWeight: 600,
-                  fontFamily: 'Sora, sans-serif',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.6)' }}
-                onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.borderColor='rgba(255,255,255,0.35)' }}
+                className="dark-neumorph-button"
+                style={{ height: 72, padding: '0 40px', fontSize: 16 }}
               >
                 Watch Demo
               </button>

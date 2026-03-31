@@ -332,7 +332,7 @@ export default function Register() {
           </form>
 
           <div style={{ textAlign:'center', fontSize:13, color:'rgba(255,255,255,0.5)', marginTop:20 }}>
-            Already have an account? <Link to="/login-form" style={{ color:'#a78bfa', fontWeight:600, cursor:'pointer', textDecoration: 'none' }}>Sign In</Link>
+            Already have an account? <Link to="/login" style={{ color:'#a78bfa', fontWeight:600, cursor:'pointer', textDecoration: 'none' }}>Sign In</Link>
           </div>
         </div>
 
