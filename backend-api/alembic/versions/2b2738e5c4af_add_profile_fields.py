@@ -28,10 +28,10 @@ def upgrade() -> None:
                existing_type=postgresql.JSONB(astext_type=sa.Text()),
                type_=sa.JSON(),
                existing_nullable=False)
-    op.drop_index('idx_roadmaps_field', table_name='roadmaps')
-    op.drop_index('idx_roadmaps_user_id', table_name='roadmaps')
-    op.drop_index('ix_roadmaps_difficulty_level', table_name='roadmaps')
-    op.drop_index('ix_roadmaps_title', table_name='roadmaps')
+    op.execute('DROP INDEX IF EXISTS idx_roadmaps_field')
+    op.execute('DROP INDEX IF EXISTS idx_roadmaps_user_id')
+    op.execute('DROP INDEX IF EXISTS ix_roadmaps_difficulty_level')
+    op.execute('DROP INDEX IF EXISTS ix_roadmaps_title')
     op.add_column('students', sa.Column('resume_base64', sa.String(), nullable=True))
     op.add_column('students', sa.Column('resume_name', sa.String(), nullable=True))
     op.add_column('students', sa.Column('job_type', sa.String(), nullable=True))

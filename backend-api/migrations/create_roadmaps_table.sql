@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS roadmaps (
     difficulty_level VARCHAR(50) DEFAULT 'intermediate',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    generated_by VARCHAR(100) DEFAULT 'gemini-1.5-flash',
+    generated_by VARCHAR(100) DEFAULT 'gemini-2.5-flash-lite',
     usage_count INTEGER DEFAULT 0,
     last_accessed TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

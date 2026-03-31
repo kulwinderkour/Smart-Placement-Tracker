@@ -65,7 +65,7 @@ Respond in this exact JSON format:
         if not settings.GEMINI_API_KEY:
             raise ValueError("GEMINI_API_KEY not configured")
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
+        url = f"https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-lite:generateContent?key={settings.GEMINI_API_KEY}"
         
         async with httpx.AsyncClient() as client:
             response = await client.post(

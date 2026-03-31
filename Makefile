@@ -1,12 +1,18 @@
-.PHONY: up down build logs migrate test seed
+.PHONY: up down build logs migrate test seed fresh
 
 up:
-	docker compose up -d
+	docker compose up --build -d
 
 down:
 	docker compose down
+	docker volume rm smart-placement-tracker_frontend_nm 2>/dev/null || true
 
 build:
+	docker compose up --build -d
+
+fresh:
+	docker compose down
+	docker volume rm smart-placement-tracker_frontend_nm 2>/dev/null || true
 	docker compose up --build -d
 
 logs:

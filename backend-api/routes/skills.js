@@ -16,7 +16,7 @@ router.get('/occupation-suggestions', async (req, res) => {
   if (!keyword || keyword.length < 2) return res.json({ occupations: [] });
 
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
     const result = await model.generateContent(`
       Return a JSON list of the 5 most relevant professional occupations for keyword: "${keyword}".
       Include the O*NET style SOC code and title.
@@ -52,7 +52,7 @@ router.post('/analyze', async (req, res) => {
 
   // Call Gemini — but only ONCE per unique skill+role combo, then cached 30 days
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
     const prompt = `You are a career analyst. Analyze these skills for someone targeting: "${targetRole || field || 'their chosen career'}"
 
@@ -123,7 +123,7 @@ router.get('/suggestions', async (req, res) => {
     const cached = await redis.get(cacheKey);
     if (cached) return res.json({ suggestions: cached, fromCache: true });
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
     const result = await model.generateContent(`
 List the top 15 most important skills for someone in "${field}".
 Return ONLY a JSON array of skill name strings, nothing else.
