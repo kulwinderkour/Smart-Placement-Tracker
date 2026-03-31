@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { GradientBlinds } from '../../components/common/GradientBlinds'
 import CurvedLoop from '../../components/common/CurvedLoop'
-import MagicBento from './MagicBentoSimple'
 
 function AnimatedCounter({ end, label, prefix = '', suffix = '' }: { end: number, label: string, prefix?: string, suffix?: string }) {
   const [count, setCount] = useState(0)
@@ -54,6 +53,7 @@ export default function Login() {
 
   // NAVBAR REFS AND STATE
   const [activeNav, setActiveNav] = useState('about')
+  const [activeTab, setActiveTab] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
 
   const aboutRef = useRef<HTMLElement>(null)
@@ -305,18 +305,24 @@ export default function Login() {
             className="mobile-menu-btn"
             onClick={() => setMenuOpen(!menuOpen)}
             style={{
-              width: 38, height: 38, borderRadius: '50%',
-              background: 'rgba(255,255,255,0.08)',
-              border: '1px solid rgba(255,255,255,0.15)',
+              width: 42, height: 42, borderRadius: '50%',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              backdropFilter: 'blur(10px)',
+              display: 'flex',
               alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer', color: '#fff',
-              padding: 0
+              padding: 0,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+              transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.transform = 'scale(1.05)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.transform = 'scale(1)' }}
           >
             {menuOpen ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
             ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
             )}
           </button>
 
@@ -326,7 +332,7 @@ export default function Login() {
             className="cta-glass-button"
           >
             <span style={{ position: 'relative', zIndex: 2 }}>Get Started</span>
-            <div className="cta-icon-wrap" style={{ 
+            <div className="cta-icon-wrap" style={{
               width: 32, height: 32, borderRadius: '50%',
               background: '#fff',
               display: 'flex', alignItems: 'center', justifyContent: 'center'
@@ -349,11 +355,8 @@ export default function Login() {
             <button
               key={link.key}
               onClick={() => scrollTo(link.ref, link.key)}
-              style={{
-                background: 'none', border: 'none', color: '#fff',
-                fontSize: 24, fontWeight: 700, fontFamily: 'Sora, sans-serif',
-                cursor: 'pointer'
-              }}
+              className={`glass-nav-pill ${activeNav === link.key ? 'glass-nav-pill-active' : ''}`}
+              style={{ fontSize: 24, padding: '12px 36px', fontWeight: 700 }}
             >
               {link.label}
             </button>
@@ -629,7 +632,7 @@ export default function Login() {
                 overflow: 'hidden',
                 transition: 'transform 0.3s, border-color 0.3s'
               }}
-              whileHover={{ y: -6, borderColor: 'rgba(255,255,255,0.18)' }}
+              whileHover={{ y: -10, borderColor: 'rgba(255,255,255,0.5)', boxShadow: '0 0 30px rgba(255,255,255,0.2)' }}
             >
               {/* Card inner glow */}
               <div style={{
@@ -1040,7 +1043,7 @@ export default function Login() {
               lineHeight: 1.1,
               margin: '0 0 12px'
             }}>
-              Everything you need<br/>
+              Everything you need<br />
               <span style={{
                 background: 'linear-gradient(90deg,#a78bfa,#818cf8,#60a5fa)',
                 WebkitBackgroundClip: 'text',
@@ -1060,24 +1063,152 @@ export default function Login() {
 
           <div style={{
             display: 'flex',
-            justifyContent: 'center',
+            flexDirection: 'column',
+            alignItems: 'center',
             width: '100%',
-            maxWidth: 1200,
+            maxWidth: 1000,
             margin: '0 auto'
           }}>
-            <MagicBento 
-              textAutoHide={true}
-              enableStars
-              enableSpotlight
-              enableBorderGlow={true}
-              enableTilt={true}
-              enableMagnetism={true}
-              clickEffect
-              spotlightRadius={500}
-              particleCount={16}
-              glowColor="59, 130, 246"
-              disableAnimations={false}
-            />
+            {/* TABS CONTAINER */}
+            <div style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              gap: 12,
+              marginBottom: 48,
+              padding: '6px',
+              background: 'rgba(255,255,255,0.03)',
+              borderRadius: 100,
+              border: '1px solid rgba(255,255,255,0.08)',
+              backdropFilter: 'blur(10px)'
+            }}>
+              {[
+                "AI Resume Analyser",
+                "Application Tracker",
+                "Mock Interviews",
+                "Career Roadmaps"
+              ].map((tab, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveTab(i)}
+                  style={{
+                    padding: '10px 24px',
+                    borderRadius: 100,
+                    fontSize: 14,
+                    fontWeight: 600,
+                    fontFamily: 'Sora, sans-serif',
+                    cursor: 'pointer',
+                    transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                    background: activeTab === i ? '#fff' : 'transparent',
+                    color: activeTab === i ? '#000' : 'rgba(255,255,255,0.5)',
+                    border: 'none',
+                    boxShadow: activeTab === i ? '0 4px 20px rgba(255,255,255,0.3)' : 'none'
+                  }}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            {/* FEATURE CARD */}
+            <div style={{ position: 'relative', width: '100%' }}>
+              {[
+                {
+                  id: "01",
+                  title: "AI Resume Analyser Built Right In",
+                  desc: "Get instant feedback on your resume with our AI-powered analyzer. Match your skills to top job descriptions seamlessly and pass the ATS every time."
+                },
+                {
+                  id: "02",
+                  title: "Smart Application Tracker for Results",
+                  desc: "Organize your job hunt with our intuitive tracker. Monitor application statuses, upcoming deadlines, and interview schedules in one centralized dashboard."
+                },
+                {
+                  id: "03",
+                  title: "Realistic AI Mock Interview Room",
+                  desc: "Practice with our high-fidelity AI interviewer. Receive real-time feedback on your answers, technical accuracy, tone, and confidence levels."
+                },
+                {
+                  id: "04",
+                  title: "Personalized Career Learning Roadmaps",
+                  desc: "Generate AI-driven career roadmaps tailored to your target roles. Learn exactly what skills you need, where to learn them, and how to master them."
+                }
+              ].map((feature, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ 
+                    opacity: activeTab === i ? 1 : 0, 
+                    scale: activeTab === i ? 1 : 0.95, 
+                    y: activeTab === i ? 0 : 20,
+                    pointerEvents: activeTab === i ? 'auto' : 'none'
+                  }}
+                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  whileHover={{ 
+                    y: -8,
+                    boxShadow: '0 0 50px rgba(255, 255, 255, 0.12)',
+                    borderColor: 'rgba(255, 255, 255, 0.4)'
+                  }}
+                  style={{
+                    position: activeTab === i ? 'relative' : 'absolute',
+                    top: 0, left: 0, width: '100%',
+                    background: '#0d0d1a',
+                    border: '1px solid rgba(120, 80, 255, 0.3)',
+                    borderRadius: 24,
+                    padding: '60px 80px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 40,
+                    boxShadow: '0 0 40px rgba(120, 80, 255, 0.1)',
+                    overflow: 'hidden'
+                  }}
+                >
+                  {/* WATERMARK NUMBER */}
+                  <div style={{
+                    fontSize: 200,
+                    fontWeight: 900,
+                    color: 'rgba(255,255,255,0.02)',
+                    position: 'absolute',
+                    left: 20,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    fontFamily: 'Sora, sans-serif',
+                    userSelect: 'none',
+                    lineHeight: 1
+                  }}>
+                    {feature.id}
+                  </div>
+
+                  <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: 24 }}>
+                    <h3 style={{
+                      fontFamily: 'Sora, sans-serif',
+                      fontSize: 'clamp(24px, 3.5vw, 42px)',
+                      fontWeight: 800,
+                      color: '#fff',
+                      lineHeight: 1.2,
+                      margin: 0,
+                      maxWidth: '80%'
+                    }}>
+                      {feature.title.split(' ').slice(0, -2).join(' ')} <span style={{
+                        background: 'linear-gradient(90deg, #a78bfa, #c4b5fd)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent'
+                      }}>{feature.title.split(' ').slice(-2).join(' ')}</span>
+                    </h3>
+                    <p style={{
+                      fontSize: 18,
+                      color: 'rgba(255,255,255,0.5)',
+                      fontFamily: 'DM Sans, sans-serif',
+                      lineHeight: 1.6,
+                      margin: 0,
+                      maxWidth: 600
+                    }}>
+                      {feature.desc}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -1107,7 +1238,7 @@ export default function Login() {
               fontFamily: 'DM Sans, sans-serif',
               marginBottom: 20
             }}>
-              <span style={{ width:8, height:8, borderRadius:'50%', background:'#fff', display:'inline-block', boxShadow:'0 0 10px #fff' }}/>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff', display: 'inline-block', boxShadow: '0 0 10px #fff' }} />
               How It Works
             </span>
 
@@ -1216,7 +1347,7 @@ export default function Login() {
               fontFamily: 'DM Sans, sans-serif',
               marginBottom: 20
             }}>
-              <span style={{ width:8, height:8, borderRadius:'50%', background:'#fff', display:'inline-block', boxShadow:'0 0 10px #fff' }}/>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff', display: 'inline-block', boxShadow: '0 0 10px #fff' }} />
               Success Stories
             </span>
 
@@ -1348,24 +1479,24 @@ export default function Login() {
         >
           {/* Top-right circle */}
           <div style={{
-            position:'absolute', top:-60, right:-60,
-            width:220, height:220, borderRadius:'50%',
-            background:'rgba(255,255,255,0.06)',
-            pointerEvents:'none'
-          }}/>
+            position: 'absolute', top: -60, right: -60,
+            width: 220, height: 220, borderRadius: '50%',
+            background: 'rgba(255,255,255,0.06)',
+            pointerEvents: 'none'
+          }} />
           {/* Bottom-left circle */}
           <div style={{
-            position:'absolute', bottom:-40, left:-40,
-            width:160, height:160, borderRadius:'50%',
-            background:'rgba(255,255,255,0.04)',
-            pointerEvents:'none'
-          }}/>
+            position: 'absolute', bottom: -40, left: -40,
+            width: 160, height: 160, borderRadius: '50%',
+            background: 'rgba(255,255,255,0.04)',
+            pointerEvents: 'none'
+          }} />
           {/* Diagonal lines pattern */}
           <div style={{
-            position:'absolute', inset:0,
-            backgroundImage:'repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 40px)',
-            pointerEvents:'none', borderRadius:28
-          }}/>
+            position: 'absolute', inset: 0,
+            backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 40px)',
+            pointerEvents: 'none', borderRadius: 28
+          }} />
 
           {/* Subtle background GradientBlinds for CTA */}
           <div style={{ position: 'absolute', inset: 0, opacity: 0.2, mixBlendMode: 'screen', pointerEvents: 'none', zIndex: 0 }}>
@@ -1381,25 +1512,25 @@ export default function Login() {
           </div>
 
           <div style={{ position: 'relative', zIndex: 10, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            
+
             <div style={{
-              display:'flex', alignItems:'center', gap:8,
-              marginBottom:20
+              display: 'flex', alignItems: 'center', gap: 8,
+              marginBottom: 20
             }}>
               {/* 3 avatar circles */}
-              {['#818cf8','#34d399','#f472b6'].map((c,i) => (
+              {['#818cf8', '#34d399', '#f472b6'].map((c, i) => (
                 <div key={i} style={{
-                  width:28, height:28, borderRadius:'50%',
-                  background:c, border:'2px solid rgba(255,255,255,0.3)',
-                  marginLeft: i > 0 ? -8 : 0, position:'relative',
-                  zIndex: 3-i
-                }}/>
+                  width: 28, height: 28, borderRadius: '50%',
+                  background: c, border: '2px solid rgba(255,255,255,0.3)',
+                  marginLeft: i > 0 ? -8 : 0, position: 'relative',
+                  zIndex: 3 - i
+                }} />
               ))}
               <span style={{
-                fontSize:13, color:'rgba(255,255,255,0.7)',
-                fontFamily:'DM Sans,sans-serif', marginLeft:8
+                fontSize: 13, color: 'rgba(255,255,255,0.7)',
+                fontFamily: 'DM Sans,sans-serif', marginLeft: 8
               }}>
-                Join <strong style={{color:'#fff'}}>10,000+</strong> students
+                Join <strong style={{ color: '#fff' }}>10,000+</strong> students
               </span>
             </div>
 
@@ -1413,7 +1544,7 @@ export default function Login() {
               marginBottom: 16,
               margin: '0 0 16px'
             }}>
-              Ready to land your<br/>
+              Ready to land your<br />
               <span style={{
                 background: 'linear-gradient(90deg, #fbbf24, #f59e0b)',
                 WebkitBackgroundClip: 'text',
@@ -1461,11 +1592,12 @@ export default function Login() {
           </div>
         </motion.div>
 
-        <style dangerouslySetInnerHTML={{__html: `
+        <style dangerouslySetInnerHTML={{
+          __html: `
           @media (max-width: 640px) {
             .cta-inner-card { padding: 44px 24px !important; }
             .cta-buttons-row { flex-direction: column !important; width: 100% !important; }
-            .cta-btn { width: 100% !important; }
+            .cta-glass-button, .dark-neumorph-button, .cta-btn { width: 100% !important; justify-content: center !important; }
           }
         `}} />
       </section>
