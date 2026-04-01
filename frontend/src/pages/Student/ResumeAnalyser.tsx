@@ -17,7 +17,7 @@ interface AnalysisResult {
   summary: string
 }
 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${import.meta.env.GEMINI_API_KEY}`
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY}`
 
 function scoreColor(n: number) {
   return n >= 70 ? '#00e5a0' : n >= 50 ? '#f0b429' : '#f85149'
@@ -223,7 +223,11 @@ Use exactly this structure:
               { inline_data: { mime_type: 'application/pdf', data: base64 } },
               { text: promptText }
             ]
-          }]
+          }],
+          generationConfig: {
+            thinkingConfig: { thinkingBudget: 0 },
+            temperature: 1
+          }
         })
       })
 
