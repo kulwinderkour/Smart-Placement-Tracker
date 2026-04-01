@@ -6,6 +6,7 @@ const roadmapRouter = require("./routes/roadmap");
 const questionsRouter = require("./routes/questions");
 const skillsRouter = require("./routes/skills");
 const documentsRouter = require("./routes/documents");
+const adminJobsRouter = require("./routes/admin-jobs");
 const path = require('path');
 
 const app = express();
@@ -49,6 +50,9 @@ app.use("/questions", questionsRouter);
 
 // Documents routes
 app.use("/api/documents", documentsRouter);
+
+// Admin Jobs routes
+app.use("/api/admin-jobs", adminJobsRouter);
 
 app.listen(port, () => {
   console.log(`Scraper & Roadmap server listening at http://localhost:${port}`);

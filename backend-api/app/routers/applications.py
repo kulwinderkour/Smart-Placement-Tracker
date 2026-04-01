@@ -29,6 +29,9 @@ async def apply(
         student_id=student.id,
         job_id=data.job_id,
         notes=data.notes,
+        resume_url=data.resume_url,
+        cover_letter=data.cover_letter,
+        agent_applied=data.agent_applied,
     )
     db.add(app)
     await db.commit()
@@ -36,7 +39,7 @@ async def apply(
     return app
 
 
-@router.get("/my", response_model=list[ApplicationResponse])
+@router.get("/my")
 async def my_applications(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -46,8 +49,26 @@ async def my_applications(
     if not student:
         return []
 
-    apps = await db.execute(select(Application).where(Application.student_id == student.id))
-    return apps.scalars().all()
+    apps_result = await db.execute(
+        select(Application, Job.company_name, Job.role_title, Job.salary_min)
+        .join(Job, Job.id == Application.job_id)
+        .where(Application.student_id == student.id)
+        .order_by(Application.applied_at.desc())
+    )
+
+    return [
+        {
+            "id": str(app.id),
+            "job_id": str(app.job_id),
+            "company": company_name,
+            "role": role_title,
+            "package_lpa": salary_min,
+            "status": app.status.value,
+            "applied_at": app.applied_at.isoformat(),
+            "notes": app.notes,
+        }
+        for app, company_name, role_title, salary_min in apps_result.all()
+    ]
 
 
 @router.patch("/{app_id}", response_model=ApplicationResponse)

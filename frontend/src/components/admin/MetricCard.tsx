@@ -23,17 +23,17 @@ export default function MetricCard({
     <div
       className="card-enter rounded-xl p-5 transition-all duration-200 cursor-default group"
       style={{
-        background: "#1a1625",
-        border: "1px solid #2d2540",
+        background: "var(--color-bg-surface)",
+        border: "1px solid var(--color-border)",
       }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "#4a3575";
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--color-border-strong)";
         (e.currentTarget as HTMLElement).style.transform = "scale(1.02)";
         (e.currentTarget as HTMLElement).style.boxShadow =
-          "0 8px 30px rgba(124,58,237,0.15)";
+          "0 8px 30px var(--color-accent-glow)";
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "#2d2540";
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--color-border)";
         (e.currentTarget as HTMLElement).style.transform = "";
         (e.currentTarget as HTMLElement).style.boxShadow = "";
       }}
@@ -42,15 +42,15 @@ export default function MetricCard({
         <div className="flex-1 min-w-0">
           <p
             className="text-xs font-semibold uppercase tracking-wider mb-2"
-            style={{ color: "#7c6fa0" }}
+            style={{ color: "var(--color-text-muted)" }}
           >
             {title}
           </p>
-          <p className="text-3xl font-bold text-white leading-none">{value}</p>
+          <p className="text-3xl font-bold leading-none" style={{ color: "var(--color-text)" }}>{value}</p>
           {subtitle && (
             <p
               className="text-xs mt-2 font-medium"
-              style={{ color: "#a78bfa" }}
+              style={{ color: "var(--color-accent)" }}
             >
               {subtitle}
             </p>
@@ -62,7 +62,7 @@ export default function MetricCard({
               >
                 {trend.value >= 0 ? "↑" : "↓"} {Math.abs(trend.value)}%
               </span>
-              <span className="text-xs" style={{ color: "#7c6fa0" }}>
+              <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                 {trend.label}
               </span>
             </div>
@@ -71,8 +71,8 @@ export default function MetricCard({
         <div
           className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ml-3"
           style={{
-            background: iconBg ?? "rgba(124,58,237,0.2)",
-            color: iconColor ?? "#a78bfa",
+            background: iconBg ?? "var(--color-accent-bg)",
+            color: iconColor ?? "var(--color-accent)",
           }}
         >
           {icon}

@@ -1,15 +1,11 @@
 import { useState } from "react";
-import { Bell, Search, User, LogOut, PanelLeft, Sun, Moon } from "lucide-react";
+import { Search, User, LogOut, Sun, Moon } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { useNavigate } from "react-router-dom";
 import { useCompanyProfileStore } from "../../store/companyProfileStore";
 import { useTheme } from "../../hooks/use-theme";
 
-interface Props {
-  onToggleSidebar?: () => void;
-}
-
-export default function AdminTopBar({ onToggleSidebar }: Props) {
+export default function AdminTopBar() {
   const { user, logout } = useAuthStore();
   const { profile } = useCompanyProfileStore();
   const navigate = useNavigate();
@@ -32,26 +28,7 @@ export default function AdminTopBar({ onToggleSidebar }: Props) {
     >
       {/* Left: sidebar toggle + search */}
       <div className="flex items-center gap-3">
-        {onToggleSidebar && (
-          <button
-            onClick={onToggleSidebar}
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
-            style={{ color: "var(--color-text-muted)" }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background =
-                "var(--color-accent-bg)";
-              (e.currentTarget as HTMLElement).style.color =
-                "var(--color-accent-light)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.background = "";
-              (e.currentTarget as HTMLElement).style.color =
-                "var(--color-text-muted)";
-            }}
-          >
-            <PanelLeft size={16} />
-          </button>
-        )}
+
 
         <div
           className="flex items-center gap-2 px-3 py-2 rounded-lg w-60"
@@ -111,32 +88,7 @@ export default function AdminTopBar({ onToggleSidebar }: Props) {
           {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
         </button>
 
-        {/* ── Notifications bell ── */}
-        <button
-          className="relative w-9 h-9 rounded-lg flex items-center justify-center transition-all"
-          style={{
-            background: "var(--color-bg-surface)",
-            border: "1px solid var(--color-border)",
-            color: "var(--color-text-muted)",
-            transition:
-              "background-color 0.25s ease, border-color 0.2s ease, color 0.2s ease",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.borderColor =
-              "var(--color-border-strong)";
-            (e.currentTarget as HTMLElement).style.color =
-              "var(--color-accent-light)";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.borderColor =
-              "var(--color-border)";
-            (e.currentTarget as HTMLElement).style.color =
-              "var(--color-text-muted)";
-          }}
-        >
-          <Bell size={16} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#7c3aed]" />
-        </button>
+
 
         {/* ── Avatar / dropdown ── */}
         <div className="relative">

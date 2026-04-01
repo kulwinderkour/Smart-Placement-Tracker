@@ -11,131 +11,122 @@ BACKEND_URL = settings.BACKEND_URL
 
 
 @tool
-def get_jobs_above_lpa(lpa_threshold: float) -> str:
+def fetch_admin_jobs(min_package_lpa: float = 0) -> str:
     """
-    Fetch available remote job listings from the job board.
-    Returns jobs with their IDs, titles, companies, and salary info.
-    Note: jobs are sourced from Remotive (remote/international jobs, salary in USD)
-    and the local database. Apply to jobs by their ID.
+    Fetches all active jobs posted by SmartPlacement admin.
+    Only use this tool to get jobs — do NOT use any external job source.
+    Args:
+        min_package_lpa: Minimum package in LPA to filter by (default 0 = all jobs)
+    Returns:
+        JSON string summary of available jobs
     """
-    collected: list[dict] = []
-
-    # 1. Local DB jobs (scraped/manually added)
     try:
-        r = httpx.get(f"{BACKEND_URL}/jobs", params={"limit": 100}, timeout=15.0)
-        if r.status_code == 200:
-            payload = r.json()
-            for j in (payload.get("data", []) if isinstance(payload, dict) else []):
-                collected.append({
-                    "id": str(j.get("id", "")),
-                    "company_name": j.get("company_name", "Unknown"),
-                    "role_title": j.get("role_title", "Unknown"),
-                    "salary": f"{j.get('salary_min', '')} - {j.get('salary_max', '')} LPA".strip(" -") or "Not listed",
-                    "source_url": j.get("source_url", ""),
-                })
+        # Admin jobs are on the Express server (port 8081)
+        r = httpx.get("http://localhost:8081/api/admin-jobs/active", timeout=10.0)
+        jobs = r.json().get("jobs", [])
+
+        if min_package_lpa > 0:
+            jobs = [j for j in jobs if j.get("package_lpa") and float(j["package_lpa"]) >= min_package_lpa]
+
+        if not jobs:
+            return f"No admin-posted jobs found with package >= {min_package_lpa} LPA"
+
+        summary = []
+        for j in jobs:
+            summary.append(
+                f"ID:{j['id']} | {j['title']} at {j['company']} | "
+                f"Package: {j.get('package_lpa', 'Not specified')} LPA | "
+                f"Location: {j.get('location', 'Not specified')} | "
+                f"Required Skills: {', '.join(j.get('required_skills') or [])} | "
+                f"Min CGPA: {j.get('min_cgpa', 0)}"
+            )
+        return "\n".join(summary)
     except Exception as e:
-        logger.warning(f"Local DB jobs fetch failed: {e}")
-
-    # 2. Remotive (free public API — same source used by the job board)
-    try:
-        r = httpx.get(
-            "https://remotive.com/api/remote-jobs",
-            params={"limit": 20},
-            timeout=20.0,
-        )
-        if r.status_code == 200:
-            for job in r.json().get("jobs", []):
-                source_url = job.get("url", "")
-                if not source_url:
-                    continue
-                desc = job.get("description", "") or ""
-                desc_plain = desc[:300] if len(desc) <= 300 else desc[:300] + "..."
-                upsert = httpx.post(
-                    f"{BACKEND_URL}/internal/agent/upsert-job",
-                    json={
-                        "source_url": source_url,
-                        "company_name": job.get("company_name", "Unknown"),
-                        "role_title": job.get("title", "Unknown"),
-                        "description": desc_plain,
-                    },
-                    timeout=10.0,
-                )
-                if upsert.status_code in (200, 201):
-                    local_id = upsert.json().get("id", "")
-                    collected.append({
-                        "id": local_id,
-                        "company_name": job.get("company_name", "Unknown"),
-                        "role_title": job.get("title", "Unknown"),
-                        "salary": job.get("salary") or "Not listed",
-                        "source_url": source_url,
-                    })
-    except Exception as e:
-        logger.warning(f"Remotive fetch failed: {e}")
-
-    if not collected:
-        return "No jobs available right now. The job sources may be temporarily unavailable."
-
-    result = f"Found {len(collected)} available jobs (Remotive salaries are in USD):\n"
-    for job in collected[:30]:
-        result += (
-            f"- {job['company_name']} | {job['role_title']} | "
-            f"Salary: {job['salary']} | ID: {job['id']}\n"
-        )
-    return result
+        return f"Error fetching jobs: {str(e)}"
 
 
 @tool
-def apply_to_job(job_id: str, user_id: str, resume_path: str = "resume.pdf") -> str:
+def check_eligibility(job_id: str, student_cgpa: float, student_skills: str) -> str:
     """
-    Apply to a specific job using the job ID.
-    Attaches the user's resume automatically.
-    Returns a success or failure message.
+    Checks if a student is eligible for a specific admin-posted job.
+    Args:
+        job_id: The job ID from fetch_admin_jobs (UUID string)
+        student_cgpa: Student's CGPA
+        student_skills: Comma-separated list of student skills
+    Returns:
+        Eligibility result with reason
+    """
+    try:
+        r = httpx.get(f"http://localhost:8081/api/admin-jobs/active/{job_id}", timeout=10.0)
+        if r.status_code == 404:
+            return f"Job {job_id} not found"
+
+        job = r.json()
+        reasons = []
+        eligible = True
+
+        # CGPA check
+        min_cgpa = float(job.get("min_cgpa") or 0)
+        if min_cgpa > 0 and student_cgpa < min_cgpa:
+            eligible = False
+            reasons.append(f"CGPA {student_cgpa} is below required {min_cgpa}")
+
+        # Skills check
+        required = [s.lower() for s in (job.get("required_skills") or [])]
+        student = [s.strip().lower() for s in student_skills.split(",")]
+        missing = [r for r in required if not any(r in s or s in r for s in student)]
+        if missing:
+            reasons.append(f"Missing skills: {', '.join(missing)}")
+
+        # Deadline check
+        deadline = job.get("application_deadline")
+        if deadline:
+            from datetime import datetime
+            deadline_date = datetime.strptime(deadline, "%Y-%m-%d").date()
+            if deadline_date < datetime.now().date():
+                eligible = False
+                reasons.append("Application deadline has passed")
+
+        if eligible:
+            return f"ELIGIBLE for job {job_id}: {job['title']} at {job['company']}"
+        else:
+            return f"NOT ELIGIBLE for job {job_id}: {'. '.join(reasons)}"
+
+    except Exception as e:
+        return f"Error checking eligibility: {str(e)}"
+
+
+@tool
+def apply_to_job(job_id: str, student_token: str, resume_url: str) -> str:
+    """
+    Applies to a specific admin-posted job on behalf of the student.
+    Only call this after confirming eligibility and student approval.
+    Args:
+        job_id: Job ID to apply to (UUID string)
+        student_token: Student's JWT auth token (to identify the student)
+        resume_url: URL of student's uploaded resume from Supabase
+    Returns:
+        Success or failure message
     """
     try:
         response = httpx.post(
-            f"{BACKEND_URL}/internal/agent/apply",
+            "http://localhost:8081/api/admin-jobs/apply",
             json={
-                "job_id": job_id,
-                "user_id": user_id,
-                "resume_path": resume_path,
+                "jobId": job_id,
+                "resumeUrl": resume_url,
+                "agentApplied": True
             },
-            timeout=15.0,
+            headers={"Authorization": f"Bearer {student_token}"},
+            timeout=10.0
         )
-        if response.status_code in (200, 201):
+
+        if response.status_code == 200:
             data = response.json()
-            if data.get("status") == "already_applied":
-                return f"Already applied to job {job_id}."
-            return f"Successfully applied to job {job_id}."
-        return f"Failed to apply to job {job_id}: {response.text}"
+            return f"Successfully applied to job {job_id}. Application ID: {data['application']['id']}"
+        elif response.status_code == 409:
+            return f"Already applied to job {job_id} previously"
+        else:
+            return f"Failed to apply to job {job_id}: {response.json().get('error', 'Unknown error')}"
+
     except Exception as e:
-        logger.error(f"apply_to_job failed: {e}")
-        return f"Error applying to job {job_id}: {str(e)}"
-
-
-@tool
-def get_application_summary(user_id: str) -> str:
-    """
-    Returns a summary of all jobs the agent applied to in this session.
-    Call this at the end to report back to the user.
-    """
-    try:
-        response = httpx.get(
-            f"{BACKEND_URL}/internal/agent/applications/{user_id}",
-            timeout=15.0,
-        )
-        response.raise_for_status()
-        apps = response.json()
-        if not apps:
-            return "No applications found."
-
-        summary = f"Total applications: {len(apps)}\n"
-        for app in apps:
-            summary += (
-                f"✓ {app.get('company', 'Unknown')} — "
-                f"{app.get('package_lpa', 'N/A')} LPA — "
-                f"Status: {app.get('status', 'Submitted')}\n"
-            )
-        return summary
-    except Exception as e:
-        logger.error(f"get_application_summary failed: {e}")
-        return f"Error fetching application summary: {str(e)}"
+        return f"Error applying to job: {str(e)}"

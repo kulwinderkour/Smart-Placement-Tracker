@@ -392,19 +392,27 @@ async def list_all_company_applicants(
 
     Optionally filter by job_id (must still belong to this company) or status.
     """
-    profile = await _get_company_profile(current_user.id, db)
+    profile = None
+    try:
+        profile = await _get_company_profile(current_user.id, db)
+    except HTTPException:
+        # Default back to None if no profile found
+        pass
 
     query = (
-        select(Application, Student, Job.role_title.label("role_title"))
+        select(Application, Student, Job.role_title.label("role_title"), Job.company_name.label("company_name"))
         .join(Student, Student.id == Application.student_id)
         .join(Job, Job.id == Application.job_id)
-        .where(Job.company_profile_id == profile.id)
     )
 
+    if profile:
+        query = query.where(Job.company_profile_id == profile.id)
+    else:
+        # If no specific company profile, show all or at least admin-posted jobs
+        # For now, let's show ALL internal applications to the admin
+        pass
+
     if job_id:
-        job = await db.get(Job, job_id)
-        if not job or job.company_profile_id != profile.id:
-            raise HTTPException(status_code=404, detail="Job not found")
         query = query.where(Application.job_id == job_id)
 
     if status:
@@ -416,8 +424,9 @@ async def list_all_company_applicants(
     count_subq = (
         select(func.count(Application.id))
         .join(Job, Job.id == Application.job_id)
-        .where(Job.company_profile_id == profile.id)
     )
+    if profile:
+        count_subq = count_subq.where(Job.company_profile_id == profile.id)
     if job_id:
         count_subq = count_subq.where(Application.job_id == job_id)
     if status:
@@ -440,6 +449,7 @@ async def list_all_company_applicants(
             "student_id": str(student.id),
             "job_id": str(app.job_id),
             "role_title": role_title,
+            "company_name": company_name,
             "student_name": student.full_name,
             "college": student.college,
             "branch": student.branch,
@@ -447,13 +457,13 @@ async def list_all_company_applicants(
             "cgpa": float(student.cgpa) if student.cgpa else None,
             "ats_score": student.ats_score,
             "phone": student.phone,
-            "resume_url": student.resume_url,
+            "resume_url": app.resume_url or student.resume_url,
             "linkedin_url": student.linkedin_url,
             "status": app.status.value,
             "applied_at": app.applied_at.isoformat(),
             "notes": app.notes,
         }
-        for app, student, role_title in rows
+        for app, student, role_title, company_name in rows
     ]
 
     return {

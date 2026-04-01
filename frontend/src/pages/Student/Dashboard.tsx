@@ -104,12 +104,69 @@ export default function Dashboard() {
   const [appsLoading, setAppsLoading] = useState(true)
 
   const [docCount, setDocCount] = useState({ total: 0, resumes: 0 })
+  const [adminJobs, setAdminJobs] = useState<any[]>([])
+  const [jobsLoading, setJobsLoading] = useState(true)
+
+  const [agentRunning, setAgentRunning] = useState(false);
+  const [agentResult, setAgentResult] = useState('');
+  const [minPackage, setMinPackage] = useState(10);
+
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [activeJobForApply, setActiveJobForApply] = useState<any>(null);
+  const [applyNotes, setApplyNotes] = useState('');
+  const [isApplying, setIsApplying] = useState(false);
+
+  const handleManualApply = async () => {
+    if (!activeJobForApply) return;
+    setIsApplying(true);
+    try {
+      await applicationsApi.apply(activeJobForApply.id, applyNotes);
+      alert('Application submitted successfully!');
+      setShowApplyModal(false);
+      setApplyNotes('');
+      // Invalidate applications count
+      applicationsApi.myApplications().then(res => setApplications(res.data as any));
+    } catch (err: any) {
+      alert('Failed to apply: ' + (err.response?.data?.detail || err.message));
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  const runAutoApply = async () => {
+    setAgentRunning(true);
+    setAgentResult('');
+    try {
+      const token = localStorage.getItem('access_token');
+      const AI_ENGINE_URL = 'http://localhost:8002';
+
+      const res = await fetch(`${AI_ENGINE_URL}/agent/apply-jobs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_token: token,
+          resume_url: profile.resumeUrl || profile.resume_url || '',
+          min_package_lpa: minPackage,
+          student_cgpa: parseFloat(profile.cgpa?.toString() || '0') || 0,
+          student_skills: (profile.skills || []).join(', '),
+        })
+      });
+      const data = await res.json();
+      setAgentResult(data.summary || data.detail || 'Agent finished.');
+    } catch (err: any) {
+      setAgentResult('Agent failed: ' + err.message);
+    }
+    setAgentRunning(false);
+  };
 
   useEffect(() => {
     if (!user?.id) return
-    applicationsApi.getMyApplications(user.id)
-      .then(res => setApplications(res.data))
-      .catch(() => setApplications([]))
+    applicationsApi.myApplications()
+      .then(res => setApplications(res.data as unknown as TrackedApplication[]))
+      .catch((err) => {
+        console.error("Dashboard: applications fetch failed:", err.response?.data || err.message);
+        setApplications([]);
+      })
       .finally(() => setAppsLoading(false))
     
     fetch(`http://localhost:8081/api/documents?userId=${user.id}`)
@@ -121,6 +178,27 @@ export default function Dashboard() {
         }
       })
       .catch(() => {})
+
+    // Fetch admin posted jobs with debug logging
+    const fetchJobs = async () => {
+      try {
+        const SCRAPER_URL = 'http://localhost:8081'; // URL for Scraper/Admin Jobs server
+        console.log('Fetching admin jobs from:', `${SCRAPER_URL}/api/admin-jobs/active`);
+        
+        const res = await fetch(`${SCRAPER_URL}/api/admin-jobs/active`);
+        console.log('Response status:', res.status);
+        
+        const data = await res.json();
+        console.log('Admin jobs data:', data);
+        
+        if (data.jobs) setAdminJobs(data.jobs);
+      } catch (err) {
+        console.error("Failed to fetch admin jobs:", err);
+      } finally {
+        setJobsLoading(false);
+      }
+    };
+    fetchJobs();
   }, [user?.id])
 
   const skills = profile.skills || []
@@ -242,8 +320,215 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {/* ── Apply Modal ── */}
+          {showApplyModal && activeJobForApply && (
+            <div style={{
+              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+              background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              zIndex: 100, backdropFilter: 'blur(4px)'
+            }}>
+              <div style={{
+                background: '#161b22', border: '1px solid #21262d', borderRadius: '12px',
+                width: '100%', maxWidth: '450px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
+              }}>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#e6edf3' }}>
+                  Apply for {activeJobForApply.title}
+                </h3>
+                <p style={{ fontSize: '13px', color: '#7d8590', marginTop: '4px', marginBottom: '20px' }}>
+                  {activeJobForApply.company} · {activeJobForApply.location}
+                </p>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#484f58', marginBottom: '8px', textTransform: 'uppercase' }}>
+                    Notes for the Placement Cell / Company
+                  </label>
+                  <textarea 
+                    value={applyNotes}
+                    onChange={(e) => setApplyNotes(e.target.value)}
+                    placeholder="Briefly state your interest or mention any relevant details..."
+                    style={{
+                      width: '100%', height: '120px', background: '#0d1117', border: '1px solid #21262d',
+                      borderRadius: '8px', padding: '12px', color: '#e6edf3', fontSize: '14px',
+                      resize: 'none', outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button onClick={() => { setShowApplyModal(false); setApplyNotes(''); }}
+                    style={{
+                      flex: 1, background: 'transparent', border: '1px solid #21262d',
+                      color: '#e6edf3', borderRadius: '8px', padding: '10px', fontSize: '14px',
+                      fontWeight: 600, cursor: 'pointer'
+                    }}>
+                    Cancel
+                  </button>
+                  <button onClick={handleManualApply} disabled={isApplying}
+                    style={{
+                      flex: 1, background: '#20c997', border: 'none',
+                      color: '#0d1117', borderRadius: '8px', padding: '10px', fontSize: '14px',
+                      fontWeight: 600, cursor: isApplying ? 'not-allowed' : 'pointer',
+                      opacity: isApplying ? 0.7 : 1
+                    }}>
+                    {isApplying ? 'Applying...' : 'Submit Application'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Admin Posted Opportunities Section ── */}
+          <div style={{ marginTop: '32px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <h2 style={{ color: '#e6edf3', fontSize: '16px', fontWeight: 600, margin: 0 }}>
+                    Opportunities from SmartPlacement
+                  </h2>
+                  <span style={{
+                    background: '#20c997', color: '#0d1117', fontSize: '10px', fontWeight: 700,
+                    padding: '2px 8px', borderRadius: '20px', letterSpacing: '0.05em'
+                  }}>VERIFIED</span>
+                </div>
+                <p style={{ color: '#7d8590', fontSize: '12px', marginTop: '3px' }}>
+                  Handpicked opportunities posted directly by our placement team
+                </p>
+              </div>
+              <span style={{ color: '#7d8590', fontSize: '12px' }}>
+                {adminJobs.length} active opening{adminJobs.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+
+            <div style={{ height: '1px', background: '#21262d', marginBottom: '16px' }} />
+
+            {/* Auto apply bar */}
+            <div style={{
+              background: '#161b22', border: '1px solid #21262d',
+              borderRadius: '10px', padding: '16px 20px',
+              display: 'flex', alignItems: 'center', gap: '12px',
+              marginBottom: '16px', flexWrap: 'wrap'
+            }}>
+              <span style={{ color: '#e6edf3', fontSize: '13px', fontWeight: 500 }}>
+                Auto Apply Agent
+              </span>
+              <span style={{ color: '#7d8590', fontSize: '12px' }}>
+                Apply to all eligible jobs above
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
+                <span style={{ color: '#7d8590', fontSize: '12px' }}>Min package:</span>
+                <select
+                  value={minPackage}
+                  onChange={e => setMinPackage(Number(e.target.value))}
+                  style={{ background: '#0d1117', border: '1px solid #21262d', borderRadius: '6px', color: '#e6edf3', padding: '6px 10px', fontSize: '12px' }}
+                >
+                  {[5, 8, 10, 12, 15, 20, 25, 30].map(p => (
+                    <option key={p} value={p}>₹{p} LPA+</option>
+                  ))}
+                </select>
+                <button onClick={runAutoApply} disabled={agentRunning}
+                  style={{
+                    background: agentRunning ? '#21262d' : '#7c3aed',
+                    color: agentRunning ? '#7d8590' : 'white',
+                    border: 'none', borderRadius: '6px',
+                    padding: '7px 16px', fontSize: '12px',
+                    fontWeight: 600, cursor: agentRunning ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.2s'
+                  }}>
+                  {agentRunning ? '⏳ Agent running...' : '⚡ Auto Apply'}
+                </button>
+              </div>
+              {agentResult && (
+                <div style={{
+                  width: '100%', marginTop: '10px',
+                  background: '#0d1117', border: '1px solid #21262d',
+                  borderRadius: '8px', padding: '12px',
+                  color: '#e6edf3', fontSize: '13px', lineHeight: 1.6,
+                  whiteSpace: 'pre-wrap'
+                }}>
+                  {agentResult}
+                </div>
+              )}
+            </div>
+
+            {jobsLoading && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+                {[1, 2].map(i => (
+                  <div key={i} style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: '10px', padding: '18px', height: '100px' }} />
+                ))}
+              </div>
+            )}
+
+            {!jobsLoading && adminJobs.length === 0 && (
+              <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: '10px', padding: '32px', textAlign: 'center' }}>
+                <p style={{ color: '#484f58', fontSize: '13px' }}>No opportunities posted yet. Check back soon.</p>
+              </div>
+            )}
+
+            {!jobsLoading && adminJobs.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' }}>
+                {adminJobs.map(job => {
+                  const isApplied = applications.some(a => a.job_id === job.id);
+                  return (
+                    <div key={job.id} style={{
+                      background: '#161b22', border: '1px solid #21262d', borderRadius: '10px',
+                      padding: '18px 20px', transition: 'border-color 0.15s', cursor: 'pointer'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = '#30363d'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = '#21262d'}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{
+                            width: '36px', height: '36px', borderRadius: '8px', background: '#21262d',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7d8590', fontWeight: 700,
+                            fontSize: '14px', flexShrink: 0, overflow: 'hidden'
+                          }}>
+                            {job.company_logo ? <img src={job.company_logo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (job.company || job.company_name)?.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div style={{ color: '#e6edf3', fontSize: '14px', fontWeight: 600 }}>{job.title}</div>
+                            <div style={{ color: '#7d8590', fontSize: '12px' }}>{job.company || job.company_name}</div>
+                          </div>
+                        </div>
+                        {(job.package_lpa || job.salary_min) && (
+                          <span style={{ background: '#1a2e22', color: '#3fb950', border: '1px solid #23863633', borderRadius: '4px', padding: '3px 8px', fontSize: '11px', fontWeight: 600 }}>
+                            ₹{job.package_lpa || job.salary_min} LPA
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                        {job.location && <span style={{ color: '#7d8590', fontSize: '11px' }}>📍 {job.location}</span>}
+                        {job.job_type && <span style={{ color: '#7d8590', fontSize: '11px' }}>💼 {job.job_type}</span>}
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#484f58', fontSize: '11px' }}>
+                          {job.application_deadline ? `Deadline: ${new Date(job.application_deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : ''}
+                        </span>
+                        {isApplied ? (
+                          <button disabled
+                            style={{ background: '#21262d', color: '#7d8590', border: '1px solid #30363d', borderRadius: '6px', padding: '5px 14px', fontSize: '12px', fontWeight: 600, cursor: 'not-allowed' }}>
+                            Applied ✓
+                          </button>
+                        ) : job.apply_link ? (
+                          <a href={job.apply_link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}
+                            style={{ background: '#20c997', color: '#0d1117', borderRadius: '6px', padding: '5px 14px', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}>
+                            Apply Externally →
+                          </a>
+                        ) : (
+                          <button onClick={(e) => { e.stopPropagation(); setActiveJobForApply(job); setShowApplyModal(true); }}
+                            style={{ background: '#7c3aed', color: 'white', border: 'none', borderRadius: '6px', padding: '5px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                            Apply Internally →
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* Document Vault Summary */}
-          <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '20px 24px' }}>
+          <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '20px 24px', marginTop: '32px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h2 style={{ margin: 0, fontSize: 14, fontWeight: 500, color: '#e6edf3' }}>Document Vault</h2>
               <Link to="/student/document-vault" style={{ fontSize: 12, color: '#20c997', textDecoration: 'none', fontWeight: 500 }}>Manage Vault →</Link>

@@ -3,6 +3,7 @@ import type { Application } from '../types'
 
 export interface TrackedApplication {
   id: string
+  job_id?: string
   company: string
   role: string
   package_lpa: number | null
