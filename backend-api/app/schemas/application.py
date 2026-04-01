@@ -10,11 +10,16 @@ from app.models.application import ApplicationStatus
 class ApplicationCreate(BaseModel):
     job_id: UUID
     notes: Optional[str] = None
+    resume_url: Optional[str] = None
+    cover_letter: Optional[str] = None
+    agent_applied: Optional[bool] = False
 
 
 class ApplicationUpdate(BaseModel):
     status: Optional[ApplicationStatus] = None
     notes: Optional[str] = None
+    resume_url: Optional[str] = None
+    cover_letter: Optional[str] = None
     next_step_date: Optional[date] = None
     offer_ctc: Optional[int] = None
 
@@ -26,6 +31,9 @@ class ApplicationResponse(BaseModel):
     status: ApplicationStatus
     applied_at: datetime
     notes: Optional[str]
+    resume_url: Optional[str] = None
+    cover_letter: Optional[str] = None
+    agent_applied: bool = False
     next_step_date: Optional[date]
     offer_ctc: Optional[int]
 

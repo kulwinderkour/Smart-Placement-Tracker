@@ -76,9 +76,10 @@ export default function AdminDashboard() {
 
   const QUICK_ACTIONS = [
     { label: "Post Job", icon: Plus, path: "/admin/jobs" },
+    { label: "Verified Jobs", icon: CheckCircle, path: "/admin/platform-jobs" },
     { label: "View Applicants", icon: Eye, path: "/admin/applicants" },
     {
-      label: "Schedule Interview",
+      label: "Interviews",
       icon: CalendarDays,
       path: "/admin/interviews",
     },

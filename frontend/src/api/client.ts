@@ -1,7 +1,8 @@
 import axios from 'axios'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
-const AI_URL   = import.meta.env.VITE_AI_URL   || 'http://localhost:8002'
+const AI_URL      = import.meta.env.VITE_AI_URL      || 'http://localhost:8002'
+const SCRAPER_URL = import.meta.env.VITE_SCRAPER_URL || 'http://localhost:8081/api'
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -13,6 +14,11 @@ export const aiClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+export const scraperClient = axios.create({
+  baseURL: SCRAPER_URL,
+  headers: { 'Content-Type': 'application/json' },
+})
+
 // Attach JWT token to every request
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token')
@@ -21,6 +27,12 @@ apiClient.interceptors.request.use((config) => {
 })
 
 aiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('access_token')
+  if (token) config.headers.Authorization = `Bearer ${token}` 
+  return config
+})
+
+scraperClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token')
   if (token) config.headers.Authorization = `Bearer ${token}` 
   return config

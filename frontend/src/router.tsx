@@ -37,6 +37,7 @@ import DocumentVault from "./pages/Student/DocumentVault";
 import PrepChecklist from "./pages/Student/PrepChecklist";
 import ResourceBookmarks from "./pages/Student/ResourceBookmarks";
 import InterviewLog from "./pages/Student/InterviewLog";
+import AdminPlatformJobs from "./pages/Admin/AdminPlatformJobs";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -271,6 +272,14 @@ export const router = createBrowserRouter([
     element: (
       <AdminRoute>
         <AdminJobs />
+      </AdminRoute>
+    ),
+  },
+  {
+    path: "/admin/platform-jobs",
+    element: (
+      <AdminRoute>
+        <AdminPlatformJobs />
       </AdminRoute>
     ),
   },

@@ -10,8 +10,6 @@ import {
   Building2,
   Settings,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
   GraduationCap,
 } from "lucide-react";
 
@@ -27,10 +25,9 @@ const NAV = [
 
 interface Props {
   collapsed: boolean;
-  onToggle: () => void;
 }
 
-export default function AdminSidebar({ collapsed, onToggle }: Props) {
+export default function AdminSidebar({ collapsed }: Props) {
   const location = useLocation();
   const { logout, user } = useAuthStore();
   const { profile } = useCompanyProfileStore();
@@ -179,27 +176,7 @@ export default function AdminSidebar({ collapsed, onToggle }: Props) {
           {!collapsed && <span>Logout</span>}
         </button>
 
-        {/* Collapse toggle */}
-        <button
-          onClick={onToggle}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm transition-all"
-          style={{ color: "var(--color-text-muted)" }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.background =
-              "var(--color-accent-bg-hover)";
-            (e.currentTarget as HTMLElement).style.color =
-              "var(--color-text-secondary)";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.background = "";
-            (e.currentTarget as HTMLElement).style.color =
-              "var(--color-text-muted)";
-          }}
-        >
-          {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
-          {!collapsed && <span className="text-xs">Collapse</span>}
-        </button>
+
       </div>
     </aside>
   );

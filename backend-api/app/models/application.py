@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, Enum, ForeignKey, Integer, Text
+from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -29,6 +29,9 @@ class Application(Base):
     )
     applied_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
     notes: Mapped[str | None] = mapped_column(Text)
+    resume_url: Mapped[str | None] = mapped_column(Text)
+    cover_letter: Mapped[str | None] = mapped_column(Text)
+    agent_applied: Mapped[bool] = mapped_column(Boolean, default=False)
     next_step_date: Mapped[date | None] = mapped_column(Date)
     offer_ctc: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)

@@ -5,24 +5,22 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from app.config import settings
-from app.services.tools import apply_to_job, get_application_summary, get_jobs_above_lpa
+from app.services.tools import fetch_admin_jobs, check_eligibility, apply_to_job
 
 logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = (
-    "You are an intelligent placement assistant for SmartPlacementTrackr. "
-    "Your job is to help students automatically apply to suitable job opportunities. "
-    "Jobs are sourced from Remotive (remote international jobs with USD salaries) "
-    "and the local job board. When a user mentions LPA (Indian salary), treat it as "
-    "a guide — Remotive salaries are in USD (roughly: $1k/year ≈ 0.85 LPA). "
-    "When asked to apply to jobs:\n"
-    "1. Call get_jobs_above_lpa to fetch available jobs (always do this first).\n"
-    "2. For EACH job returned, call apply_to_job with the job ID, user ID, and resume path. "
-    "Apply to ALL jobs found unless the user specified a strict limit.\n"
-    "3. Finally, call get_application_summary to summarise all applications made.\n"
-    "Be concise, accurate, and always confirm what actions you took. "
-    "Note: 'applying' here tracks the application in the SmartPlacementTrackr system. "
-    "The student must visit the job's source URL to submit their actual application."
+    "You are a job application agent for SmartPlacement.\n\n"
+    "Your ONLY job source is admin-posted jobs fetched via fetch_admin_jobs tool.\n"
+    "DO NOT reference external job boards, LinkedIn, Naukri, or any other source.\n"
+    "Only work with jobs available in the SmartPlacement admin database.\n\n"
+    "Your workflow:\n"
+    "1. Fetch admin-posted jobs using fetch_admin_jobs with the student's minimum package\n"
+    "2. For each job, check eligibility using check_eligibility\n"
+    "3. Apply only to jobs where student is ELIGIBLE\n"
+    "4. Give a clear summary at the end: applied to X jobs, skipped Y jobs with reasons\n\n"
+    "Always be transparent about why you skipped any job. "
+    "Never apply to a job the student is not eligible for."
 )
 
 
@@ -33,10 +31,10 @@ def _build_agent_executor(user_id: str, resume_path: str) -> AgentExecutor:
     llm = ChatGoogleGenerativeAI(
         model=settings.GEMINI_MODEL or "gemini-1.5-flash",
         google_api_key=settings.GEMINI_API_KEY,
-        temperature=0,
+        temperature=0.1,
     )
 
-    tools = [get_jobs_above_lpa, apply_to_job, get_application_summary]
+    tools = [fetch_admin_jobs, check_eligibility, apply_to_job]
 
     prompt = ChatPromptTemplate.from_messages(
         [
