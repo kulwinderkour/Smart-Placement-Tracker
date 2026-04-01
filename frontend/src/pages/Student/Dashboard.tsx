@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { LogOut } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { applicationsApi, type TrackedApplication } from '../../api/applications'
 
@@ -92,13 +93,17 @@ function ActionCard({ icon, title, subtitle, to }: { icon: string; title: string
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 
 export default function Dashboard() {
-  const { user } = useAuthStore()
+  const { user, logout } = useAuthStore()
+  const navigate = useNavigate()
   const profile: UserProfile = JSON.parse(localStorage.getItem('userProfile') || '{}')
   const readiness = calcReadiness(profile)
   const fullName = profile.fullName || profile.full_name
   const firstName = fullName?.split(' ')[0] || user?.email?.split('@')[0] || 'Member'
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : hour < 21 ? 'Good evening' : 'Good night'
+
+  const [logoutHov, setLogoutHov] = useState(false)
+  const handleLogout = () => { logout(); navigate('/login') }
 
   const [applications, setApplications] = useState<TrackedApplication[]>([])
   const [appsLoading, setAppsLoading] = useState(true)
@@ -227,13 +232,48 @@ export default function Dashboard() {
             {skills.length > 0 ? `Track your profile and skills efficiently.` : `Complete your profile to boost placement readiness.`}
           </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <div style={{ color: '#7d8590', cursor: 'pointer' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {/* Notification Bell */}
+          <div style={{ color: '#7d8590', cursor: 'pointer', padding: '6px', borderRadius: 8 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           </div>
-          <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#20c99722', color: '#20c997', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600 }}>
+
+          {/* Avatar */}
+          <div style={{
+            width: 34, height: 34, borderRadius: '50%',
+            background: '#20c99722', color: '#20c997',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 13, fontWeight: 600, flexShrink: 0
+          }}>
             {firstName[0].toUpperCase()}
           </div>
+
+          {/* Separator */}
+          <div style={{ width: 1, height: 22, background: '#21262d', margin: '0 4px' }} />
+
+          {/* Logout Button */}
+          <button
+            id="student-logout-btn"
+            onClick={handleLogout}
+            onMouseEnter={() => setLogoutHov(true)}
+            onMouseLeave={() => setLogoutHov(false)}
+            title="Sign out"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: logoutHov ? '#2d1b1b' : 'transparent',
+              border: `1px solid ${logoutHov ? '#da363344' : 'transparent'}`,
+              borderRadius: 8,
+              padding: '6px 12px',
+              color: logoutHov ? '#f85149' : '#7d8590',
+              cursor: 'pointer',
+              fontSize: 12,
+              fontWeight: 500,
+              transition: 'all 0.18s ease',
+            }}
+          >
+            <LogOut size={15} strokeWidth={2.2} />
+            <span style={{ display: 'inline' }}>Sign out</span>
+          </button>
         </div>
       </header>
 

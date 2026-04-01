@@ -50,14 +50,21 @@ Return ONLY the JSON array, no other text."""
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.GEMINI_MODEL}:generateContent?key={settings.GEMINI_API_KEY}"
 
     try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with httpx.AsyncClient(timeout=120.0) as client:
             response = await client.post(
                 url,
-                json={"contents": [{"parts": [{"text": prompt}]}]},
+                json={
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {
+                        "thinkingConfig": {"thinkingBudget": 0},  # disable thinking for faster JSON output
+                        "temperature": 1,
+                    },
+                },
             )
 
         if response.status_code != 200:
             raise Exception(f"Gemini API error: {response.status_code} - {response.text}")
+
 
         result = response.json()
         text = result["candidates"][0]["content"]["parts"][0]["text"]

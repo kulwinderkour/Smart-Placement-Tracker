@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${import.meta.env.GEMINI_API_KEY}`
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY}`
 
 interface SetupState { role: string; companyType: string; persona: string; duration: number }
 interface AnswerResult { question: string; answer: string; score: number; feedback: string; keyPoints: string[]; missing: string[] }
@@ -16,7 +16,7 @@ async function geminiCall(prompt: string): Promise<string> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 1024, temperature: 0.7 },
+      generationConfig: { maxOutputTokens: 1024, temperature: 1, thinkingConfig: { thinkingBudget: 0 } },
     }),
   })
   if (!res.ok) throw new Error(`Gemini ${res.status}`)
@@ -31,7 +31,7 @@ async function geminiJsonCall(prompt: string): Promise<string> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 1024, temperature: 0.4, responseMimeType: 'application/json' },
+      generationConfig: { maxOutputTokens: 1024, temperature: 1, thinkingConfig: { thinkingBudget: 0 }, responseMimeType: 'application/json' },
     }),
   })
   if (!res.ok) {

@@ -65,15 +65,19 @@ Respond in this exact JSON format:
         if not settings.GEMINI_API_KEY:
             raise ValueError("GEMINI_API_KEY not configured")
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key={settings.GEMINI_API_KEY}"
         
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 url,
                 json={
-                    "contents": [{"parts": [{"text": prompt}]}]
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {
+                        "thinkingConfig": {"thinkingBudget": 0},
+                        "temperature": 1
+                    }
                 },
-                timeout=30.0
+                timeout=90.0
             )
             
             if response.status_code != 200:

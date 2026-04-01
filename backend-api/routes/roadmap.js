@@ -55,7 +55,7 @@ async function initDatabase() {
             difficulty_level VARCHAR(50) DEFAULT 'intermediate',
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-            generated_by VARCHAR(100) DEFAULT 'gemini-1.5-flash',
+            generated_by VARCHAR(100) DEFAULT 'gemini-2.5-flash-preview-04-17',
             usage_count INTEGER DEFAULT 0,
             last_accessed TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             is_public VARCHAR(10) DEFAULT 'true'
@@ -244,7 +244,7 @@ router.get('/generate', async (req, res) => {
         throw new Error('GEMINI_API_KEY is missing in your backend .env file');
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-preview-04-17' });
     const prompt = `Generate a comprehensive learning roadmap for: "${field}"
 
 Return ONLY valid JSON in this exact structure, no explanation, no markdown, no backticks:
