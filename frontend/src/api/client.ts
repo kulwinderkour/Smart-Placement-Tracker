@@ -40,16 +40,18 @@ scraperClient.interceptors.request.use((config) => {
 
 // Auto logout on 401 — but NOT when the login endpoint itself returns 401
 // (wrong credentials): in that case let the form's catch block handle it.
+// Also ignore /auth/me 401s so initial load failures gracefully fall back to the landing page instead of forcing a redirect to /login
 apiClient.interceptors.response.use(
   (res) => res,
   (error) => {
     const isAuthEndpoint = error.config?.url?.includes('/auth/login') ||
-                           error.config?.url?.includes('/auth/register')
+                           error.config?.url?.includes('/auth/register') ||
+                           error.config?.url?.includes('/auth/me');
     if (error.response?.status === 401 && !isAuthEndpoint) {
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
-      window.location.href = '/login'
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      window.location.href = '/login';
     }
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
-)
+);

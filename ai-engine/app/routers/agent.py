@@ -13,6 +13,8 @@ class AgentRequest(BaseModel):
     prompt: str
     user_id: str
     resume_path: str = "resume.pdf"
+    student_token: str = ""   # JWT token — required for apply_to_job
+
 
 class AutoApplyRequest(BaseModel):
     student_token: str
@@ -20,6 +22,7 @@ class AutoApplyRequest(BaseModel):
     min_package_lpa: float
     student_cgpa: float
     student_skills: str
+    user_id: str = ""
     additional_filters: str = ""
 
 
@@ -42,6 +45,7 @@ def run_placement_agent(payload: AgentRequest):
         prompt=payload.prompt,
         user_id=payload.user_id,
         resume_path=payload.resume_path,
+        student_token=payload.student_token,
     )
     return AgentResponse(result=result)
 
@@ -57,22 +61,20 @@ Apply to available SmartPlacement jobs for a student with these details:
 - Minimum package preference: {request.min_package_lpa} LPA
 - Student CGPA: {request.student_cgpa}
 - Student skills: {request.student_skills}
-- Resume URL: {request.resume_url}
-- Student auth token: {request.student_token}
 - Additional preferences: {request.additional_filters or 'None'}
 
 Steps to follow:
 1. Fetch all admin-posted jobs with package >= {request.min_package_lpa} LPA
-2. Check eligibility for each job
-3. Apply to all eligible jobs using the resume URL and student token
+2. Check eligibility for each job using the student CGPA and skills above
+3. Apply to all eligible jobs using apply_to_job — the student_token and resume_url are in the [Context] below
 4. Return a clear summary of what was applied and what was skipped with reasons
         """
-        
-        # We reuse run_agent which already handles the executor logic
+
         result = run_agent(
             prompt=user_message,
-            user_id="auto-agent", # placeholder as we use student_token for actual application
-            resume_path=request.resume_url
+            user_id=request.user_id or "auto-agent",
+            resume_path=request.resume_url,
+            student_token=request.student_token,
         )
         return {"success": True, "summary": result}
 

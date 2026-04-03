@@ -301,30 +301,7 @@ export default function Login() {
 
         {/* Mobile menu trigger + right CTA */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button
-            className="mobile-menu-btn"
-            onClick={() => setMenuOpen(!menuOpen)}
-            style={{
-              width: 42, height: 42, borderRadius: '50%',
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              backdropFilter: 'blur(10px)',
-              display: 'flex',
-              alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: '#fff',
-              padding: 0,
-              boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-              transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.transform = 'scale(1.05)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.transform = 'scale(1)' }}
-          >
-            {menuOpen ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
-            )}
-          </button>
+
 
           {/* RIGHT — "LET'S TALK" BUTTON */}
           <button
