@@ -17,14 +17,17 @@ SYSTEM_PROMPT = (
     "Your workflow:\n"
     "1. Fetch admin-posted jobs using fetch_admin_jobs with the student's minimum package\n"
     "2. For each job, check eligibility using check_eligibility\n"
-    "3. Apply only to jobs where student is ELIGIBLE\n"
+    "3. Apply only to jobs where student is ELIGIBLE using apply_to_job\n"
+    "   - For apply_to_job, use student_token = the value from [Context] student_token\n"
+    "   - For apply_to_job, use resume_url = the value from [Context] resume_path\n"
     "4. Give a clear summary at the end: applied to X jobs, skipped Y jobs with reasons\n\n"
     "Always be transparent about why you skipped any job. "
-    "Never apply to a job the student is not eligible for."
+    "Never apply to a job the student is not eligible for.\n"
+    "If fetch_admin_jobs returns no jobs, report that clearly and stop."
 )
 
 
-def _build_agent_executor(user_id: str, resume_path: str) -> AgentExecutor:
+def _build_agent_executor() -> AgentExecutor:
     if not settings.GEMINI_API_KEY:
         raise ValueError("GEMINI_API_KEY is not set in the environment.")
 
@@ -48,14 +51,20 @@ def _build_agent_executor(user_id: str, resume_path: str) -> AgentExecutor:
     return AgentExecutor(agent=agent, tools=tools, verbose=True, max_iterations=15)
 
 
-def run_agent(prompt: str, user_id: str, resume_path: str) -> str:
+def run_agent(
+    prompt: str,
+    user_id: str,
+    resume_path: str,
+    student_token: str = "",
+) -> str:
     """
     Entry point for the placement agent.
 
     Args:
-        prompt:      Natural language instruction from the user.
-        user_id:     The authenticated student's ID.
-        resume_path: Path (or filename) of the resume to attach.
+        prompt:         Natural language instruction from the user.
+        user_id:        The authenticated student's ID.
+        resume_path:    Path (or URL) of the resume to attach.
+        student_token:  JWT token of the student (used by apply_to_job).
 
     Returns:
         The agent's final text response.
@@ -63,9 +72,10 @@ def run_agent(prompt: str, user_id: str, resume_path: str) -> str:
     try:
         enriched_prompt = (
             f"{prompt}\n\n"
-            f"[Context] user_id={user_id}, resume_path={resume_path}"
+            f"[Context] user_id={user_id}, resume_path={resume_path}, "
+            f"student_token={student_token}"
         )
-        executor = _build_agent_executor(user_id, resume_path)
+        executor = _build_agent_executor()
         result = executor.invoke({"input": enriched_prompt})
         return result.get("output", "Agent finished without producing output.")
     except ValueError as e:

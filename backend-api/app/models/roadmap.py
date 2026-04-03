@@ -19,7 +19,7 @@ class Roadmap(Base):
     difficulty_level = Column(String(50), default="intermediate")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    generated_by = Column(String(100), default="gemini-1.5-flash")
+    generated_by = Column(String(100), default="gemini-2.5-flash")
     usage_count = Column(BigInteger, default=0)
     last_accessed = Column(DateTime(timezone=True), server_default=func.now())
     is_public = Column(String(10), default="true")  # for sharing between users
