@@ -789,17 +789,19 @@ export default function Login() {
             transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
           >
             {/* Badge */}
-            <div style={{ marginBottom: 20 }}>
+            <div style={{ marginBottom: 20, width: '100%', textAlign: 'center' }}>
               <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                padding: '6px 14px', borderRadius: 100,
-                background: 'rgba(99,102,241,0.12)',
-                border: '1px solid rgba(99,102,241,0.3)',
-                fontSize: 13, fontWeight: 800, letterSpacing: '0.1em',
-                color: '#fff', textTransform: 'uppercase',
-                fontFamily: 'DM Sans,sans-serif'
+                display: 'inline-block',
+                fontFamily: 'Sora, sans-serif',
+                fontWeight: 800,
+                fontSize: 'clamp(24px, 3vw, 32px)',
+                letterSpacing: '-0.02em',
+                textTransform: 'uppercase',
+                background: 'linear-gradient(180deg, #FFFFFF 0%, #888888 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
               }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff', display: 'inline-block', boxShadow: '0 0 10px #fff' }} />                Why SmartPlacement?
+                Why SmartPlacement?
               </span>
             </div>
 
