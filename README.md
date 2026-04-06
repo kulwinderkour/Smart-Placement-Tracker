@@ -338,3 +338,15 @@ docker compose exec backend-api alembic upgrade head
 
 # 4) Check everything is running
 docker compose ps
+
+
+
+
+
+http://localhost:8000 for backend-api
+
+http://localhost:8001 for collector
+
+http://localhost:8002 for ai-engine
+
+http://localhost:3000 for frontend
