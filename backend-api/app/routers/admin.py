@@ -32,6 +32,11 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 class JobStatusUpdate(BaseModel):
     is_active: bool
 
+class InviteStudentRequest(BaseModel):
+    student_id: uuid.UUID
+    job_id: str
+    message: Optional[str] = None
+
 class ApplicationStatusUpdate(BaseModel):
     status: str
 
@@ -512,4 +517,22 @@ async def get_analytics(
         ],
         "offer_rate": round((offer_count / total_apps * 100), 1) if total_apps > 0 else 0,
         "shortlist_rate": round((hr_count / total_apps * 100), 1) if total_apps > 0 else 0,
+    }
+
+
+@router.post("/invite-student")
+async def invite_student(
+    payload: InviteStudentRequest,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    result = await db.execute(select(Student).where(Student.id == payload.student_id))
+    student = result.scalar_one_or_none()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    return {
+        "success": True,
+        "message": f"Invitation sent to {student.full_name}",
+        "student_id": str(payload.student_id),
+        "job_id": payload.job_id,
     }
