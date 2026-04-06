@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
-import AgentPanel from "../../components/AgentPanel";
 import { applicationsApi } from "../../api/applications";
 
 interface Job {
@@ -305,9 +304,6 @@ export default function JobBoard() {
 
   return (
     <div style={{ padding: "2rem", background: "#0d1117", minHeight: "100vh", color: "#e6edf3" }}>
-      {/* AI Placement Agent Panel */}
-      <AgentPanel userId={user?.id} />
-
       {/* Back to Dashboard Button */}
       <button
         onClick={() => navigate('/dashboard')}

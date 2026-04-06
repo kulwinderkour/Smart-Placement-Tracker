@@ -1,10 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Plus, Briefcase, MapPin, Users, X, ChevronDown,
-  Pencil, Trash2, PowerOff, Power, Wifi, WifiOff,
+  Pencil, Trash2, PowerOff, Power, Wifi, WifiOff, Sparkles,
 } from "lucide-react";
 import { companyJobsApi } from "../../api/companyJobs";
+import { apiClient } from "../../api/client";
 import StatusBadge from "../../components/admin/StatusBadge";
 import AdminLayout from "../../components/admin/AdminLayout";
 import type { Job, CompanyJobCreate } from "../../types";
@@ -411,6 +412,260 @@ function JobForm({
 }
 
 /* ─────────────────────────────────────────────
+   Student Match Drawer
+───────────────────────────────────────────── */
+interface MatchResult {
+  student_id: string;
+  student_identifier: string;
+  college: string;
+  branch: string;
+  cgpa: number;
+  match_score: number;
+  match_label: string;
+  matched_skills: string[];
+  gap_skills: string[];
+}
+
+const AI_ENGINE = "http://localhost:8002";
+
+function StudentMatchDrawer({ job, onClose }: { job: Job; onClose: () => void }) {
+  const [loading, setLoading] = useState(true);
+  const [results, setResults] = useState<MatchResult[]>([]);
+  const [invitedIds, setInvitedIds] = useState<Set<string>>(new Set());
+  const [invitingId, setInvitingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const studentsRes = await apiClient.get("/admin/students", { params: { limit: 200 } });
+        const students: any[] = studentsRes.data?.data ?? [];
+        if (students.length === 0) { setLoading(false); return; }
+
+        const studentProfiles = students.map((s: any) => ({
+          student_id: s.id,
+          fullName: s.full_name || "",
+          college: s.college || "",
+          branch: s.branch || "",
+          cgpa: parseFloat(s.cgpa ?? 0),
+          graduationYear: s.graduation_year || 0,
+          skills: (s.skills || []).map((sk: any) =>
+            typeof sk === "string" ? sk : sk.name || ""
+          ),
+          mockInterviewScore: 0,
+          aptitudeStreak: 0,
+          previousCompanies: [],
+        }));
+
+        const res = await fetch(`${AI_ENGINE}/api/matcher/bulk-score`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            students: studentProfiles,
+            job: {
+              id: job.id || "",
+              title: job.role_title || "",
+              company: "",
+              location: job.location || "",
+              package_lpa: job.salary_max ? job.salary_max / 100000 : 0,
+              required_skills: [],
+              min_cgpa: 0,
+              job_type: job.job_type || "",
+              company_type: "",
+            },
+          }),
+        });
+        if (!res.ok) throw new Error("Bulk score failed");
+        const data = await res.json();
+
+        const studentMap: Record<string, any> = Object.fromEntries(
+          students.map((s: any) => [s.id, s])
+        );
+        const enriched: MatchResult[] = (data.results || []).map((r: any) => ({
+          ...r,
+          college: studentMap[r.student_id]?.college || "",
+          branch: studentMap[r.student_id]?.branch || "",
+          cgpa: parseFloat(studentMap[r.student_id]?.cgpa ?? 0),
+        }));
+        setResults(enriched);
+      } catch (err) {
+        console.error("Best matches error:", err);
+      }
+      setLoading(false);
+    })();
+  }, [job.id]);
+
+  const handleInvite = async (r: MatchResult) => {
+    setInvitingId(r.student_id);
+    try {
+      await apiClient.post("/admin/invite-student", {
+        student_id: r.student_id,
+        job_id: job.id,
+        message: `You're a strong match for the ${job.role_title} role. Apply now!`,
+      });
+      setInvitedIds(prev => new Set([...prev, r.student_id]));
+    } catch (err) {
+      console.error("Invite failed:", err);
+    }
+    setInvitingId(null);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex"
+      style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="ml-auto w-full max-w-xl h-full overflow-y-auto"
+        style={{
+          background: "var(--color-bg-surface)",
+          borderLeft: "1px solid var(--color-border)",
+          boxShadow: "-20px 0 60px rgba(0,0,0,0.25)",
+        }}
+      >
+        {/* Header */}
+        <div
+          className="flex items-center justify-between px-6 py-4 sticky top-0 z-10"
+          style={{ background: "var(--color-bg-surface)", borderBottom: "1px solid var(--color-border)" }}
+        >
+          <div>
+            <h2 className="font-bold text-base" style={{ color: "var(--color-text)" }}>
+              Best Matches
+            </h2>
+            <p className="text-xs mt-0.5" style={{ color: "var(--color-text-muted)" }}>
+              {job.role_title} · ranked by ML model
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+            style={{ color: "var(--color-text-muted)", border: "1px solid var(--color-border)" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--color-accent)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--color-border)"; }}
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-6">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <div style={{
+                width: 32, height: 32,
+                border: "3px solid var(--color-border)",
+                borderTopColor: "#7c3aed",
+                borderRadius: "50%",
+                animation: "matchDrawerSpin 0.7s linear infinite",
+              }} />
+              <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+                Scoring students with ML model…
+              </p>
+            </div>
+          ) : results.length === 0 ? (
+            <div className="flex flex-col items-center py-16" style={{ color: "var(--color-text-muted)" }}>
+              <Users size={36} className="mb-3 opacity-30" />
+              <p className="text-sm">No students found or matcher unavailable.</p>
+            </div>
+          ) : (
+            <>
+              <p className="text-xs mb-5" style={{ color: "var(--color-text-muted)" }}>
+                {results.length} students scored · showing top {Math.min(results.length, 8)}
+              </p>
+              <div className="flex flex-col gap-3">
+                {results.slice(0, 8).map((r, idx) => {
+                  const isTop3 = idx < 3;
+                  const isNext5 = idx >= 3 && idx < 8;
+                  const accent = isTop3 ? "#22c55e" : isNext5 ? "#eab308" : "var(--color-text-muted)";
+                  const bg = isTop3 ? "rgba(34,197,94,0.06)" : isNext5 ? "rgba(234,179,8,0.06)" : "var(--color-bg-elevated)";
+                  const borderCol = isTop3 ? "rgba(34,197,94,0.25)" : isNext5 ? "rgba(234,179,8,0.25)" : "var(--color-border)";
+                  const invited = invitedIds.has(r.student_id);
+                  const inviting = invitingId === r.student_id;
+
+                  return (
+                    <div key={r.student_id || idx} style={{ background: bg, border: `1px solid ${borderCol}`, borderRadius: 10, padding: "14px 16px" }}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div style={{
+                            width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
+                            background: isTop3 ? "rgba(34,197,94,0.15)" : "var(--color-bg-elevated)",
+                            color: accent, fontSize: 11, fontWeight: 700,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                          }}>
+                            #{idx + 1}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-sm truncate" style={{ color: "var(--color-text)", margin: 0 }}>
+                              {r.student_identifier}
+                            </p>
+                            <p className="text-xs mt-0.5 truncate" style={{ color: "var(--color-text-muted)", margin: 0 }}>
+                              {[r.college, r.branch, r.cgpa ? `${r.cgpa} CGPA` : ""].filter(Boolean).join(" · ")}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span style={{
+                            background: accent + "22", color: accent,
+                            border: `1px solid ${accent}44`,
+                            borderRadius: 6, padding: "3px 9px",
+                            fontSize: 12, fontWeight: 700,
+                          }}>
+                            {r.match_score}%
+                          </span>
+                          <button
+                            onClick={() => !invited && !inviting && handleInvite(r)}
+                            disabled={invited || inviting}
+                            style={{
+                              fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 6,
+                              background: invited ? "rgba(34,197,94,0.12)" : "rgba(124,58,237,0.12)",
+                              color: invited ? "#22c55e" : "#a78bfa",
+                              border: `1px solid ${invited ? "rgba(34,197,94,0.3)" : "rgba(124,58,237,0.3)"}`,
+                              cursor: invited || inviting ? "default" : "pointer",
+                              opacity: inviting ? 0.6 : 1,
+                              transition: "all 0.15s",
+                            }}
+                          >
+                            {invited ? "✓ Invited" : inviting ? "…" : "Invite"}
+                          </button>
+                        </div>
+                      </div>
+                      {(r.matched_skills.length > 0 || r.gap_skills.length > 0) && (
+                        <div className="flex flex-wrap gap-1.5 mt-3">
+                          {r.matched_skills.slice(0, 4).map((s) => (
+                            <span key={s} style={{
+                              background: "rgba(34,197,94,0.10)", color: "#22c55e",
+                              border: "1px solid rgba(34,197,94,0.25)",
+                              borderRadius: 4, padding: "1px 7px", fontSize: 10, fontWeight: 500,
+                            }}>{s}</span>
+                          ))}
+                          {r.gap_skills.slice(0, 2).map((s) => (
+                            <span key={s} style={{
+                              background: "rgba(239,68,68,0.10)", color: "#ef4444",
+                              border: "1px solid rgba(239,68,68,0.25)",
+                              borderRadius: 4, padding: "1px 7px", fontSize: 10, fontWeight: 500,
+                            }}>−{s}</span>
+                          ))}
+                          {r.matched_skills.length > 0 && (
+                            <span style={{ fontSize: 10, color: "var(--color-text-muted)", alignSelf: "center" }}>
+                              {r.matched_skills.length} matched
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+        <style>{`@keyframes matchDrawerSpin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
    Post Job Modal
 ───────────────────────────────────────────── */
 function PostJobModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
@@ -465,6 +720,7 @@ export default function AdminJobs() {
   const queryClient = useQueryClient();
   const [showPostModal, setShowPostModal] = useState(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
+  const [jobForMatch, setJobForMatch] = useState<Job | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["company-jobs"],
@@ -672,6 +928,29 @@ export default function AdminJobs() {
                       Applicants
                     </button>
 
+                    {/* Best Matches */}
+                    <button
+                      onClick={() => setJobForMatch(job)}
+                      className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
+                      style={{
+                        background: "rgba(124,58,237,0.08)",
+                        border: "1px solid rgba(124,58,237,0.25)",
+                        color: "#a78bfa",
+                      }}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget as HTMLElement;
+                        el.style.background = "rgba(124,58,237,0.18)";
+                        el.style.borderColor = "rgba(124,58,237,0.5)";
+                      }}
+                      onMouseLeave={(e) => {
+                        const el = e.currentTarget as HTMLElement;
+                        el.style.background = "rgba(124,58,237,0.08)";
+                        el.style.borderColor = "rgba(124,58,237,0.25)";
+                      }}
+                    >
+                      <Sparkles size={11} /> Matches
+                    </button>
+
                     {/* Edit */}
                     <button
                       onClick={() => setEditingJob(job)}
@@ -750,6 +1029,14 @@ export default function AdminJobs() {
             setEditingJob(null);
             invalidate();
           }}
+        />
+      )}
+
+      {/* Student Match Drawer */}
+      {jobForMatch && (
+        <StudentMatchDrawer
+          job={jobForMatch}
+          onClose={() => setJobForMatch(null)}
         />
       )}
     </AdminLayout>
