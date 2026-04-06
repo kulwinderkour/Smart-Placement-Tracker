@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     MAX_RESUME_SIZE_MB: int = 5
     SKILLS_TAXONOMY_PATH: str = "app/data/skills_taxonomy.json"
     BACKEND_URL: str = "http://backend-api:8000/api/v1"
+    MATCHER_ADMIN_API_KEY: str = "change-me-admin-key"
 
     class Config:
         env_file = ".env"

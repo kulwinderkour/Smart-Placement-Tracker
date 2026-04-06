@@ -7,10 +7,18 @@ from docx import Document
 from pdfminer.high_level import extract_text as pdf_extract_text
 
 try:
+    import platform
+    import shutil
+
     import pytesseract
     from pdf2image import convert_from_bytes
 
-    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    if platform.system() == "Windows":
+        pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    else:
+        _tess_path = shutil.which("tesseract")
+        if _tess_path:
+            pytesseract.pytesseract.tesseract_cmd = _tess_path
 except Exception:  # pragma: no cover
     pytesseract = None
     convert_from_bytes = None

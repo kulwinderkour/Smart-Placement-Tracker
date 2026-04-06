@@ -71,7 +71,7 @@ def run_resume_match_agent(
     }
     explanation = generate_explanation(payload)
 
-    return {
+    result = {
         "match": comparison["match"],
         "profile_match_pct": comparison["profile_match_pct"],
         "role_match": comparison["role_match"],
@@ -80,4 +80,8 @@ def run_resume_match_agent(
         "missing_skills": comparison["missing_skills"],
         "resume_skills": resume_skills,
         "explanation": explanation,
+        "method": comparison.get("method", "rule_based"),
     }
+    if "semantic_sim" in comparison:
+        result["semantic_sim"] = comparison["semantic_sim"]
+    return result

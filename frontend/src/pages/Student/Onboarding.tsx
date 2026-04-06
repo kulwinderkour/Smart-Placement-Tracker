@@ -88,8 +88,8 @@ function StyledSelect({ label, children, value, onChange }: { label: string; chi
     <div>
       <label style={labelStyle}>{label}</label>
       <div style={{ position: 'relative' }}>
-        <select value={value} onChange={e => onChange(e.target.value)}
-          style={{ ...inputBase, appearance: 'none', cursor: 'pointer', borderColor: focused ? '#7c3aed' : 'rgba(255,255,255,0.1)', boxShadow: focused ? '0 0 0 3px rgba(124,58,237,0.2)' : 'none', paddingRight: 36 }}
+        <select value={value} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)}
+          style={{ ...(inputBase as React.CSSProperties), appearance: 'none', cursor: 'pointer', borderColor: focused ? '#7c3aed' : 'rgba(255,255,255,0.1)', boxShadow: focused ? '0 0 0 3px rgba(124,58,237,0.2)' : 'none', paddingRight: 36 }}
           onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}>{children}</select>
         <svg style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(255,255,255,0.4)' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
       </div>
@@ -117,6 +117,7 @@ export default function Onboarding() {
   const [dragging, setDragging] = useState(false)
   const [dynamicSkills, setDynamicSkills] = useState<string[]>([])
   const [loadingSkills, setLoadingSkills] = useState(false)
+  const [customSkillInput, setCustomSkillInput] = useState('')
 
   const [data, setData] = useState<OnboardingData>({
     fullName: '', college: '', branch: '', cgpa: '', graduationYear: '',
@@ -172,7 +173,7 @@ export default function Onboarding() {
       fetch(`http://localhost:8081/api/skills/suggestions?field=${data.branch}`)
         .then(res => res.json())
         .then(resData => {
-          setDynamicSkills(resData.skills || [])
+          setDynamicSkills(resData.suggestions || [])
         })
         .catch(() => setDynamicSkills(['React', 'Python', 'Java', 'Node.js', 'SQL', 'DSA']))
         .finally(() => setLoadingSkills(false))
@@ -249,9 +250,33 @@ export default function Onboarding() {
                 ) : (
                   <div style={{ maxHeight: '200px', overflowY: 'auto', paddingRight: '8px' }}>
                     {dynamicSkills.map((s, i) => <SelectionRow key={s} index={i + 1} label={s} selected={data.skills.includes(s)} onClick={() => toggleSkill(s)} />)}
-                    {dynamicSkills.length === 0 && <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, textAlign: 'center' }}>Select a branch to see skill suggestions</div>}
+                        {dynamicSkills.length === 0 && <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, textAlign: 'center' }}>Select a branch to see skill suggestions</div>}
                   </div>
                 )}
+                <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+                  <input
+                    value={customSkillInput}
+                    onChange={e => setCustomSkillInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        const s = customSkillInput.trim()
+                        if (s && !data.skills.includes(s)) toggleSkill(s)
+                        setCustomSkillInput('')
+                      }
+                    }}
+                    placeholder="Add a custom skill…"
+                    style={{ ...inputBase, flex: 1, fontSize: 13 }}
+                  />
+                  <button
+                    onClick={() => {
+                      const s = customSkillInput.trim()
+                      if (s && !data.skills.includes(s)) toggleSkill(s)
+                      setCustomSkillInput('')
+                    }}
+                    style={{ height: 44, padding: '0 18px', borderRadius: 10, background: customSkillInput.trim() ? '#7c3aed' : 'rgba(255,255,255,0.06)', border: `1px solid ${customSkillInput.trim() ? '#7c3aed' : 'rgba(255,255,255,0.12)'}`, color: customSkillInput.trim() ? '#fff' : 'rgba(255,255,255,0.35)', fontSize: 13, fontWeight: 600, cursor: customSkillInput.trim() ? 'pointer' : 'default', transition: 'all 0.15s', whiteSpace: 'nowrap', fontFamily: 'DM Sans, sans-serif' }}
+                  >+ Add</button>
+                </div>
                 <div style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', margin: '20px 0 16px' }} />
                 <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Looking for</p>
                 {JOB_TYPES.map((t, i) => <SelectionRow key={t} index={i + 1} label={t} selected={data.jobType === t} onClick={() => update({ jobType: t })} />)}

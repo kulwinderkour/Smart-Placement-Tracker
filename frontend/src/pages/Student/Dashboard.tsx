@@ -111,6 +111,7 @@ export default function Dashboard() {
   const [docCount, setDocCount] = useState({ total: 0, resumes: 0 })
   const [adminJobs, setAdminJobs] = useState<any[]>([])
   const [jobsLoading, setJobsLoading] = useState(true)
+  const [matchScores, setMatchScores] = useState<Record<string, { loading: boolean; score?: number; label?: string; matched?: string[]; gaps?: string[] }>>({});
 
   const [agentRunning, setAgentRunning] = useState(false);
   const [agentResult, setAgentResult] = useState('');
@@ -138,12 +139,64 @@ export default function Dashboard() {
     }
   };
 
+  const AI_ENGINE_URL = 'http://localhost:8002';
+
+  const fetchMatchScores = async (jobs: any[]) => {
+    setMatchScores(prev => {
+      const next = { ...prev };
+      jobs.forEach(job => { next[job.id] = { loading: true }; });
+      return next;
+    });
+    const studentPayload = {
+      fullName: profile.fullName || profile.full_name || '',
+      college: profile.college || '',
+      branch: profile.branch || '',
+      cgpa: parseFloat((profile.cgpa || '0').toString()) || 0,
+      graduationYear: parseInt((profile.graduationYear || profile.graduation_year || '2025').toString()) || 0,
+      skills: profile.skills || [],
+      mockInterviewScore: 0,
+      aptitudeStreak: 0,
+      previousCompanies: (profile.previousCompanies || profile.previous_companies || []) as any[],
+    };
+    await Promise.allSettled(
+      jobs.map(async job => {
+        try {
+          const res = await fetch(`${AI_ENGINE_URL}/api/matcher/score`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              student: studentPayload,
+              job: {
+                id: job.id || '',
+                title: job.title || '',
+                company: job.company || job.company_name || '',
+                location: job.location || '',
+                package_lpa: parseFloat(job.package_lpa || 0),
+                required_skills: job.required_skills || [],
+                min_cgpa: parseFloat(job.min_cgpa || 0),
+                job_type: job.job_type || '',
+                company_type: job.company_type || '',
+              },
+            }),
+          });
+          if (!res.ok) throw new Error('Score fetch failed');
+          const data = await res.json();
+          setMatchScores(prev => ({
+            ...prev,
+            [job.id]: { loading: false, score: data.match_score, label: data.match_label, matched: data.matched_skills || [], gaps: data.gap_skills || [] },
+          }));
+        } catch {
+          setMatchScores(prev => ({ ...prev, [job.id]: { loading: false } }));
+        }
+      })
+    );
+  };
+
   const runAutoApply = async () => {
     setAgentRunning(true);
     setAgentResult('');
     try {
       const token = localStorage.getItem('access_token');
-      const AI_ENGINE_URL = 'http://localhost:8002';
 
       const res = await fetch(`${AI_ENGINE_URL}/agent/apply-jobs`, {
         method: 'POST',
@@ -154,6 +207,15 @@ export default function Dashboard() {
           min_package_lpa: minPackage,
           student_cgpa: parseFloat(profile.cgpa?.toString() || '0') || 0,
           student_skills: (profile.skills || []).join(', '),
+          student_profile: JSON.stringify({
+            fullName: profile.fullName || profile.full_name || '',
+            college: profile.college || '',
+            branch: profile.branch || '',
+            cgpa: parseFloat((profile.cgpa || '0').toString()) || 0,
+            skills: profile.skills || [],
+            experience: (profile.previousCompanies || profile.previous_companies || [])
+              .map((c: any) => c.company).filter(Boolean).join(', '),
+          }),
         })
       });
       const data = await res.json();
@@ -196,7 +258,10 @@ export default function Dashboard() {
         const data = await res.json();
         console.log('Admin jobs data:', data);
         
-        if (data.jobs) setAdminJobs(data.jobs);
+        if (data.jobs) {
+          setAdminJobs(data.jobs);
+          fetchMatchScores(data.jobs);
+        }
       } catch (err) {
         console.error("Failed to fetch admin jobs:", err);
       } finally {
@@ -508,6 +573,11 @@ export default function Dashboard() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' }}>
                 {adminJobs.map(job => {
                   const isApplied = applications.some(a => a.job_id === job.id);
+                  const ms = matchScores[job.id];
+                  const scoreColor = !ms || ms.loading || ms.score === undefined ? '#7d8590'
+                    : ms.score >= 70 ? '#3fb950'
+                    : ms.score >= 40 ? '#d29922'
+                    : '#f85149';
                   return (
                     <div key={job.id} style={{
                       background: '#161b22', border: '1px solid #21262d', borderRadius: '10px',
@@ -529,16 +599,37 @@ export default function Dashboard() {
                             <div style={{ color: '#7d8590', fontSize: '12px' }}>{job.company || job.company_name}</div>
                           </div>
                         </div>
-                        {(job.package_lpa || job.salary_min) && (
-                          <span style={{ background: '#1a2e22', color: '#3fb950', border: '1px solid #23863633', borderRadius: '4px', padding: '3px 8px', fontSize: '11px', fontWeight: 600 }}>
-                            ₹{job.package_lpa || job.salary_min} LPA
-                          </span>
-                        )}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px', flexShrink: 0 }}>
+                          {(job.package_lpa || job.salary_min) && (
+                            <span style={{ background: '#1a2e22', color: '#3fb950', border: '1px solid #23863633', borderRadius: '4px', padding: '3px 8px', fontSize: '11px', fontWeight: 600 }}>
+                              ₹{job.package_lpa || job.salary_min} LPA
+                            </span>
+                          )}
+                          {ms && (
+                            ms.loading ? (
+                              <span style={{ fontSize: '10px', color: '#7d8590' }}>⏳ scoring…</span>
+                            ) : ms.score !== undefined ? (
+                              <span style={{ background: scoreColor + '22', color: scoreColor, border: `1px solid ${scoreColor}44`, borderRadius: '4px', padding: '3px 8px', fontSize: '11px', fontWeight: 700 }}>
+                                {ms.score}% match
+                              </span>
+                            ) : null
+                          )}
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', gap: '12px', marginBottom: '6px', flexWrap: 'wrap' }}>
                         {job.location && <span style={{ color: '#7d8590', fontSize: '11px' }}>📍 {job.location}</span>}
                         {job.job_type && <span style={{ color: '#7d8590', fontSize: '11px' }}>💼 {job.job_type}</span>}
                       </div>
+                      {ms && !ms.loading && ms.score !== undefined && ((ms.matched?.length ?? 0) > 0 || (ms.gaps?.length ?? 0) > 0) && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
+                          {(ms.matched || []).slice(0, 3).map(s => (
+                            <span key={s} style={{ background: '#1a2e2260', color: '#3fb950', border: '1px solid #3fb95040', borderRadius: '3px', padding: '2px 6px', fontSize: '10px', fontWeight: 500 }}>{s}</span>
+                          ))}
+                          {(ms.gaps || []).slice(0, 2).map(s => (
+                            <span key={s} style={{ background: '#2d1b1b60', color: '#f85149', border: '1px solid #f8514940', borderRadius: '3px', padding: '2px 6px', fontSize: '10px', fontWeight: 500 }}>−{s}</span>
+                          ))}
+                        </div>
+                      )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ color: '#484f58', fontSize: '11px' }}>
                           {job.application_deadline ? `Deadline: ${new Date(job.application_deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : ''}
