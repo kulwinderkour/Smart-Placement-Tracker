@@ -9,3 +9,6 @@ dist/
 .venv/
 testGemini.js
 listmodels.js
+
+ai-engine/app/data/ResumesPDF/*
+!ai-engine/app/data/ResumesPDF/.gitkeep
