@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiClient } from '../../api/client';
 import { 
   Loader2, 
   Sparkles, 
@@ -31,11 +32,6 @@ interface RoadmapData {
   sections: Section[];
 }
 
-interface RoadmapResponse {
-  data: RoadmapData;
-  fromCache: boolean;
-  stale?: boolean;
-}
 
 const SUGGESTED_ROLES = [
   'Full Stack Developer',
@@ -53,15 +49,12 @@ export default function Roadmap() {
   const [error, setError] = useState('');
   const [recentRoadmaps, setRecentRoadmaps] = useState<string[]>([]);
   
-  // Load cached roadmap names from backend
+  // Load user's saved roadmaps from backend
   const loadRecentRoadmaps = async () => {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
-      const response = await fetch(`${apiUrl}/roadmap/cached`);
-      if (response.ok) {
-        const data = await response.json();
-        setRecentRoadmaps(data.roadmaps || []);
-      }
+      const res = await apiClient.get('/roadmap/my');
+      const names: string[] = (res.data || []).map((r: any) => r.role).filter(Boolean);
+      setRecentRoadmaps(names);
     } catch (err) {
       console.error('Failed to load recent roadmaps:', err);
     }
@@ -71,7 +64,7 @@ export default function Roadmap() {
     loadRecentRoadmaps();
   }, []);
 
-  // Generate roadmap calling backend GET /api/roadmap/generate?field=...
+  // Generate roadmap via POST /roadmap/generate (auth required)
   const generateRoadmap = async (field?: string) => {
     const targetField = field || searchTerm;
     if (!targetField) {
@@ -81,26 +74,38 @@ export default function Roadmap() {
 
     setLoading(true);
     setError('');
-    
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
-      const response = await fetch(`${apiUrl}/roadmap/generate?field=${encodeURIComponent(targetField)}`);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || errorData.error || `Server error: ${response.status}`);
-      }
 
-      const resData: RoadmapResponse = await response.json();
-      setRoadmap(resData.data);
+    try {
+      const res = await apiClient.post('/roadmap/generate', { role: targetField, skills: [] });
+      const raw = res.data?.roadmap_data ?? res.data?.data ?? res.data;
+      // Backend returns { title, description, weeks:[{week,title,description,topics,resources,difficulty}] }
+      // Frontend render expects { title, description, sections:[{id,title,level,topics:[{id,title,description,resources}]}] }
+      const weeks: any[] = raw?.weeks ?? raw?.sections ?? [];
+      const transformed: RoadmapData = {
+        title: raw?.title ?? targetField,
+        description: raw?.description ?? '',
+        sections: weeks.map((w: any) => ({
+          id: String(w.week ?? w.id ?? Math.random()),
+          title: w.title ?? `Week ${w.week}`,
+          level: (w.difficulty ?? w.level ?? 'beginner') as 'beginner' | 'intermediate' | 'advanced',
+          topics: (w.topics ?? []).map((t: any, i: number) => ({
+            id: `${w.week ?? i}-${i}`,
+            title: typeof t === 'string' ? t : t.title,
+            description: typeof t === 'object' ? (t.description ?? '') : '',
+            resources: typeof t === 'object' ? (t.resources ?? w.resources ?? []) : (w.resources ?? [])
+          }))
+        }))
+      };
+      setRoadmap(transformed);
       
       // Update recent list
       if (!recentRoadmaps.includes(targetField)) {
         setRecentRoadmaps(prev => [targetField, ...prev.slice(0, 9)]);
       }
     } catch (err: any) {
-      setError(`Failed to generate roadmap: ${err.message || 'Unknown error'}`);
-      console.error('Generation Error:', err);
+      const detail = err.response?.data?.detail || err.message || 'Unknown error';
+      setError(`Failed to generate roadmap: ${detail}`);
+      console.error('Generation Error:', err.response?.data || err);
     } finally {
       setLoading(false);
     }

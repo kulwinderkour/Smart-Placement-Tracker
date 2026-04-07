@@ -82,20 +82,6 @@ function StyledInput({ label, ...props }: { label: string } & React.InputHTMLAtt
   )
 }
 
-function StyledSelect({ label, children, value, onChange }: { label: string; children: React.ReactNode; value: string; onChange: (v: string) => void }) {
-  const [focused, setFocused] = useState(false)
-  return (
-    <div>
-      <label style={labelStyle}>{label}</label>
-      <div style={{ position: 'relative' }}>
-        <select value={value} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)}
-          style={{ ...(inputBase as React.CSSProperties), appearance: 'none', cursor: 'pointer', borderColor: focused ? '#7c3aed' : 'rgba(255,255,255,0.1)', boxShadow: focused ? '0 0 0 3px rgba(124,58,237,0.2)' : 'none', paddingRight: 36 }}
-          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}>{children}</select>
-        <svg style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(255,255,255,0.4)' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
-      </div>
-    </div>
-  )
-}
 
 function SelectionRow({ index, label, selected, onClick }: { index: number; label: string; selected: boolean; onClick: () => void }) {
   return (
@@ -221,16 +207,10 @@ export default function Onboarding() {
                   <StyledInput label="Full Name" placeholder="e.g. Kulwinder Kour" value={data.fullName} onChange={e => update({ fullName: e.target.value })} />
                   <StyledInput label="College / University" placeholder="e.g. Chandigarh University" value={data.college} onChange={e => update({ college: e.target.value })} />
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                    <StyledSelect label="Branch" value={data.branch} onChange={v => update({ branch: v })}>
-                      <option value="" disabled>Select branch</option>
-                      {['Computer Science','Information Technology','Electronics','Mechanical','Civil','Marketing','Finance','Law','Medicine','Design','Arts','Other'].map(b => <option key={b} value={b}>{b}</option>)}
-                    </StyledSelect>
+                    <StyledInput label="Branch" placeholder="e.g. Computer Science" value={data.branch} onChange={e => update({ branch: e.target.value })} />
                     <StyledInput label="CGPA" type="number" placeholder="e.g. 8.5" min="0" max="10" step="0.01" value={data.cgpa} onChange={e => update({ cgpa: e.target.value })} />
                   </div>
-                  <StyledSelect label="Graduation Year" value={data.graduationYear} onChange={v => update({ graduationYear: v })}>
-                    <option value="" disabled>Select year</option>
-                    {['2024','2025','2026','2027','2028'].map(y => <option key={y} value={y}>{y}</option>)}
-                  </StyledSelect>
+                  <StyledInput label="Graduation Year" type="number" placeholder="e.g. 2026" min="2000" max="2035" value={data.graduationYear} onChange={e => update({ graduationYear: e.target.value })} />
                 </div>
               </div>
             )}

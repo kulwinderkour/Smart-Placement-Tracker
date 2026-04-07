@@ -238,10 +238,11 @@ export default function JobBoard() {
         console.error('Internshala scraper not running on 8081');
       }
 
-      // 3. Fallback to Remotive
+      // 3. Fallback to Remotive (use search query if available, else skills)
       let remotiveJobs: Job[] = [];
       try {
-        remotiveJobs = await fetchRemotiveJobs(userSkills.length > 0 ? userSkills : ['software']);
+        const remotiveQuery = baseQuery || (userSkills.length > 0 ? userSkills[0] : 'software');
+        remotiveJobs = await fetchRemotiveJobs([remotiveQuery]);
       } catch (e) {}
 
       const allJobs = [...jsearchResults, ...internshalaResults, ...remotiveJobs];
@@ -644,16 +645,48 @@ export default function JobBoard() {
         <p style={{ color: "#8b949e" }}>Loading jobs...</p>
       ) : (
         <>
-          <p style={{ color: '#7d8590', fontSize: '13px', marginBottom: '12px' }}>
-            {filters.field || searchQuery
-              ? `Showing results for "${filters.field || searchQuery}"`
-              : `Showing jobs matched to your profile skills: ${userSkills.join(', ') || 'Not set'}`
-            }
-            {' · '}{filtered.length} jobs found
-          </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <p style={{ color: '#7d8590', fontSize: '13px', margin: 0 }}>
+              {filters.field || searchQuery
+                ? `Showing results for "${filters.field || searchQuery}"`
+                : `Skills: ${userSkills.join(', ') || 'Not set — add skills for better matches'}`
+              }
+              {' · '}{filtered.length} jobs found
+            </p>
+            <button
+              onClick={() => navigate('/skills')}
+              style={{
+                background: '#20c99718', color: '#20c997',
+                border: '1px solid #20c99740', borderRadius: '6px',
+                padding: '5px 12px', fontSize: '12px', fontWeight: 600,
+                cursor: 'pointer', whiteSpace: 'nowrap'
+              }}
+            >
+              ✏ Edit Skills
+            </button>
+          </div>
 
           {filtered.length === 0 ? (
-            <p style={{ color: "#8b949e" }}>No jobs found.</p>
+            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+              <p style={{ color: '#7d8590', fontSize: '14px', marginBottom: '12px' }}>
+                {userSkills.length === 0
+                  ? 'No skills set on your profile — add skills to see matched jobs, or use the search bar above.'
+                  : 'No jobs found. Try clearing filters or searching a different role.'}
+              </p>
+              {userSkills.length === 0 && (
+                <button
+                  onClick={() => navigate('/skills')}
+                  style={{
+                    background: '#20c997', color: '#0d1117',
+                    border: 'none', borderRadius: '8px',
+                    padding: '8px 20px', fontSize: '13px',
+                    fontWeight: 600, cursor: 'pointer'
+                  }}
+                >
+                  Add Skills →
+                </button>
+              )}
+            </div>
           ) : (
             <div style={{ display: "grid", gap: "12px" }}>
               {filtered.map((job) => (
