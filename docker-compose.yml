@@ -90,6 +90,10 @@ services:
       - .env
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@postgres/${DB_NAME}
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
 
   frontend:

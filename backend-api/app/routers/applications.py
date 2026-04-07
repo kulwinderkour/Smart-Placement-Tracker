@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
 from app.models.application import Application
+from app.models.job import Job
 from app.models.student import Student
 from app.models.user import User
 from app.schemas.application import ApplicationCreate, ApplicationResponse, ApplicationUpdate
@@ -34,8 +35,12 @@ async def apply(
         agent_applied=data.agent_applied,
     )
     db.add(app)
-    await db.commit()
-    await db.refresh(app)
+    try:
+        await db.commit()
+        await db.refresh(app)
+    except Exception as exc:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to save application: {exc}") from exc
     return app
 
 

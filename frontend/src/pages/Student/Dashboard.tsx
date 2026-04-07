@@ -235,24 +235,26 @@ export default function Dashboard() {
       })
       .finally(() => setAppsLoading(false))
     
-    // Fetch admin posted jobs with debug logging
+    // Fetch company-posted jobs from FastAPI student API
     const fetchJobs = async () => {
       try {
-        const SCRAPER_URL = 'http://localhost:8081'; // URL for Scraper/Admin Jobs server
-        console.log('Fetching admin jobs from:', `${SCRAPER_URL}/api/admin-jobs/active`);
-        
-        const res = await fetch(`${SCRAPER_URL}/api/admin-jobs/active`);
-        console.log('Response status:', res.status);
-        
+        const API = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+        const res = await fetch(`${API}/student/jobs?limit=20`);
         const data = await res.json();
-        console.log('Admin jobs data:', data);
-        
-        if (data.jobs) {
-          setAdminJobs(data.jobs);
-          fetchMatchScores(data.jobs);
+        if (data.success && Array.isArray(data.data)) {
+          // Normalise field names so the existing job card JSX works unchanged
+          const normalised = data.data.map((j: any) => ({
+            ...j,
+            title: j.role_title ?? j.title,
+            company: j.company_name ?? j.company,
+            package_lpa: j.salary_min ?? j.package_lpa,
+            application_deadline: j.deadline ?? j.application_deadline,
+          }));
+          setAdminJobs(normalised);
+          fetchMatchScores(normalised);
         }
       } catch (err) {
-        console.error("Failed to fetch admin jobs:", err);
+        console.error('Failed to fetch company jobs:', err);
       } finally {
         setJobsLoading(false);
       }
