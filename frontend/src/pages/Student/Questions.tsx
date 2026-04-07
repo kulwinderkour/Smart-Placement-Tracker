@@ -140,7 +140,7 @@ export default function Questions() {
 
   const loadTopics = async () => {
     try {
-      const BASE = import.meta.env.VITE_EXPRESS_URL || "http://localhost:8081";
+      const BASE = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
       const response = await fetch(
         `${BASE}/questions/topics?skills=${userSkills.join(",")}`,
         {
@@ -191,13 +191,33 @@ export default function Questions() {
       const topic = useCustomQuestion ? customQuestion.trim() : selectedTopic;
       const response = await aiApi.getInterviewQuestions(topic, userSkills, selectedDifficulty);
       
-      // Transform the response to match expected format
+      // AI engine returns { success, data: { questions: [{question, answer, category}], ... } }
+      const payload = response.data?.data ?? response.data;
+      const categoryToType = (cat: string): Question["type"] => {
+        if (cat === "technical") return "theory";
+        if (cat === "behavioural") return "situational";
+        if (cat === "situational") return "situational";
+        if (cat === "coding") return "coding";
+        return "theory";
+      };
+      const rawQuestions: Question[] = (payload?.questions || []).map(
+        (q: { question: string; answer: string; category?: string }, i: number) => ({
+          id: `q${i + 1}`,
+          type: categoryToType(q.category ?? "technical"),
+          question: q.question,
+          options: [],
+          correctAnswer: q.answer,
+          explanation: q.answer,
+          topic: topic,
+          difficulty: selectedDifficulty,
+        })
+      );
       const questionSet: QuestionSet = {
         topic: topic,
         difficulty: selectedDifficulty,
         type: selectedType,
-        totalQuestions: response.data?.questions?.length || questionCount,
-        questions: response.data?.questions || []
+        totalQuestions: rawQuestions.length || questionCount,
+        questions: rawQuestions,
       };
 
       setQuestions(questionSet);

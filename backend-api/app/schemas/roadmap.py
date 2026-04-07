@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+import json
+from pydantic import BaseModel, field_validator
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
@@ -19,6 +20,21 @@ class RoadmapResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+    @field_validator("user_id", mode="before")
+    @classmethod
+    def coerce_uuid(cls, v):
+        return str(v)
+
+    @field_validator("skills", mode="before")
+    @classmethod
+    def parse_skills(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except Exception:
+                return []
+        return v
 
 
 class WeekPlan(BaseModel):
