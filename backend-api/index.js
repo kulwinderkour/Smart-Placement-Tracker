@@ -4,8 +4,6 @@ const cors = require("cors");
 const { scrapeInternshala } = require("./scrapers/internshala");
 const roadmapRouter = require("./routes/roadmap");
 const questionsRouter = require("./routes/questions");
-const skillsRouter = require("./routes/skills");
-const documentsRouter = require("./routes/documents");
 const adminJobsRouter = require("./routes/admin-jobs");
 const path = require('path');
 
@@ -14,7 +12,6 @@ const port = 8081;
 
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Scraper routes
 const scraperCache = new Map();
@@ -42,14 +39,8 @@ app.get("/api/jobs/internshala", async (req, res) => {
 // Roadmap routes
 app.use("/api/roadmap", roadmapRouter);
 
-// Skills routes
-app.use("/api/skills", skillsRouter);
-
 // Questions routes
 app.use("/questions", questionsRouter);
-
-// Documents routes
-app.use("/api/documents", documentsRouter);
 
 // Admin Jobs routes
 app.use("/api/admin-jobs", adminJobsRouter);

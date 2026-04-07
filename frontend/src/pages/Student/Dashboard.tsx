@@ -108,7 +108,6 @@ export default function Dashboard() {
   const [applications, setApplications] = useState<TrackedApplication[]>([])
   const [appsLoading, setAppsLoading] = useState(true)
 
-  const [docCount, setDocCount] = useState({ total: 0, resumes: 0 })
   const [adminJobs, setAdminJobs] = useState<any[]>([])
   const [jobsLoading, setJobsLoading] = useState(true)
   const [matchScores, setMatchScores] = useState<Record<string, { loading: boolean; score?: number; label?: string; matched?: string[]; gaps?: string[] }>>({});
@@ -236,16 +235,6 @@ export default function Dashboard() {
       })
       .finally(() => setAppsLoading(false))
     
-    fetch(`http://localhost:8081/api/documents?userId=${user.id}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          const resumes = data.data.filter((d: any) => d.category === 'Resume').length
-          setDocCount({ total: data.data.length, resumes })
-        }
-      })
-      .catch(() => {})
-
     // Fetch admin posted jobs with debug logging
     const fetchJobs = async () => {
       try {
@@ -373,7 +362,6 @@ export default function Dashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <ActionCard title="Browse Jobs" subtitle="Roles for you" to="/jobs" icon="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             <ActionCard title="Resume Analyser" subtitle="Check ATS Score" to="/resume" icon="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <ActionCard title="Skill Analyzer" subtitle="Market readiness" to="/skills" icon="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
             <ActionCard title="Application Tracker" subtitle="Manage pipeline" to="/tracker" icon="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6" />
           </div>
 
@@ -658,21 +646,19 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Document Vault Summary */}
+          {/* Placement Pulse CTA */}
           <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '20px 24px', marginTop: '32px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h2 style={{ margin: 0, fontSize: 14, fontWeight: 500, color: '#e6edf3' }}>Document Vault</h2>
-              <Link to="/student/document-vault" style={{ fontSize: 12, color: '#20c997', textDecoration: 'none', fontWeight: 500 }}>Manage Vault →</Link>
+              <h2 style={{ margin: 0, fontSize: 14, fontWeight: 500, color: '#e6edf3' }}>⚡ Placement Pulse</h2>
+              <Link to="/placement-pulse" style={{ fontSize: 12, color: '#20c997', textDecoration: 'none', fontWeight: 500 }}>Open Pulse →</Link>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
               <div style={{ width: 44, height: 44, borderRadius: 10, background: '#20c99712', border: '1px solid #20c99722', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#20c997' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
               </div>
               <div style={{ flex: 1 }}>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#e6edf3' }}>{docCount.total} Documents Stored</p>
-                <p style={{ margin: '2px 0 0', fontSize: 12, color: '#7d8590' }}>
-                  {docCount.resumes} {docCount.resumes === 1 ? 'Resume' : 'Resumes'} · High encryption enabled
-                </p>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#e6edf3' }}>Track your prep momentum</p>
+                <p style={{ margin: '2px 0 0', fontSize: 12, color: '#7d8590' }}>Daily actions · Streaks · Category readiness</p>
               </div>
             </div>
           </div>

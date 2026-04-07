@@ -16,7 +16,6 @@ import Roadmap from "./pages/Student/Roadmap";
 import Questions from "./pages/Student/Questions";
 import Onboarding from "./pages/Student/Onboarding";
 import Profile from "./pages/Student/Profile";
-import Skills from "./pages/Student/Skills";
 import ManageStudents from "./pages/Admin/ManageStudents";
 import ManageCompanies from "./pages/Admin/ManageCompanies";
 import CompanyProfileView from "./pages/Admin/CompanyProfileView";
@@ -33,11 +32,11 @@ import AdminAnalytics from "./pages/Admin/AdminAnalytics";
 import AdminCompanyProfile from "./pages/Admin/AdminCompanyProfile";
 import AdminSettings from "./pages/Admin/AdminSettings";
 import FloatingAgent from "./components/FloatingAgent";
-import DocumentVault from "./pages/Student/DocumentVault";
 import PrepChecklist from "./pages/Student/PrepChecklist";
 import ResourceBookmarks from "./pages/Student/ResourceBookmarks";
 import InterviewLog from "./pages/Student/InterviewLog";
 import AdminPlatformJobs from "./pages/Admin/AdminPlatformJobs";
+import PlacementPulse from "./pages/Student/PlacementPulse";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -151,16 +150,6 @@ export const router = createBrowserRouter([
     ),
   },
   {
-    path: "/skills",
-    element: (
-      <OnboardingGuard>
-        <DashboardLayout>
-          <Skills />
-        </DashboardLayout>
-      </OnboardingGuard>
-    ),
-  },
-  {
     path: "/eligibility",
     element: (
       <OnboardingGuard>
@@ -231,11 +220,11 @@ export const router = createBrowserRouter([
     ),
   },
   {
-    path: "/student/document-vault",
+    path: "/placement-pulse",
     element: (
       <OnboardingGuard>
         <DashboardLayout>
-          <DocumentVault />
+          <PlacementPulse />
         </DashboardLayout>
       </OnboardingGuard>
     ),

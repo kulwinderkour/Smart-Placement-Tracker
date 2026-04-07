@@ -36,11 +36,10 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Mock Interviews', path: '/mock-interview', icon: <Icon d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.89L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" /> },
       { label: 'Resume Analyser', path: '/resume', icon: <Icon d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8" /> },
-      { label: 'Skill Analyzer', path: '/skills', icon: <Icon d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /> },
       { label: 'Task Board', path: '/eligibility', icon: <Icon d="M3 3h18v18H3z M9 3v18 M15 3h18" /> },
       { label: 'Resource Bookmarks', path: '/bookmarks', icon: <Icon d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" /> },
       { label: 'Interview Replay Log', path: '/interview-log', icon: <Icon d="M12 21a9 9 0 100-18 9 9 0 000 18zm-1-12l5 3-5 3V9z" /> },
-      { label: 'Document Vault', path: '/student/document-vault', icon: <Icon d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 01 2 2z" /> },
+      { label: 'Placement Pulse', path: '/placement-pulse', icon: <Icon d="M22 12h-4l-3 9L9 3l-3 9H2" /> },
     ],
   },
   {
