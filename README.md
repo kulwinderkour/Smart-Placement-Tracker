@@ -350,3 +350,14 @@ http://localhost:8001 for collector
 http://localhost:8002 for ai-engine
 
 http://localhost:3000 for frontend
+
+
+
+cd /Users/abhishekswami/Developer/Projects/Smart-Placement-Tracker/ai-engine
+
+python3 -m venv venv
+source venv/bin/activate
+
+pip install -r requirements.txt
+python -m spacy download en_core_web_sm
+python train_profile_matcher.py
