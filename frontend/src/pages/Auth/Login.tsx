@@ -865,11 +865,7 @@ export default function Login() {
               ))}
             </div>
 
-            {/* Learn More button */}
-            <button className="dark-neumorph-button" style={{ marginTop: 8 }}>
-              Explore All Features
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
-            </button>
+
           </motion.div>
 
           {/* RIGHT COLUMN — VISUAL CARDS STACK */}
