@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuthStore } from '../../store/authStore'
 
 interface AnalysisResult {
   atsScore: number
@@ -17,7 +16,7 @@ interface AnalysisResult {
   summary: string
 }
 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY}`
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY}`
 
 function scoreColor(n: number) {
   return n >= 70 ? '#00e5a0' : n >= 50 ? '#f0b429' : '#f85149'
@@ -130,34 +129,7 @@ export default function ResumeAnalyser() {
   const [error, setError]             = useState<string>('')
   const [isDragging, setIsDragging]   = useState(false)
   const [visible, setVisible]         = useState(false)
-  const [vaultLoading, setVaultLoading] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { user } = useAuthStore()
-
-  useEffect(() => {
-    if (!user?.id) return
-    fetch(`http://localhost:8081/api/documents?userId=${user.id}`)
-      .then(res => res.json())
-      .then(async data => {
-        if (data.success) {
-          const primary = data.data.find((d: any) => d.category === 'Resume' && d.isPrimary)
-          if (primary) {
-            try {
-              const fileRes = await fetch(`http://localhost:8081${primary.url}`)
-              const blob = await fileRes.blob()
-              const f = new File([blob], primary.filename, { type: 'application/pdf' })
-              setFile(f)
-              const b64 = await readFileAsBase64(f)
-              setBase64(b64)
-            } catch (err) {
-              console.error('Failed to load primary resume:', err)
-            }
-          }
-        }
-      })
-      .catch(() => {})
-      .finally(() => setVaultLoading(false))
-  }, [user?.id])
 
   const readFileAsBase64 = (f: File): Promise<string> =>
     new Promise((resolve, reject) => {

@@ -207,12 +207,12 @@ export default function Profile() {
             </div>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <p style={{ color: '#7d8590', fontSize: 13, margin: 0 }}>Manage your resumes and other documents in the vault</p>
+              <p style={{ color: '#7d8590', fontSize: 13, margin: 0 }}>Upload and analyse your resume to get your ATS score</p>
               <Link 
-                to="/student/document-vault" 
+                to="/resume" 
                 style={{ height: 34, padding: '0 16px', borderRadius: 8, background: '#20c997', border: 'none', color: '#0d1117', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', textDecoration: 'none' }}
               >
-                Open Document Vault
+                Open Resume Analyser
               </Link>
             </div>
           )}

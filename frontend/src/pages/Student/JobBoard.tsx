@@ -106,7 +106,7 @@ export default function JobBoard() {
   const [confirmJob, setConfirmJob] = useState<Job | null>(null);
   const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set());
   const [applyingIds, setApplyingIds] = useState<Set<string>>(new Set());
-  const [dynamicQuickFields, setDynamicQuickFields] = useState<string[]>(QUICK_FIELDS);
+  const [dynamicQuickFields] = useState<string[]>(QUICK_FIELDS);
   const [filters, setFilters] = useState({
     field: '',        // job field/domain
     location: '',     // city filter
@@ -132,14 +132,6 @@ export default function JobBoard() {
 
   useEffect(() => {
     fetchJobs();
-    const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-    const field = profile.branch || 'Software';
-    fetch(`http://localhost:8081/api/skills/suggestions?field=${field}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.skills) setDynamicQuickFields(['🔥 Trending', ...data.skills.slice(0, 8)]);
-      })
-      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -156,24 +148,24 @@ export default function JobBoard() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
-  const fetchRemotiveJobs = async (skills: string[]) => {
+  const fetchArbeitnowJobs = async (search: string) => {
     try {
-      const skill = skills[0] || 'developer';
       const res = await fetch(
-        `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(skill)}&limit=20`
+        `https://arbeitnow.com/api/job-board-api?search=${encodeURIComponent(search)}`
       );
+      if (!res.ok) return [];
       const data = await res.json();
-      return data.jobs?.map((job: any) => ({
-        id: String(job.id),
+      return (data.data || []).slice(0, 20).map((job: any) => ({
+        id: `arb-${job.slug}`,
         title: job.title,
         company: job.company_name,
-        location: job.candidate_required_location || 'Remote',
-        salary: job.salary || 'Not listed',
+        location: job.location || (job.remote ? 'Remote' : 'Not specified'),
+        salary: 'Not listed',
         applyUrl: job.url,
-        source: 'Remotive',
+        source: 'Arbeitnow',
         description: job.description?.replace(/<[^>]*>/g, '').substring(0, 200) + '...',
-        employmentType: job.job_type,
-      })) || [];
+        employmentType: job.remote ? 'remote' : (job.job_types?.[0]?.toLowerCase() || 'full-time'),
+      }));
     } catch {
       return [];
     }
@@ -189,7 +181,7 @@ export default function JobBoard() {
       const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
       const userSkills = profile.skills || [];
       const city = filters.location || 'India';
-      const skillQuery = userSkills.length > 0 ? userSkills.slice(0, 2).join(' ') : 'Software';
+      const skillQuery = userSkills.length > 0 ? userSkills[0] : 'Software Developer';
       const baseQuery = fieldOverride || filters.field || skillQuery;
 
       console.log('Searching all sources for:', baseQuery);
@@ -238,11 +230,11 @@ export default function JobBoard() {
         console.error('Internshala scraper not running on 8081');
       }
 
-      // 3. Fallback to Remotive (use search query if available, else skills)
+      // 3. Arbeitnow free API (no key, CORS enabled)
       let remotiveJobs: Job[] = [];
       try {
-        const remotiveQuery = baseQuery || (userSkills.length > 0 ? userSkills[0] : 'software');
-        remotiveJobs = await fetchRemotiveJobs([remotiveQuery]);
+        const arbQuery = fieldOverride || filters.field || (userSkills.length > 0 ? userSkills[0] : 'software developer');
+        remotiveJobs = await fetchArbeitnowJobs(arbQuery);
       } catch (e) {}
 
       const allJobs = [...jsearchResults, ...internshalaResults, ...remotiveJobs];

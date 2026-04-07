@@ -1,0 +1,17 @@
+FROM node:20-slim
+
+WORKDIR /app
+
+ENV PUPPETEER_SKIP_DOWNLOAD=true \
+    NODE_ENV=production
+
+COPY package.json ./
+RUN npm install --production --ignore-scripts
+
+COPY index.js ./
+COPY routes/ ./routes/
+COPY scrapers/ ./scrapers/
+
+EXPOSE 8081
+
+CMD ["node", "index.js"]

@@ -87,7 +87,7 @@ Return ONLY a valid JSON array:
   }}
 ]"""
 
-    url = f"https://generativelanguage.googleapis.com/v1/models/{settings.GEMINI_MODEL}:generateContent?key={settings.GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.GEMINI_MODEL}:generateContent?key={settings.GEMINI_API_KEY}"
 
     try:
         async with httpx.AsyncClient(timeout=120.0) as client:
@@ -177,9 +177,9 @@ def _mock_questions(job_title: str, skills: list[str], num_questions: int = 10, 
             "category": "mcq",
         },
     ]
-    # Repeat/extend to reach num_questions
-    import math
-    repeated = (base_mcqs * math.ceil(num_questions / len(base_mcqs)))[:num_questions]
+    # Repeat/extend to reach num_questions (deep copy so shared dicts are not mutated)
+    import math, copy
+    repeated = [copy.deepcopy(q) for q in (base_mcqs * math.ceil(num_questions / len(base_mcqs)))[:num_questions]]
     for i, q in enumerate(repeated):
         q["question"] = f"Q{i+1}: " + q["question"]
     return {
