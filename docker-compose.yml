@@ -48,6 +48,8 @@ services:
     build: ./ai-engine
     ports:
       - "8002:8002"
+    volumes:
+      - ./ai-engine:/app
     env_file:
       - .env
     environment:

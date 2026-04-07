@@ -12,8 +12,8 @@ export const aiApi = {
     )
   },
 
-  getInterviewQuestions: (job_title: string, skills: string[], difficulty = 'medium') =>
-    aiClient.post('/ai/interview/questions', { job_title, skills, difficulty, num_questions: 10 }),
+  getInterviewQuestions: (job_title: string, skills: string[], difficulty = 'medium', question_type = 'mcq', num_questions = 10) =>
+    aiClient.post('/ai/interview/questions', { job_title, skills, difficulty, question_type, num_questions }),
 
   getSkillGap: (student_id: string, job_id: string) =>
     aiClient.get(`/ai/skill-gap/${student_id}/${job_id}`),

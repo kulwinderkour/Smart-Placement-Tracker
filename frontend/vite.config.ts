@@ -10,5 +10,11 @@ export default defineConfig({
     watch: {
       usePolling: true,
     },
+    proxy: {
+      '/ai': {
+        target: 'http://ai-engine:8002',
+        changeOrigin: true,
+      },
+    },
   },
 })

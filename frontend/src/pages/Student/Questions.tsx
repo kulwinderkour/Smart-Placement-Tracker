@@ -110,9 +110,7 @@ export default function Questions() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<
     "easy" | "medium" | "hard"
   >("medium");
-  const [selectedType, setSelectedType] = useState<
-    "mcq" | "coding" | "theory" | "situational" | "mixed"
-  >("mixed");
+  const selectedType = "mcq" as const;
   const [questionCount, setQuestionCount] = useState(10);
   const [customQuestion, setCustomQuestion] = useState("");
   const [useCustomQuestion, setUseCustomQuestion] = useState(false);
@@ -189,29 +187,24 @@ export default function Questions() {
     try {
       // Use the AI API instead of direct fetch
       const topic = useCustomQuestion ? customQuestion.trim() : selectedTopic;
-      const response = await aiApi.getInterviewQuestions(topic, userSkills, selectedDifficulty);
+      const response = await aiApi.getInterviewQuestions(topic, userSkills, selectedDifficulty, selectedType, questionCount);
       
-      // AI engine returns { success, data: { questions: [{question, answer, category}], ... } }
+      // AI engine returns { success, data: { questions: [...], type, difficulty } }
       const payload = response.data?.data ?? response.data;
-      const categoryToType = (cat: string): Question["type"] => {
-        if (cat === "technical") return "theory";
-        if (cat === "behavioural") return "situational";
-        if (cat === "situational") return "situational";
-        if (cat === "coding") return "coding";
-        return "theory";
-      };
-      const rawQuestions: Question[] = (payload?.questions || []).map(
-        (q: { question: string; answer: string; category?: string }, i: number) => ({
-          id: `q${i + 1}`,
-          type: categoryToType(q.category ?? "technical"),
-          question: q.question,
-          options: [],
-          correctAnswer: q.answer,
-          explanation: q.answer,
-          topic: topic,
-          difficulty: selectedDifficulty,
-        })
-      );
+      const rawQuestions: Question[] = (payload?.questions || [])
+        .filter((q: { options?: string[] }) => Array.isArray(q.options) && q.options.length >= 2)
+        .map(
+          (q: { question: string; answer?: string; correct_answer?: string; options?: string[]; explanation?: string }, i: number) => ({
+            id: `q${i + 1}`,
+            type: "mcq" as const,
+            question: q.question,
+            options: q.options || [],
+            correctAnswer: q.correct_answer || q.answer || "",
+            explanation: q.explanation || q.answer || "",
+            topic: topic,
+            difficulty: selectedDifficulty,
+          })
+        );
       const questionSet: QuestionSet = {
         topic: topic,
         difficulty: selectedDifficulty,
@@ -1478,49 +1471,6 @@ export default function Questions() {
                     <option value="easy">Easy (Beginner)</option>
                     <option value="medium">Medium (Intermediate)</option>
                     <option value="hard">Hard (Advanced)</option>
-                  </select>
-                </div>
-
-                {/* Question Type */}
-                <div>
-                  <label
-                    style={{
-                      display: "block",
-                      fontSize: "14px",
-                      fontWeight: 500,
-                      marginBottom: "8px",
-                      color: "#f0f6fc",
-                    }}
-                  >
-                    Question Type
-                  </label>
-                  <select
-                    value={selectedType}
-                    onChange={(e) =>
-                      setSelectedType(
-                        e.target.value as
-                          | "mcq"
-                          | "coding"
-                          | "theory"
-                          | "situational"
-                          | "mixed",
-                      )
-                    }
-                    style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      background: "#0d1117",
-                      border: "1px solid #21262d",
-                      borderRadius: "8px",
-                      color: "#e6edf3",
-                      fontSize: "14px",
-                    }}
-                  >
-                    <option value="mcq">Multiple Choice</option>
-                    <option value="coding">Coding Problems</option>
-                    <option value="theory">Theory Questions</option>
-                    <option value="situational">Behavioral/Situational</option>
-                    <option value="mixed">Mixed Practice</option>
                   </select>
                 </div>
 
