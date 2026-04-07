@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
-const AI_URL      = import.meta.env.VITE_AI_URL      || 'http://localhost:8002'
+const AI_URL      = import.meta.env.VITE_AI_URL      || ''
 const SCRAPER_URL = import.meta.env.VITE_SCRAPER_URL || 'http://localhost:8081/api'
 
 export const apiClient = axios.create({
