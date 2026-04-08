@@ -128,6 +128,27 @@ def _build_job_text(job: dict) -> str:
 
 # ── feature computation ──────────────────────────────────────────────────────
 
+# Generic words stripped from job titles before keyword matching.
+# These are role/seniority words that appear across ALL fields — what remains
+# after stripping is the domain keyword used to match against the student.
+# e.g. "Financial Analyst" → {"financial"}, "Mechanical Engineer" → {"mechanical"}
+_TITLE_STOP_WORDS: frozenset[str] = frozenset({
+    # ── seniority / level ────────────────────────────────────────────────────
+    "senior", "junior", "associate", "lead", "principal", "staff", "head",
+    "chief", "officer", "director", "vp", "vice", "president", "executive",
+    "entry", "mid", "level",
+    # ── generic role nouns (apply across all fields) ─────────────────────────
+    "engineer", "developer", "manager", "analyst", "specialist", "consultant",
+    "architect", "coordinator", "administrator", "supervisor", "representative",
+    "advisor", "assistant", "executive", "intern", "trainee", "apprentice",
+    "associate", "officer", "lead", "technician", "operator", "controller",
+    "planner", "strategist", "researcher", "scientist", "expert", "professional",
+    # ── filler / prepositions ────────────────────────────────────────────────
+    "and", "the", "of", "in", "at", "for", "with", "to", "a", "an",
+    "role", "position", "job", "opening", "vacancy",
+})
+
+
 def _normalize(text: str) -> str:
     return " ".join(text.lower().replace("_", " ").split())
 
@@ -141,6 +162,39 @@ def _safe_skill_name(s: Any) -> str:
     if hasattr(s, "name"):
         return str(s.name).strip()
     return ""
+
+
+def _title_keyword_score(
+    job_title: str,
+    student_skills: list[str],
+    branch: str,
+) -> float:
+    """
+    Match tech keywords from the job title against the student's skills + branch.
+    Returns a ratio 0-1: fraction of title keywords found in student profile.
+
+    Example: title='Machine Learning Engineer'
+      keywords = {'machine', 'learning'}  (after removing _TITLE_STOP_WORDS)
+      student tokens include 'machine','learning' from their ML skill → score = 1.0
+    """
+    if not job_title:
+        return 0.0
+
+    title_words = set(_normalize(job_title).split()) - _TITLE_STOP_WORDS
+    if not title_words:
+        return 0.0
+
+    # Build token set from student skills + branch (split multi-word entries)
+    student_tokens: set[str] = set()
+    for s in student_skills:
+        name = _safe_skill_name(s)
+        if name:
+            student_tokens.update(_normalize(name).split())
+    if branch:
+        student_tokens.update(_normalize(branch).split())
+
+    matched_title_words = title_words & student_tokens
+    return len(matched_title_words) / len(title_words)
 
 
 def _compute_features(
@@ -168,11 +222,12 @@ def _compute_features(
     # Feature 2 — semantic_sim (TF-IDF cosine, works fully offline)
     semantic_sim = _tfidf_similarity(profile_text, job_text)
 
-    # Feature 3 — matched_skill_count_n (absolute matched count normalised by required)
-    matched_skill_count_n = len(matched) / n_required
+    # Feature 3 — matched_skill_count_n (precision: matched / student_skills)
+    n_student = len(student_set) or 1
+    matched_skill_count_n = len(matched) / n_student
 
-    # Feature 4 — profile_skill_density
-    profile_skill_density = min(len(student_set) / n_required, 2.0)
+    # Feature 4 — profile_skill_density (breadth: student / required, capped at 1.0)
+    profile_skill_density = min(len(student_set) / n_required, 1.0)
 
     feature_vector = np.array([[
         skill_match_ratio,
@@ -235,8 +290,17 @@ def predict(student_profile: dict[str, Any], job: dict[str, Any]) -> dict[str, A
     """
     artifact = _load_artifact()
 
-    student_skills: list[str] = list(student_profile.get("skills") or [])
-    required_skills: list[str] = list(job.get("required_skills") or [])
+    # Normalise case up-front — "Algorithm" and "algorithm" must always match
+    student_skills: list[str] = [
+        _safe_skill_name(s).lower().strip()
+        for s in (student_profile.get("skills") or [])
+        if _safe_skill_name(s).strip()
+    ]
+    required_skills: list[str] = [
+        s.lower().strip()
+        for s in (job.get("required_skills") or [])
+        if isinstance(s, str) and s.strip()
+    ]
     job_title: str = (job.get("title") or job.get("job_role") or "").strip()
     description: str = (job.get("description") or "").strip()
 
@@ -277,16 +341,26 @@ def predict(student_profile: dict[str, Any], job: dict[str, Any]) -> dict[str, A
         feature_names=artifact["feature_names"],
     )
 
+    # Apply saved MinMaxScaler so model sees the same [0,1] distribution it trained on
+    scaler = artifact.get("scaler")
+    feature_vector_scaled = scaler.transform(feature_vector) if scaler is not None else feature_vector
+
     # ── Transparent formula-based scoring ───────────────────────────────────
     # Primary signal: skill match ratio (4/5 = 80%, 5/5 = 100%, 0/5 = 0%)
     skill_match_ratio = feature_values["skill_match_ratio"]
     semantic_sim      = feature_values["semantic_sim"]
     role_kw           = feature_values["role_keyword_match"]
+    matched_skill_count_n  = feature_values["matched_skill_count_n"]
+    profile_skill_density  = feature_values["profile_skill_density"]
+
+    branch = student_profile.get("branch") or ""
+    title_kw_score = _title_keyword_score(job_title, student_skills, branch)
 
     skill_score      = skill_match_ratio * 100.0          # 0–100
     semantic_bonus   = min(semantic_sim * 15.0, 10.0)     # up to +10 pts
     role_bonus       = role_kw * 5.0                      # 0 or +5 pts
-    raw              = skill_score + semantic_bonus + role_bonus
+    title_bonus      = title_kw_score * 8.0               # up to +8 pts from title keywords
+    raw              = skill_score + semantic_bonus + role_bonus + title_bonus
 
     # CGPA-based floor: strong academics always get a minimum even with 0 skills
     # CGPA 7→0%, 8→8%, 9→17%, 10→25%
@@ -294,6 +368,30 @@ def predict(student_profile: dict[str, Any], job: dict[str, Any]) -> dict[str, A
     cgpa_floor = max(0.0, (cgpa - 7.0) / 3.0 * 25.0) if cgpa >= 7.0 else 0.0
 
     match_score = round(float(np.clip(max(raw, cgpa_floor), 0.0, 100.0)), 1)
+
+    print(
+        f"\n── SCORE DEBUG ─────────────────────────────\n"
+        f"  job              : {job_title}\n"
+        f"  branch           : {branch}\n"
+        f"  student_skills   : {student_skills}\n"
+        f"  required_skills  : {required_skills}\n"
+        f"  matched          : {matched_skills}\n"
+        f"  skill_match_ratio: {skill_match_ratio:.4f}  (× 100 = {skill_score:.1f} pts)\n"
+        f"  matched_count_n  : {matched_skill_count_n:.4f}\n"
+        f"  role_kw_match    : {role_kw:.4f}  (+{role_bonus:.1f} pts)\n"
+        f"  semantic_sim     : {semantic_sim:.4f}  (+{min(semantic_sim*15,10):.1f} pts)\n"
+        f"  title_kw_score   : {title_kw_score:.4f}  (+{title_bonus:.1f} pts)\n"
+        f"  profile_density  : {profile_skill_density:.4f}\n"
+        f"  skill_score      : {skill_score:.2f}\n"
+        f"  semantic_bonus   : {min(semantic_sim*15.0,10.0):.2f}\n"
+        f"  role_bonus       : {role_bonus:.2f}\n"
+        f"  title_bonus      : {title_bonus:.2f}\n"
+        f"  raw_formula      : {raw:.2f}\n"
+        f"  cgpa             : {cgpa:.1f} → floor {cgpa_floor:.1f}\n"
+        f"  FINAL SCORE      : {match_score:.1f}%\n"
+        f"────────────────────────────────────────────",
+        flush=True
+    )
 
     return {
         "match_score": match_score,
