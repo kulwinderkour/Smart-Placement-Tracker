@@ -30,6 +30,7 @@ from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity as sk_cosine_sim
 from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.preprocessing import MinMaxScaler
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
 logger = logging.getLogger(__name__)
@@ -139,9 +140,13 @@ def _skill_overlap_features(
     req_set = {_normalize(s) for s in required_skills}
     matched = prof_set & req_set
     n_req = len(req_set) or 1
+    n_prof = len(prof_set) or 1
+    # F0: recall  — matched / required  (how many required skills does student have?)
     ratio = len(matched) / n_req
-    count_n = len(matched) / n_req
-    density = min(len(prof_set) / n_req, 2.0)
+    # F3: precision — matched / student  (how much of student's skills are on-topic?)
+    count_n = len(matched) / n_prof
+    # F4: breadth  — student skills / required (capped at 1; >1 means over-qualified)
+    density = min(len(prof_set) / n_req, 1.0)
     return {"skill_match_ratio": ratio, "matched_skill_count_n": count_n, "profile_skill_density": density}
 
 
@@ -235,26 +240,36 @@ def build_feature_matrix(pairs: list[dict], sims: list[float]) -> np.ndarray:
 
 def build_labels(pairs: list[dict], sims: list[float]) -> np.ndarray:
     """
-    Ground truth match % = weighted combination of skill overlap, role match, and semantic sim.
-    A 3-point Gaussian noise models real-world variability.
+    Intuitive targets: skill_ratio maps 1-to-1 with score.
+      0/5 skills → ~0%    4/5 skills → ~80%    5/5 → ~100%
+    Small bonuses for role keyword match and semantic similarity.
     """
+    rng = np.random.default_rng(RANDOM_SEED)
     labels = []
     for pair, sim in zip(pairs, sims):
-        score = (
-            80.0 * pair["skill_match_ratio"]
-            + 10.0 * pair["role_keyword_match"]
-            + 10.0 * float(sim)
-            + np.random.normal(0, 3)
-        )
+        base  = pair["skill_match_ratio"] * 100.0           # 0.8 → 80 pts
+        role  = pair["role_keyword_match"] * 5.0             # 0 or +5 pts
+        sem   = min(float(sim) * 10.0, 8.0)                  # up to +8 pts
+        noise = float(rng.normal(0, 2.5))                    # ±2.5 variability
+        score = base + role + sem + noise
         labels.append(float(np.clip(score, 0.0, 100.0)))
     return np.array(labels, dtype=np.float32)
 
 
 # ── training & evaluation ────────────────────────────────────────────────────
 
-def train_and_evaluate(X: np.ndarray, y: np.ndarray) -> GradientBoostingRegressor:
+def train_and_evaluate(
+    X: np.ndarray, y: np.ndarray
+) -> tuple[GradientBoostingRegressor, MinMaxScaler]:
+    # ── Scale all features to [0, 1] before training ─────────────────────
+    scaler = MinMaxScaler()
+    X_scaled = scaler.fit_transform(X)
+    logger.info("  Feature ranges after scaling (should all be [0,1]):")
+    for i, (lo, hi) in enumerate(zip(scaler.data_min_, scaler.data_max_)):
+        logger.info("    feature[%d]: raw [%.3f, %.3f]", i, lo, hi)
+
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=RANDOM_SEED
+        X_scaled, y, test_size=0.2, random_state=RANDOM_SEED
     )
 
     model = GradientBoostingRegressor(
@@ -274,7 +289,7 @@ def train_and_evaluate(X: np.ndarray, y: np.ndarray) -> GradientBoostingRegresso
     mae = mean_absolute_error(y_test, y_pred)
     within_10 = float(np.mean(np.abs(y_pred - y_test) <= 10.0) * 100)
 
-    cv_scores = cross_val_score(model, X, y, cv=5, scoring="r2")
+    cv_scores = cross_val_score(model, X_scaled, y, cv=5, scoring="r2")
 
     logger.info("─" * 52)
     logger.info("  Profile-Job Matcher — Training Report")
@@ -303,7 +318,7 @@ def train_and_evaluate(X: np.ndarray, y: np.ndarray) -> GradientBoostingRegresso
         logger.info("    %-24s %.4f  %s", name, imp, bar)
     logger.info("─" * 52)
 
-    return model
+    return model, scaler
 
 
 # ── main ─────────────────────────────────────────────────────────────────────
@@ -319,11 +334,12 @@ def main() -> None:
     y = build_labels(pairs, sims)
 
     logger.info("Training GradientBoostingRegressor ...")
-    model = train_and_evaluate(X, y)
+    model, scaler = train_and_evaluate(X, y)
 
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     artifact = {
         "model": model,
+        "scaler": scaler,
         "feature_names": [
             "skill_match_ratio",
             "role_keyword_match",
@@ -332,7 +348,7 @@ def main() -> None:
             "profile_skill_density",
         ],
         "encoder_name": ENCODER_MODEL_NAME,
-        "version": "2.0",
+        "version": "3.0",
     }
     joblib.dump(artifact, MODEL_PATH)
     logger.info("Model saved → %s", MODEL_PATH)

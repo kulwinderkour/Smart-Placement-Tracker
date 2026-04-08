@@ -28,6 +28,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy import or_, select, func
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, get_current_user
@@ -48,13 +49,14 @@ async def get_my_profile(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(select(Student).where(Student.user_id == current_user.id))
+    result = await db.execute(
+        select(Student)
+        .options(selectinload(Student.skills))
+        .where(Student.user_id == current_user.id)
+    )
     student = result.scalar_one_or_none()
     if not student:
         raise HTTPException(status_code=404, detail="Student profile not found")
-    
-    # Pre-fetch skills to avoid lazy loading issues if needed, 
-    # but here we can just return it.
     return student
 
 
@@ -64,17 +66,21 @@ async def update_my_profile(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(select(Student).where(Student.user_id == current_user.id))
+    result = await db.execute(
+        select(Student)
+        .options(selectinload(Student.skills))
+        .where(Student.user_id == current_user.id)
+    )
     student = result.scalar_one_or_none()
     if not student:
         raise HTTPException(status_code=404, detail="Student profile not found")
 
     update_data = data.model_dump(exclude_unset=True)
-    
+
     # Handle skills separately if provided
     if "skills" in update_data:
         skill_names = update_data.pop("skills")
-        # Clear existing skills and add new ones
+        # Clear existing skills and add new ones (skills already eager-loaded — no lazy IO)
         student.skills = []
         for name in skill_names:
             sk_res = await db.execute(select(Skill).where(Skill.name == name))
