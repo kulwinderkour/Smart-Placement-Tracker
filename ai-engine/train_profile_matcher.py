@@ -27,6 +27,8 @@ import joblib
 import numpy as np
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, r2_score
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity as sk_cosine_sim
 from sklearn.model_selection import cross_val_score, train_test_split
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
@@ -40,7 +42,7 @@ RANDOM_SEED = 42
 random.seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
-ENCODER_MODEL_NAME = "all-MiniLM-L6-v2"
+ENCODER_MODEL_NAME = "tfidf"  # offline — no HuggingFace download needed
 
 # ── job role → required skills ───────────────────────────────────────────────
 JOB_PROFILES: dict[str, list[str]] = {
@@ -200,24 +202,21 @@ def generate_synthetic_pairs(n_per_level: int = 20) -> list[dict]:
 # ── feature computation with sentence-transformers ───────────────────────────
 
 def compute_semantic_similarities(pairs: list[dict]) -> list[float]:
-    logger.info("Loading sentence-transformer model '%s' ...", ENCODER_MODEL_NAME)
-    try:
-        from sentence_transformers import SentenceTransformer, util as st_util
-    except ImportError:
-        logger.error("sentence-transformers not installed. Run: pip install sentence-transformers")
-        sys.exit(1)
-
-    encoder = SentenceTransformer(ENCODER_MODEL_NAME)
-
+    """Compute TF-IDF cosine similarity offline — no model download needed."""
+    logger.info("Computing TF-IDF cosine similarities for %d pairs ...", len(pairs))
     profile_texts = [p["profile_text"] for p in pairs]
     job_texts = [p["job_text"] for p in pairs]
 
-    logger.info("Encoding %d profile/job pairs (batch) ...", len(pairs))
-    profile_embs = encoder.encode(profile_texts, batch_size=64, show_progress_bar=True, convert_to_tensor=True)
-    job_embs = encoder.encode(job_texts, batch_size=64, show_progress_bar=True, convert_to_tensor=True)
+    all_texts = profile_texts + job_texts
+    vec = TfidfVectorizer(ngram_range=(1, 2), stop_words="english", min_df=1)
+    mat = vec.fit_transform(all_texts)
 
-    cosine_scores = st_util.cos_sim(profile_embs, job_embs)
-    sims = [float(cosine_scores[i][i]) for i in range(len(pairs))]
+    n = len(pairs)
+    sims = [
+        float(np.clip(sk_cosine_sim(mat[i : i + 1], mat[n + i : n + i + 1])[0][0], 0.0, 1.0))
+        for i in range(n)
+    ]
+    logger.info("  Similarity range: min=%.3f  max=%.3f", min(sims), max(sims))
     return sims
 
 
@@ -333,7 +332,7 @@ def main() -> None:
             "profile_skill_density",
         ],
         "encoder_name": ENCODER_MODEL_NAME,
-        "version": "1.0",
+        "version": "2.0",
     }
     joblib.dump(artifact, MODEL_PATH)
     logger.info("Model saved → %s", MODEL_PATH)

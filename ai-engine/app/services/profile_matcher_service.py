@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity as sk_cosine_sim
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +15,6 @@ MODEL_DIR = BASE_DIR / "models"
 MATCHER_MODEL_PATH = MODEL_DIR / "profile_matcher.joblib"
 
 _artifact: dict | None = None
-_sentence_encoder = None
 
 
 # ── singleton loaders ────────────────────────────────────────────────────────
@@ -38,15 +39,16 @@ def _load_artifact() -> dict:
     return _artifact
 
 
-def _load_encoder(encoder_name: str):
-    global _sentence_encoder
-    if _sentence_encoder is not None:
-        return _sentence_encoder
 
-    from sentence_transformers import SentenceTransformer
-    _sentence_encoder = SentenceTransformer(encoder_name)
-    logger.info("Sentence encoder '%s' loaded.", encoder_name)
-    return _sentence_encoder
+def _tfidf_similarity(text1: str, text2: str) -> float:
+    """Offline TF-IDF cosine similarity — no network required."""
+    try:
+        vec = TfidfVectorizer(ngram_range=(1, 2), stop_words="english", min_df=1)
+        mat = vec.fit_transform([text1, text2])
+        return float(np.clip(sk_cosine_sim(mat[0:1], mat[1:2])[0][0], 0.0, 1.0))
+    except Exception as exc:
+        logger.warning("TF-IDF similarity failed: %s", exc)
+        return 0.3
 
 
 def get_model_version() -> str:
@@ -79,15 +81,19 @@ def _build_profile_text(profile: dict) -> str:
     branch = profile.get("branch") or ""
     skills = profile.get("skills") or []
     experience = profile.get("experience") or ""
+    cgpa = profile.get("cgpa") or 0
 
     parts: list[str] = []
 
     if branch and college:
-        parts.append(f"{name} is a {branch} student from {college}.")
-    elif college:
-        parts.append(f"{name} is a student from {college}.")
+        parts.append(f"{name} is a {branch} engineering student from {college}.")
+    elif branch:
+        parts.append(f"{name} is a {branch} student.")
     else:
         parts.append(f"{name} is a student.")
+
+    if cgpa:
+        parts.append(f"Academic CGPA {cgpa} out of 10.")
 
     if skills:
         parts.append(f"Skilled in {', '.join(skills[:8])}.")
@@ -102,6 +108,7 @@ def _build_job_text(job: dict) -> str:
     title = job.get("title") or job.get("job_role") or ""
     company = job.get("company") or job.get("company_name") or ""
     required_skills = job.get("required_skills") or []
+    description = (job.get("description") or "").strip()
 
     parts: list[str] = []
 
@@ -113,6 +120,9 @@ def _build_job_text(job: dict) -> str:
     if required_skills:
         parts.append(f"Required skills: {', '.join(required_skills)}.")
 
+    if description:
+        parts.append(description[:600])
+
     return " ".join(parts) or "Job opening."
 
 
@@ -122,17 +132,27 @@ def _normalize(text: str) -> str:
     return " ".join(text.lower().replace("_", " ").split())
 
 
+def _safe_skill_name(s: Any) -> str:
+    """Extract a plain skill name string regardless of input type."""
+    if isinstance(s, str):
+        return s.strip()
+    if isinstance(s, dict):
+        return str(s.get("name", "")).strip()
+    if hasattr(s, "name"):
+        return str(s.name).strip()
+    return ""
+
+
 def _compute_features(
     profile_text: str,
     job_text: str,
     student_skills: list[str],
     required_skills: list[str],
     job_title: str,
-    encoder,
     feature_names: list[str],
 ) -> tuple[np.ndarray, dict[str, float], list[str], list[str]]:
-    student_set = {_normalize(s) for s in student_skills if s and s.strip()}
-    required_set = {_normalize(s) for s in required_skills if s and s.strip()}
+    student_set = {_normalize(n) for s in student_skills if (n := _safe_skill_name(s))}
+    required_set = {_normalize(n) for s in required_skills if (n := _safe_skill_name(s))}
 
     matched = student_set & required_set
     missing = required_set - student_set
@@ -145,16 +165,8 @@ def _compute_features(
     # Feature 1 — role_keyword_match
     role_keyword_match = 1.0 if (job_title and _normalize(job_title) in _normalize(profile_text)) else 0.0
 
-    # Feature 2 — semantic_sim
-    try:
-        from sentence_transformers import util as st_util
-        embs = encoder.encode([profile_text, job_text], convert_to_tensor=True)
-        semantic_sim = float(
-            max(0.0, min(1.0, st_util.cos_sim(embs[0], embs[1]).item()))
-        )
-    except Exception as exc:
-        logger.warning("Semantic similarity failed, defaulting to 0.5: %s", exc)
-        semantic_sim = 0.5
+    # Feature 2 — semantic_sim (TF-IDF cosine, works fully offline)
+    semantic_sim = _tfidf_similarity(profile_text, job_text)
 
     # Feature 3 — matched_skill_count_n (absolute matched count normalised by required)
     matched_skill_count_n = len(matched) / n_required
@@ -222,11 +234,36 @@ def predict(student_profile: dict[str, Any], job: dict[str, Any]) -> dict[str, A
         }
     """
     artifact = _load_artifact()
-    encoder = _load_encoder(artifact["encoder_name"])
 
     student_skills: list[str] = list(student_profile.get("skills") or [])
     required_skills: list[str] = list(job.get("required_skills") or [])
     job_title: str = (job.get("title") or job.get("job_role") or "").strip()
+    description: str = (job.get("description") or "").strip()
+
+    # When no required_skills, extract them from description using skill taxonomy
+    if not required_skills and description:
+        try:
+            from app.services.skill_extractor import extract_skills_from_text
+            extracted = extract_skills_from_text(description)
+            required_skills = [item["name"] for item in extracted if item.get("name")]
+            logger.info("Extracted %d skills from job description for matching", len(required_skills))
+        except Exception as exc:
+            logger.warning("Skill extraction from description failed: %s", exc)
+
+    # When still no skills at all, fall back to pure semantic-similarity scoring
+    if not required_skills:
+        profile_text = _build_profile_text(student_profile)
+        job_text = _build_job_text(job)
+        semantic_sim = _tfidf_similarity(profile_text, job_text)
+        match_score = round(float(np.clip(semantic_sim * 100, 0.0, 100.0)), 1)
+        logger.info("No skills available — semantic-only score: %.1f", match_score)
+        return {
+            "match_score": match_score,
+            "match_label": _match_label(match_score),
+            "matched_skills": [],
+            "gap_skills": [],
+            "feature_values": {"semantic_sim": round(semantic_sim, 4)},
+        }
 
     profile_text = _build_profile_text(student_profile)
     job_text = _build_job_text(job)
@@ -237,12 +274,26 @@ def predict(student_profile: dict[str, Any], job: dict[str, Any]) -> dict[str, A
         student_skills=student_skills,
         required_skills=required_skills,
         job_title=job_title,
-        encoder=encoder,
         feature_names=artifact["feature_names"],
     )
 
-    raw = float(artifact["model"].predict(feature_vector)[0])
-    match_score = round(float(np.clip(raw, 0.0, 100.0)), 1)
+    # ── Transparent formula-based scoring ───────────────────────────────────
+    # Primary signal: skill match ratio (4/5 = 80%, 5/5 = 100%, 0/5 = 0%)
+    skill_match_ratio = feature_values["skill_match_ratio"]
+    semantic_sim      = feature_values["semantic_sim"]
+    role_kw           = feature_values["role_keyword_match"]
+
+    skill_score      = skill_match_ratio * 100.0          # 0–100
+    semantic_bonus   = min(semantic_sim * 15.0, 10.0)     # up to +10 pts
+    role_bonus       = role_kw * 5.0                      # 0 or +5 pts
+    raw              = skill_score + semantic_bonus + role_bonus
+
+    # CGPA-based floor: strong academics always get a minimum even with 0 skills
+    # CGPA 7→0%, 8→8%, 9→17%, 10→25%
+    cgpa      = float(student_profile.get("cgpa") or 0)
+    cgpa_floor = max(0.0, (cgpa - 7.0) / 3.0 * 25.0) if cgpa >= 7.0 else 0.0
+
+    match_score = round(float(np.clip(max(raw, cgpa_floor), 0.0, 100.0)), 1)
 
     return {
         "match_score": match_score,
