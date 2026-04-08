@@ -62,6 +62,7 @@ class JobPosting(BaseModel):
     min_cgpa: float = 0.0
     job_type: str = ""
     company_type: str = ""
+    description: str = ""
 
 
 class ScoreRequest(BaseModel):
@@ -82,6 +83,7 @@ def _student_to_service_dict(student: StudentProfile) -> dict[str, Any]:
         "name": student.fullName or "Unknown",
         "college": student.college,
         "branch": student.branch,
+        "cgpa": student.cgpa,
         "skills": list(student.skills),
         "experience": (
             ", ".join(c.get("company", "") for c in student.previousCompanies if c.get("company"))
@@ -99,6 +101,7 @@ def _job_to_service_dict(job: JobPosting) -> dict[str, Any]:
         "required_skills": list(job.required_skills),
         "job_type": job.job_type,
         "company_type": job.company_type,
+        "description": job.description,
     }
 
 

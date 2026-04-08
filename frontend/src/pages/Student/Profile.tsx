@@ -20,6 +20,36 @@ export default function Profile() {
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const [editingSkills, setEditingSkills] = useState(false)
+  const [draftSkills, setDraftSkills] = useState<string[]>([])
+  const [skillInput, setSkillInput] = useState('')
+  const [savingSkills, setSavingSkills] = useState(false)
+
+  const openSkillEditor = () => {
+    setDraftSkills([...(profile.skills || [])])
+    setEditingSkills(true)
+  }
+  const addSkill = () => {
+    const s = skillInput.trim()
+    if (s && !draftSkills.includes(s)) setDraftSkills(prev => [...prev, s])
+    setSkillInput('')
+  }
+  const removeSkill = (s: string) => setDraftSkills(prev => prev.filter(x => x !== s))
+  const saveSkills = async () => {
+    setSavingSkills(true)
+    try {
+      const res = await studentApi.updateProfile({ skills: draftSkills })
+      setProfile(res.data)
+      localStorage.setItem('userProfile', JSON.stringify(res.data))
+      setEditingSkills(false)
+    } catch (err) {
+      console.error('Failed to save skills:', err)
+      alert('Failed to save skills. Please try again.')
+    } finally {
+      setSavingSkills(false)
+    }
+  }
+
   useEffect(() => {
     studentApi.getProfile()
       .then(res => {
@@ -153,15 +183,61 @@ export default function Profile() {
       {/* ── Skills ─────────────────────────────────────────────── */}
       {card(
         <>
-          <h3 style={{ fontSize: 14, fontWeight: 600, color: '#e6edf3', margin: '0 0 14px' }}>Skills</h3>
-          {profile.skills && profile.skills.length > 0 ? (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {profile.skills.map((s: string) => (
-                <span key={s} style={{ background: 'rgba(56, 139, 253, 0.1)', border: '1px solid rgba(56, 139, 253, 0.2)', color: '#58a6ff', borderRadius: 50, padding: '6px 14px', fontSize: 13, fontWeight: 500 }}>{s}</span>
-              ))}
-            </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: '#e6edf3', margin: 0 }}>Skills</h3>
+            {!editingSkills ? (
+              <button onClick={openSkillEditor} style={{ height: 30, padding: '0 14px', borderRadius: 8, background: 'transparent', border: '1px solid #30363d', color: '#c9d1d9', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add / Edit
+              </button>
+            ) : (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => setEditingSkills(false)} style={{ height: 30, padding: '0 12px', borderRadius: 8, background: 'transparent', border: '1px solid #30363d', color: '#7d8590', fontSize: 12, cursor: 'pointer' }}>Cancel</button>
+                <button onClick={saveSkills} disabled={savingSkills} style={{ height: 30, padding: '0 14px', borderRadius: 8, background: '#20c997', border: 'none', color: '#0d1117', fontSize: 12, fontWeight: 600, cursor: savingSkills ? 'not-allowed' : 'pointer', opacity: savingSkills ? 0.7 : 1 }}>
+                  {savingSkills ? 'Saving…' : 'Save'}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {editingSkills ? (
+            <>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12, minHeight: 36 }}>
+                {draftSkills.length === 0 && <p style={{ color: '#484f58', fontSize: 13, margin: 0 }}>No skills yet — add some below.</p>}
+                {draftSkills.map(s => (
+                  <span key={s} style={{ background: 'rgba(56,139,253,0.1)', border: '1px solid rgba(56,139,253,0.25)', color: '#58a6ff', borderRadius: 50, padding: '5px 12px 5px 14px', fontSize: 13, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {s}
+                    <button onClick={() => removeSkill(s)} title={`Remove ${s}`} style={{ background: 'none', border: 'none', color: '#f85149', cursor: 'pointer', padding: 0, fontSize: 15, lineHeight: 1, display: 'flex' }}>×</button>
+                  </span>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  value={skillInput}
+                  onChange={e => setSkillInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSkill() } }}
+                  placeholder="Type a skill and press Enter…"
+                  aria-label="Add skill"
+                  style={{ flex: 1, background: '#0d1117', border: '1px solid #21262d', borderRadius: 8, padding: '8px 12px', color: '#e6edf3', fontSize: 13, outline: 'none' }}
+                />
+                <button onClick={addSkill} disabled={!skillInput.trim()} style={{ height: 38, padding: '0 16px', borderRadius: 8, background: skillInput.trim() ? '#7c3aed' : '#21262d', border: 'none', color: skillInput.trim() ? '#fff' : '#7d8590', fontSize: 13, fontWeight: 600, cursor: skillInput.trim() ? 'pointer' : 'default' }}>
+                  + Add
+                </button>
+              </div>
+            </>
           ) : (
-            <p style={{ color: '#7d8590', fontSize: 13, margin: 0 }}>No skills added yet.</p>
+            profile.skills && profile.skills.length > 0 ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {profile.skills.map((s: string) => (
+                  <span key={s} style={{ background: 'rgba(56, 139, 253, 0.1)', border: '1px solid rgba(56, 139, 253, 0.2)', color: '#58a6ff', borderRadius: 50, padding: '6px 14px', fontSize: 13, fontWeight: 500 }}>{s}</span>
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <p style={{ color: '#7d8590', fontSize: 13, margin: 0 }}>No skills added yet.</p>
+                <button onClick={openSkillEditor} style={{ color: '#20c997', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500, padding: 0 }}>+ Add skills →</button>
+              </div>
+            )
           )}
         </>
       , { marginBottom: 16 })}

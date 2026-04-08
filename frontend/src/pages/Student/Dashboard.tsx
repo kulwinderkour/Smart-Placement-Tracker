@@ -142,19 +142,22 @@ export default function Dashboard() {
 
   const AI_ENGINE_URL = 'http://localhost:8002';
 
-  const fetchMatchScores = async (jobs: any[]) => {
+  const fetchMatchScores = async (jobs: any[], freshProfile?: any) => {
     setMatchScores(prev => {
       const next = { ...prev };
       jobs.forEach(job => { next[job.id] = { loading: true }; });
       return next;
     });
+    const activeProfile = freshProfile || profile;
     const studentPayload = {
-      fullName: profile.fullName || profile.full_name || '',
-      college: profile.college || '',
-      branch: profile.branch || '',
-      cgpa: parseFloat((profile.cgpa || '0').toString()) || 0,
-      graduationYear: parseInt((profile.graduationYear || profile.graduation_year || '2025').toString()) || 0,
-      skills: profile.skills || [],
+      fullName: activeProfile.fullName || activeProfile.full_name || '',
+      college: activeProfile.college || '',
+      branch: activeProfile.branch || '',
+      cgpa: parseFloat((activeProfile.cgpa || '0').toString()) || 0,
+      graduationYear: parseInt((activeProfile.graduationYear || activeProfile.graduation_year || '2025').toString()) || 0,
+      skills: (activeProfile.skills || []).map((s: any) =>
+        typeof s === 'string' ? s : (s?.name || '')
+      ).filter(Boolean),
       mockInterviewScore: 0,
       aptitudeStreak: 0,
       previousCompanies: (profile.previousCompanies || profile.previous_companies || []) as any[],
@@ -169,14 +172,15 @@ export default function Dashboard() {
               student: studentPayload,
               job: {
                 id: job.id || '',
-                title: job.title || '',
+                title: job.title || job.role_title || '',
                 company: job.company || job.company_name || '',
                 location: job.location || '',
-                package_lpa: parseFloat(job.package_lpa || 0),
+                package_lpa: parseFloat(job.package_lpa || job.salary_min || 0),
                 required_skills: job.required_skills || [],
                 min_cgpa: parseFloat(job.min_cgpa || 0),
                 job_type: job.job_type || '',
                 company_type: job.company_type || '',
+                description: job.description || '',
               },
             }),
           });
@@ -243,8 +247,24 @@ export default function Dashboard() {
     
     // Fetch company-posted jobs from FastAPI student API
     const fetchJobs = async () => {
+      const API = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+
+      // Fetch fresh profile first so match scores use up-to-date skills
+      let freshProfile: any = null;
       try {
-        const API = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+        const token = localStorage.getItem('token') || localStorage.getItem('access_token') || '';
+        const pRes = await fetch(`${API}/student/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (pRes.ok) {
+          freshProfile = await pRes.json();
+          localStorage.setItem('userProfile', JSON.stringify(freshProfile));
+        }
+      } catch (e) {
+        console.warn('Profile pre-fetch skipped:', e);
+      }
+
+      try {
         const res = await fetch(`${API}/student/jobs?limit=20`);
         const data = await res.json();
         if (data.success && Array.isArray(data.data)) {
@@ -257,7 +277,7 @@ export default function Dashboard() {
             application_deadline: j.deadline ?? j.application_deadline,
           }));
           setAdminJobs(normalised);
-          fetchMatchScores(normalised);
+          fetchMatchScores(normalised, freshProfile);
         }
       } catch (err) {
         console.error('Failed to fetch company jobs:', err);

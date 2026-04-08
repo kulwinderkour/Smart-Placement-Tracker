@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class StudentCreate(BaseModel):
@@ -55,6 +55,21 @@ class StudentResponse(BaseModel):
     linkedin_url: Optional[str]
     github_url: Optional[str]
     created_at: datetime
-    skills: Optional[list] = None
+    skills: list[str] = []
 
     model_config = {"from_attributes": True}
+
+    @field_validator("skills", mode="before")
+    @classmethod
+    def coerce_skills_to_strings(cls, v):
+        if not v:
+            return []
+        result = []
+        for item in v:
+            if isinstance(item, str):
+                result.append(item)
+            elif hasattr(item, "name"):
+                result.append(str(item.name))
+            elif isinstance(item, dict):
+                result.append(str(item.get("name", "")))
+        return [s for s in result if s]
