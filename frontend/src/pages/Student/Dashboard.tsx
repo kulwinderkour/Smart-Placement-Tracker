@@ -42,6 +42,27 @@ function calcReadiness(profile: UserProfile): number {
   return score
 }
 
+const cleanSkill = (skill: string) => skill.replace(/^[-+#@\s]+/, '').trim()
+
+const studentHas = (skill: string) => {
+  if (!skill) return false;
+  const cleaned = cleanSkill(skill).toLowerCase()
+  const profile = JSON.parse(localStorage.getItem('userProfile') || '{}')
+  const skillsList = (profile.skills || []).map((s: any) =>
+    typeof s === 'string' ? s : (s?.name || '')
+  ).filter(Boolean)
+  const studentSkills = skillsList.map((s: string) => s.toLowerCase())
+  return studentSkills.some((s: string) => s.includes(cleaned) || (s && cleaned.includes(s)))
+}
+
+const formatPackage = (pkg: number) => {
+  if (!pkg) return 'Package not specified'
+  const lpa = pkg > 1000 ? pkg / 100000 : pkg
+  const min = Math.floor(lpa * 0.85)
+  const max = Math.ceil(lpa * 1.15)
+  return `₹${min} - ${max} LPA`
+}
+
 // ── Components ───────────────────────────────────────────────────────────────
 
 function StatCard({ value, label, icon, accent }: { value: string | number; label: string; icon: string; accent: string }) {
@@ -122,6 +143,7 @@ export default function Dashboard() {
   const [activeJobForApply, setActiveJobForApply] = useState<any>(null);
   const [applyNotes, setApplyNotes] = useState('');
   const [isApplying, setIsApplying] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<any>(null);
 
   const handleManualApply = async () => {
     if (!activeJobForApply) return;
@@ -784,90 +806,248 @@ export default function Dashboard() {
             )}
 
             {!jobsLoading && adminJobs.length > 0 && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' }}>
-                {adminJobs.map(job => {
-                  const isApplied = applications.some(a => a.job_id === job.id);
-                  const ms = matchScores[job.id];
-                  const scoreColor = !ms || ms.loading || ms.score === undefined ? '#7d8590'
-                    : ms.score >= 70 ? '#3fb950'
-                    : ms.score >= 40 ? '#d29922'
-                    : '#f85149';
-                  return (
-                    <div key={job.id} style={{
-                      background: '#161b22', border: '1px solid #21262d', borderRadius: '10px',
-                      padding: '18px 20px', transition: 'border-color 0.15s', cursor: 'pointer'
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = '#30363d'}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = '#21262d'}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', alignItems: 'start' }}>
+                {/* Left Column: Job Cards List */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '800px', overflowY: 'auto', paddingRight: '4px' }}>
+                  {adminJobs.map(job => {
+                    const ms = matchScores[job.id];
+                    const scoreColor = !ms || ms.loading || ms.score === undefined ? '#7d8590'
+                      : ms.score >= 70 ? '#3fb950'
+                      : ms.score >= 40 ? '#d29922'
+                      : '#f85149';
+                    const isSelected = selectedJob?.id === job.id;
+                    
+                    return (
+                      <div key={job.id} 
+                        onClick={() => setSelectedJob(job)}
+                        style={{
+                          background: isSelected ? 'linear-gradient(145deg, #161b22, #0d1117)' : 'rgba(22, 27, 34, 0.4)', 
+                          backdropFilter: 'blur(10px)',
+                          border: '1px solid',
+                          borderColor: isSelected ? '#20c99740' : '#21262d',
+                          borderLeft: isSelected ? '4px solid #20c997' : '1px solid #21262d',
+                          borderRadius: '12px',
+                          boxShadow: isSelected ? '0 12px 32px rgba(32, 201, 151, 0.08)' : '0 4px 12px rgba(0, 0, 0, 0.2)',
+                          padding: '20px', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'pointer',
+                          transform: isSelected ? 'translateY(-2px)' : 'none'
+                        }}
+                        onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.borderColor = '#30363d'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.3)'; } }}
+                        onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.borderColor = '#21262d'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)'; } }}>
+                          
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ color: '#e6edf3', fontSize: '15px', fontWeight: 600 }}>{job.title}</div>
+                            <div style={{ color: '#7d8590', fontSize: '13px', marginTop: '2px' }}>{job.company || job.company_name}</div>
+                          </div>
                           <div style={{
-                            width: '36px', height: '36px', borderRadius: '8px', background: '#21262d',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7d8590', fontWeight: 700,
-                            fontSize: '14px', flexShrink: 0, overflow: 'hidden'
+                            width: '44px', height: '44px', borderRadius: '10px', 
+                            background: 'linear-gradient(135deg, #2d333b, #21262d)',
+                            border: '1px solid #30363d',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                            color: '#e6edf3', fontWeight: 700,
+                            fontSize: '18px', flexShrink: 0, overflow: 'hidden', marginLeft: '12px',
+                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1)'
                           }}>
                             {job.company_logo ? <img src={job.company_logo} alt={job.company || job.company_name || 'Company'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (job.company || job.company_name)?.charAt(0).toUpperCase()}
                           </div>
-                          <div>
-                            <div style={{ color: '#e6edf3', fontSize: '14px', fontWeight: 600 }}>{job.title}</div>
-                            <div style={{ color: '#7d8590', fontSize: '12px' }}>{job.company || job.company_name}</div>
+                        </div>
+
+                        <div style={{ marginTop: '12px', marginBottom: '8px' }}>
+                          <span style={{ background: '#1a2e22', color: '#3fb950', border: '1px solid #23863633', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', fontWeight: 600 }}>
+                            {formatPackage(job.package_lpa || job.salary_min)}
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                          {job.location && <span style={{ color: '#7d8590', fontSize: '12px' }}>📍 {job.location}</span>}
+                          {job.job_type && <span style={{ color: '#7d8590', fontSize: '12px' }}>💼 {job.job_type}</span>}
+                        </div>
+
+                        {job.required_skills && job.required_skills.length > 0 && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
+                            {job.required_skills.slice(0, 5).map((skill: string, idx: number) => {
+                              const hasIt = studentHas(skill)
+                              return (
+                                <span key={idx} style={{ 
+                                  background: hasIt ? '#1a2e22' : '#2d1b1b', 
+                                  color: hasIt ? '#3fb950' : '#f85149', 
+                                  borderRadius: '4px', padding: '2px 8px', fontSize: '11px', fontWeight: 500 
+                                }}>
+                                  {cleanSkill(skill)}
+                                </span>
+                              )
+                            })}
+                            {job.required_skills.length > 5 && <span style={{ color: '#7d8590', fontSize: '11px', alignSelf: 'center' }}>+{job.required_skills.length - 5}</span>}
                           </div>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px', flexShrink: 0 }}>
-                          {(job.package_lpa || job.salary_min) && (
-                            <span style={{ background: '#1a2e22', color: '#3fb950', border: '1px solid #23863633', borderRadius: '4px', padding: '3px 8px', fontSize: '11px', fontWeight: 600 }}>
-                              ₹{job.package_lpa || job.salary_min} LPA
+                        )}
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                          {ms ? (
+                            <span style={{ fontSize: '12px', fontWeight: 600, color: ms.loading ? '#7d8590' : scoreColor }}>
+                              {ms.loading ? '⏳ Scoring...' : `🎯 Match Score: ${ms.score}%`}
                             </span>
-                          )}
-                          {ms && (
-                            ms.loading ? (
-                              <span style={{ fontSize: '10px', color: '#7d8590' }}>⏳ scoring…</span>
-                            ) : ms.score !== undefined ? (
-                              <span style={{ background: scoreColor + '22', color: scoreColor, border: `1px solid ${scoreColor}44`, borderRadius: '4px', padding: '3px 8px', fontSize: '11px', fontWeight: 700 }}>
-                                {ms.score}% match
-                              </span>
-                            ) : null
-                          )}
+                          ) : <div/>}
+                          <span style={{ color: '#20c997', fontSize: '12px', fontWeight: 500 }}>View details →</span>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '12px', marginBottom: '6px', flexWrap: 'wrap' }}>
-                        {job.location && <span style={{ color: '#7d8590', fontSize: '11px' }}>📍 {job.location}</span>}
-                        {job.job_type && <span style={{ color: '#7d8590', fontSize: '11px' }}>💼 {job.job_type}</span>}
-                      </div>
-                      {ms && !ms.loading && ms.score !== undefined && ((ms.matched?.length ?? 0) > 0 || (ms.gaps?.length ?? 0) > 0) && (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
-                          {(ms.matched || []).slice(0, 3).map(s => (
-                            <span key={s} style={{ background: '#1a2e2260', color: '#3fb950', border: '1px solid #3fb95040', borderRadius: '3px', padding: '2px 6px', fontSize: '10px', fontWeight: 500 }}>{s}</span>
-                          ))}
-                          {(ms.gaps || []).slice(0, 2).map(s => (
-                            <span key={s} style={{ background: '#2d1b1b60', color: '#f85149', border: '1px solid #f8514940', borderRadius: '3px', padding: '2px 6px', fontSize: '10px', fontWeight: 500 }}>−{s}</span>
-                          ))}
+                    );
+                  })}
+                </div>
+
+                {/* Right Column: Job Detail Panel */}
+                <div style={{ 
+                  background: 'rgba(22, 27, 34, 0.65)', 
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid #30363d', 
+                  borderRadius: '16px', 
+                  padding: '28px', 
+                  position: 'sticky', top: '20px',
+                  boxShadow: '0 12px 32px rgba(0, 0, 0, 0.2)'
+                }}>
+                  {!selectedJob ? (
+                    <div style={{ textAlign: 'center', padding: '80px 0', color: '#7d8590' }}>
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '16px', opacity: 0.5, margin: '0 auto 16px auto', display: 'block' }}>
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                      </svg>
+                      <p style={{ margin: 0, fontSize: '15px' }}>Select a job to view details</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                        <div>
+                          <h2 style={{ color: '#e6edf3', fontSize: '20px', fontWeight: 700, margin: '0 0 4px', lineHeight: 1.3 }}>{selectedJob.title}</h2>
+                          <p style={{ color: '#7d8590', fontSize: '14px', margin: 0 }}>{selectedJob.company || selectedJob.company_name}</p>
                         </div>
-                      )}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#484f58', fontSize: '11px' }}>
-                          {job.application_deadline ? `Deadline: ${new Date(job.application_deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : ''}
-                        </span>
-                        {isApplied ? (
-                          <button disabled
-                            style={{ background: '#21262d', color: '#7d8590', border: '1px solid #30363d', borderRadius: '6px', padding: '5px 14px', fontSize: '12px', fontWeight: 600, cursor: 'not-allowed' }}>
-                            Applied ✓
-                          </button>
-                        ) : job.apply_link ? (
-                          <a href={job.apply_link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}
-                            style={{ background: '#20c997', color: '#0d1117', borderRadius: '6px', padding: '5px 14px', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}>
-                            Apply Externally →
-                          </a>
-                        ) : (
-                          <button onClick={(e) => { e.stopPropagation(); setActiveJobForApply(job); setShowApplyModal(true); }}
-                            style={{ background: '#7c3aed', color: 'white', border: 'none', borderRadius: '6px', padding: '5px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
-                            Apply Internally →
-                          </button>
+                        <div style={{
+                          width: '64px', height: '64px', borderRadius: '14px', 
+                          background: 'linear-gradient(135deg, #2d333b, #21262d)',
+                          border: '1px solid #30363d',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e6edf3', fontWeight: 700,
+                          fontSize: '28px', flexShrink: 0, overflow: 'hidden', marginLeft: '16px',
+                          boxShadow: '0 8px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)'
+                        }}>
+                          {selectedJob.company_logo ? <img src={selectedJob.company_logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (selectedJob.company || selectedJob.company_name)?.charAt(0).toUpperCase()}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px', padding: '16px', background: '#0d1117', borderRadius: '8px', border: '1px solid #21262d' }}>
+                        <div>
+                          <p style={{ color: '#7d8590', fontSize: '11px', textTransform: 'uppercase', margin: '0 0 4px', fontWeight: 600 }}>Salary</p>
+                          <p style={{ color: '#e6edf3', fontSize: '13px', margin: 0, fontWeight: 500 }}>{formatPackage(selectedJob.package_lpa || selectedJob.salary_min)}</p>
+                        </div>
+                        {selectedJob.location && (
+                          <div>
+                            <p style={{ color: '#7d8590', fontSize: '11px', textTransform: 'uppercase', margin: '0 0 4px', fontWeight: 600 }}>Location</p>
+                            <p style={{ color: '#e6edf3', fontSize: '13px', margin: 0, fontWeight: 500 }}>{selectedJob.location}</p>
+                          </div>
+                        )}
+                        {selectedJob.job_type && (
+                          <div>
+                            <p style={{ color: '#7d8590', fontSize: '11px', textTransform: 'uppercase', margin: '0 0 4px', fontWeight: 600 }}>Job Type</p>
+                            <p style={{ color: '#e6edf3', fontSize: '13px', margin: 0, fontWeight: 500 }}>{selectedJob.job_type}</p>
+                          </div>
+                        )}
+                        {selectedJob.openings && (
+                          <div>
+                            <p style={{ color: '#7d8590', fontSize: '11px', textTransform: 'uppercase', margin: '0 0 4px', fontWeight: 600 }}>Openings</p>
+                            <p style={{ color: '#e6edf3', fontSize: '13px', margin: 0, fontWeight: 500 }}>{selectedJob.openings}</p>
+                          </div>
                         )}
                       </div>
+
+                      {selectedJob.description && (
+                        <>
+                          <div style={{ borderLeft: '3px solid #20c997', paddingLeft: '10px', marginBottom: '12px', marginTop: '20px' }}>
+                            <span style={{ color: '#20c997', fontSize: '14px', fontWeight: 600 }}>Job description</span>
+                          </div>
+                          <p style={{ color: '#e6edf3', fontSize: '13px', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
+                            {selectedJob.description}
+                          </p>
+                        </>
+                      )}
+
+                      {selectedJob.required_skills && selectedJob.required_skills.length > 0 && (
+                        <>
+                          <div style={{ borderLeft: '3px solid #20c997', paddingLeft: '10px', marginBottom: '12px', marginTop: '20px' }}>
+                            <span style={{ color: '#20c997', fontSize: '14px', fontWeight: 600 }}>Required skills</span>
+                          </div>
+                          <ol style={{ color: '#e6edf3', fontSize: '13px', margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            {selectedJob.required_skills.map((skill: string, idx: number) => (
+                              <li key={idx} style={{ paddingLeft: '4px' }}>{cleanSkill(skill)}</li>
+                            ))}
+                          </ol>
+                        </>
+                      )}
+
+                      {selectedJob.min_cgpa > 0 && (
+                        <>
+                          <div style={{ borderLeft: '3px solid #20c997', paddingLeft: '10px', marginBottom: '12px', marginTop: '20px' }}>
+                            <span style={{ color: '#20c997', fontSize: '14px', fontWeight: 600 }}>Eligibility</span>
+                          </div>
+                          <p style={{ color: '#e6edf3', fontSize: '13px', margin: 0 }}>Minimum CGPA: {selectedJob.min_cgpa}</p>
+                        </>
+                      )}
+
+                      {selectedJob.application_deadline && (
+                        <>
+                          <div style={{ borderLeft: '3px solid #20c997', paddingLeft: '10px', marginBottom: '12px', marginTop: '20px' }}>
+                            <span style={{ color: '#20c997', fontSize: '14px', fontWeight: 600 }}>Deadline</span>
+                          </div>
+                          <p style={{ color: '#e6edf3', fontSize: '13px', margin: 0 }}>
+                            {new Date(selectedJob.application_deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            {(() => {
+                              const diff = new Date(selectedJob.application_deadline).getTime() - new Date().getTime();
+                              const days = Math.ceil(diff / (1000 * 3600 * 24));
+                              if (diff < 0) return <span style={{ color: '#f85149', marginLeft: '6px' }}>(Expired)</span>;
+                              if (days === 0) return <span style={{ color: '#d29922', marginLeft: '6px' }}>(Ends today)</span>;
+                              return <span style={{ color: '#7d8590', marginLeft: '6px' }}>({days} days remaining)</span>;
+                            })()}
+                          </p>
+                        </>
+                      )}
+
+                      <div style={{ marginTop: '32px' }}>
+                        {(() => {
+                          const isApplied = applications.some((a: any) => a.job_id === selectedJob.id);
+                          const isExpired = selectedJob.application_deadline && new Date() > new Date(selectedJob.application_deadline);
+                          if (isApplied) {
+                            return (
+                              <button disabled style={{ width: '100%', background: '#21262d', color: '#7d8590', border: '1px solid #30363d', borderRadius: '8px', padding: '12px', fontSize: '14px', fontWeight: 600, cursor: 'not-allowed' }}>
+                                Applied ✓
+                              </button>
+                            );
+                          } else if (isExpired) {
+                            return (
+                              <button disabled style={{ width: '100%', background: '#2d1b1b', color: '#f85149', border: '1px solid #da363333', borderRadius: '8px', padding: '12px', fontSize: '14px', fontWeight: 600, cursor: 'not-allowed' }}>
+                                Deadline passed
+                              </button>
+                            );
+                          } else {
+                            if (selectedJob.apply_link) {
+                                return (
+                                  <a href={selectedJob.apply_link} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                                    <button style={{ width: '100%', background: '#20c997', color: '#0d1117', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', transition: 'opacity 0.2s' }}
+                                      onMouseEnter={e => e.currentTarget.style.opacity = '0.9'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+                                      Apply Externally
+                                    </button>
+                                  </a>
+                                );
+                            } else {
+                                return (
+                                  <button onClick={() => { setActiveJobForApply(selectedJob); setShowApplyModal(true); }}
+                                    style={{ width: '100%', background: '#20c997', color: '#0d1117', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', transition: 'opacity 0.2s' }}
+                                    onMouseEnter={e => e.currentTarget.style.opacity = '0.9'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+                                    Apply Now
+                                  </button>
+                                );
+                            }
+                          }
+                        })()}
+                      </div>
                     </div>
-                  );
-                })}
+                  )}
+                </div>
               </div>
             )}
           </div>
