@@ -113,7 +113,9 @@ export default function Dashboard() {
   const [matchScores, setMatchScores] = useState<Record<string, { loading: boolean; score?: number; label?: string; matched?: string[]; gaps?: string[] }>>({});
 
   const [agentRunning, setAgentRunning] = useState(false);
-  const [agentResult, setAgentResult] = useState('');
+  const [showAutoApplyModal, setShowAutoApplyModal] = useState(false);
+  const [autoApplyStatus, setAutoApplyStatus] = useState<Record<string, 'idle'|'applying'|'done'|'failed'|'skip'>>({});
+  const [autoApplyConfirmed, setAutoApplyConfirmed] = useState(false);
   const [minPackage, setMinPackage] = useState(10);
 
   const [showApplyModal, setShowApplyModal] = useState(false);
@@ -191,38 +193,42 @@ export default function Dashboard() {
     );
   };
 
-  const runAutoApply = async () => {
-    setAgentRunning(true);
-    setAgentResult('');
-    try {
-      const token = localStorage.getItem('access_token');
+  const _pkgToLPA = (val: number) => val >= 10000 ? Math.round(val / 100000 * 10) / 10 : val;
+  const _fmtPkg = (val: number) => {
+    if (!val) return null;
+    const lpa = _pkgToLPA(val);
+    return `₹${lpa} LPA`;
+  };
 
-      const res = await fetch(`${AI_ENGINE_URL}/agent/apply-jobs`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          student_token: token,
-          resume_url: profile.resumeUrl || profile.resume_url || '',
-          min_package_lpa: minPackage,
-          student_cgpa: parseFloat(profile.cgpa?.toString() || '0') || 0,
-          student_skills: (profile.skills || []).join(', '),
-          student_profile: JSON.stringify({
-            fullName: profile.fullName || profile.full_name || '',
-            college: profile.college || '',
-            branch: profile.branch || '',
-            cgpa: parseFloat((profile.cgpa || '0').toString()) || 0,
-            skills: profile.skills || [],
-            experience: (profile.previousCompanies || profile.previous_companies || [])
-              .map((c: any) => c.company).filter(Boolean).join(', '),
-          }),
-        })
-      });
-      const data = await res.json();
-      setAgentResult(data.summary || data.detail || 'Agent finished.');
-    } catch (err: any) {
-      setAgentResult('Agent failed: ' + err.message);
+  const openAutoApplyPreview = () => {
+    setAutoApplyStatus({});
+    setAutoApplyConfirmed(false);
+    setShowAutoApplyModal(true);
+    const needsScoring = adminJobs.some(j => !matchScores[j.id] || matchScores[j.id].loading);
+    if (needsScoring) fetchMatchScores(adminJobs);
+  };
+
+  const confirmAutoApply = async () => {
+    setAutoApplyConfirmed(true);
+    setAgentRunning(true);
+    const eligibleJobs = adminJobs.filter(j => {
+      const ms = matchScores[j.id];
+      const pkgLPA = _pkgToLPA(Number(j.package_lpa || j.salary_min || 0));
+      const score = ms?.score ?? 0;
+      const alreadyApplied = applications.some((a: any) => a.job_id === j.id);
+      return !alreadyApplied && ms && !ms.loading && score >= 50 && (pkgLPA === 0 || pkgLPA >= minPackage);
+    });
+    for (const job of eligibleJobs) {
+      setAutoApplyStatus(prev => ({ ...prev, [job.id]: 'applying' }));
+      try {
+        await applicationsApi.apply(job.id, 'Auto-applied via Smart Placement Agent');
+        setAutoApplyStatus(prev => ({ ...prev, [job.id]: 'done' }));
+      } catch {
+        setAutoApplyStatus(prev => ({ ...prev, [job.id]: 'failed' }));
+      }
     }
     setAgentRunning(false);
+    applicationsApi.myApplications().then(res => setApplications(res.data as any));
   };
 
   useEffect(() => {
@@ -415,6 +421,179 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {/* ── Auto Apply Preview Modal ── */}
+          {showAutoApplyModal && (
+            <div style={{
+              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+              background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', zIndex: 1000, padding: '16px'
+            }}>
+              <div style={{
+                background: '#161b22', border: '1px solid #30363d', borderRadius: '14px',
+                width: '100%', maxWidth: '600px', maxHeight: '85vh',
+                display: 'flex', flexDirection: 'column', boxShadow: '0 24px 48px rgba(0,0,0,0.5)'
+              }}>
+                {/* Header */}
+                <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #21262d', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#e6edf3' }}>⚡ Smart Placement Auto-Apply</h2>
+                      <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#7d8590' }}>
+                        Powered by trained ML profile matcher · Filter: ₹{minPackage} LPA+ · Match ≥ 50%
+                      </p>
+                    </div>
+                    <button onClick={() => setShowAutoApplyModal(false)}
+                      style={{ background: 'none', border: 'none', color: '#7d8590', cursor: 'pointer', fontSize: '18px', lineHeight: 1 }}>✕</button>
+                  </div>
+                </div>
+
+                {/* Job List */}
+                <div style={{ overflowY: 'auto', flex: 1, padding: '16px 24px' }}>
+                  {adminJobs.length === 0 && (
+                    <p style={{ color: '#484f58', textAlign: 'center', marginTop: '32px' }}>No placements posted yet.</p>
+                  )}
+                  {adminJobs.map(job => {
+                    const ms = matchScores[job.id];
+                    const score = ms?.score ?? 0;
+                    const progressStatus = autoApplyStatus[job.id];
+                    const pkg = Number(job.package_lpa || job.salary_min || 0);
+                    const pkgLPA = _pkgToLPA(pkg);
+                    const alreadyApplied = applications.some((a: any) => a.job_id === job.id);
+
+                    // Compute display status reactively from live matchScores
+                    type DS = 'scoring'|'eligible'|'ineligible'|'applying'|'done'|'failed';
+                    let ds: DS;
+                    if (progressStatus === 'applying') ds = 'applying';
+                    else if (progressStatus === 'done' || alreadyApplied) ds = 'done';
+                    else if (progressStatus === 'failed') ds = 'failed';
+                    else if (!ms || ms.loading) ds = 'scoring';
+                    else if (score >= 50 && (pkgLPA === 0 || pkgLPA >= minPackage)) ds = 'eligible';
+                    else ds = 'ineligible';
+
+                    const scoreColor = score >= 70 ? '#3fb950' : score >= 50 ? '#d29922' : '#f85149';
+                    const eligMsg = score >= 80 ? `🎯 Excellent match — you are` :
+                                   score >= 60 ? `✔ Good match — you are` :
+                                   score >= 50 ? `⚡ You are` : `⚠️ Low match — only`;
+                    const statusConfig: Record<DS, { label: string; bg: string; fg: string; border: string }> = {
+                      scoring:    { label: '⏳ Scoring…',      bg: '#1a1a2e', fg: '#818cf8', border: '#818cf833' },
+                      eligible:   { label: '✓ Will Apply',    bg: '#1a2e22', fg: '#3fb950', border: '#23863633' },
+                      ineligible: { label: '— Skipped',       bg: '#161b22', fg: '#7d8590', border: '#21262d'   },
+                      applying:   { label: '⏳ Applying…',    bg: '#1a1a2e', fg: '#818cf8', border: '#818cf833' },
+                      done:       { label: '✓ Applied',       bg: '#1a2e22', fg: '#3fb950', border: '#3fb95033' },
+                      failed:     { label: '✗ Failed',        bg: '#2d1b1b', fg: '#f85149', border: '#f8514933' },
+                    };
+                    const sc = statusConfig[ds];
+
+                    return (
+                      <div key={job.id} style={{
+                        background: '#0d1117', border: `1px solid ${ds === 'eligible' ? '#23863660' : '#21262d'}`,
+                        borderRadius: '10px', padding: '14px 16px', marginBottom: '10px',
+                        opacity: ds === 'ineligible' ? 0.5 : 1,
+                        transition: 'border-color 0.3s'
+                      }}>
+                        {/* Header row */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                          <div>
+                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#e6edf3' }}>{job.title}</div>
+                            <div style={{ fontSize: '12px', color: '#7d8590', marginTop: '2px' }}>
+                              {job.company || job.company_name} · {job.location || 'Remote'}
+                              {pkg > 0 && <span style={{ color: '#3fb950', marginLeft: '8px' }}>{_fmtPkg(pkg)}</span>}
+                            </div>
+                          </div>
+                          <span style={{ background: sc.bg, color: sc.fg, border: `1px solid ${sc.border}`, borderRadius: '6px', padding: '3px 10px', fontSize: '11px', fontWeight: 600, flexShrink: 0, marginLeft: '8px' }}>
+                            {sc.label}
+                          </span>
+                        </div>
+
+                        {/* Eligibility block */}
+                        {ds === 'scoring' ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', background: '#1a1a2e40', borderRadius: '8px' }}>
+                            <div style={{ width: '14px', height: '14px', border: '2px solid #818cf8', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
+                            <span style={{ fontSize: '12px', color: '#818cf8' }}>Computing your eligibility for this placement…</span>
+                          </div>
+                        ) : ds !== 'done' && ms && !ms.loading && ms.score !== undefined ? (
+                          <div style={{ background: `${scoreColor}08`, border: `1px solid ${scoreColor}30`, borderRadius: '8px', padding: '10px 12px' }}>
+                            {/* Prominence message */}
+                            <div style={{ fontSize: '13px', color: '#e6edf3', fontWeight: 500, marginBottom: '8px' }}>
+                              {eligMsg} <span style={{ color: scoreColor, fontSize: '18px', fontWeight: 800 }}>{score}%</span>{' '}
+                              <span style={{ color: scoreColor }}>eligible</span> for this placement
+                            </div>
+                            {/* Score bar */}
+                            <div style={{ height: '6px', background: '#21262d', borderRadius: '3px', overflow: 'hidden', marginBottom: '8px' }}>
+                              <div style={{ width: `${score}%`, height: '100%', background: scoreColor, borderRadius: '3px', transition: 'width 0.6s ease' }} />
+                            </div>
+                            {/* Skills */}
+                            <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                              {(ms.matched || []).slice(0, 4).map(s => (
+                                <span key={s} style={{ background: '#1a2e2260', color: '#3fb950', border: '1px solid #3fb95040', borderRadius: '3px', padding: '2px 6px', fontSize: '10px' }}>✓ {s}</span>
+                              ))}
+                              {(ms.gaps || []).slice(0, 3).map(s => (
+                                <span key={s} style={{ background: '#2d1b1b60', color: '#f85149', border: '1px solid #f8514940', borderRadius: '3px', padding: '2px 6px', fontSize: '10px' }}>✗ {s}</span>
+                              ))}
+                              {ds === 'ineligible' && pkgLPA > 0 && pkgLPA < minPackage && (
+                                <span style={{ color: '#7d8590', fontSize: '10px', alignSelf: 'center', marginLeft: '4px' }}>Package below ₹{minPackage} LPA threshold</span>
+                              )}
+                            </div>
+                          </div>
+                        ) : ds === 'done' ? (
+                          <div style={{ fontSize: '12px', color: '#3fb950' }}>✓ Application submitted successfully</div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Footer */}
+                <div style={{ padding: '16px 24px', borderTop: '1px solid #21262d', flexShrink: 0 }}>
+                  {(() => {
+                    const eligible = adminJobs.filter(j => {
+                      const ms = matchScores[j.id];
+                      const pkgLPA = _pkgToLPA(Number(j.package_lpa || j.salary_min || 0));
+                      const score = ms?.score ?? 0;
+                      const alreadyApplied = applications.some((a: any) => a.job_id === j.id);
+                      const progress = autoApplyStatus[j.id];
+                      return !alreadyApplied && progress !== 'done' && progress !== 'applying' &&
+                             ms && !ms.loading && score >= 50 && (pkgLPA === 0 || pkgLPA >= minPackage);
+                    }).length;
+                    const scoring = adminJobs.some(j => !matchScores[j.id] || matchScores[j.id].loading);
+                    const done = Object.values(autoApplyStatus).filter(s => s === 'done').length;
+                    const failed = Object.values(autoApplyStatus).filter(s => s === 'failed').length;
+                    return (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '13px', color: scoring && !autoApplyConfirmed ? '#818cf8' : '#7d8590' }}>
+                          {autoApplyConfirmed
+                            ? `${done} applied · ${failed} failed · ${eligible} pending`
+                            : scoring
+                            ? '⏳ Computing your eligibility…'
+                            : `${eligible} eligible placement${eligible !== 1 ? 's' : ''} found`
+                          }
+                        </span>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                          <button onClick={() => setShowAutoApplyModal(false)}
+                            style={{ background: 'transparent', border: '1px solid #30363d', color: '#e6edf3', borderRadius: '8px', padding: '8px 18px', fontSize: '13px', cursor: 'pointer' }}>
+                            {autoApplyConfirmed && !agentRunning ? 'Close' : 'Cancel'}
+                          </button>
+                          {!autoApplyConfirmed && eligible > 0 && (
+                            <button onClick={confirmAutoApply}
+                              style={{ background: '#7c3aed', border: 'none', color: 'white', borderRadius: '8px', padding: '8px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+                              Apply to {eligible} job{eligible !== 1 ? 's' : ''} →
+                            </button>
+                          )}
+                          {agentRunning && (
+                            <span style={{ color: '#818cf8', fontSize: '13px', alignSelf: 'center' }}>⏳ Applying…</span>
+                          )}
+                          {autoApplyConfirmed && !agentRunning && eligible === 0 && (
+                            <span style={{ color: '#3fb950', fontSize: '13px', alignSelf: 'center' }}>✓ All done!</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* ── Apply Modal ── */}
           {showApplyModal && activeJobForApply && (
             <div style={{
@@ -429,9 +608,43 @@ export default function Dashboard() {
                 <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#e6edf3' }}>
                   Apply for {activeJobForApply.title}
                 </h3>
-                <p style={{ fontSize: '13px', color: '#7d8590', marginTop: '4px', marginBottom: '20px' }}>
+                <p style={{ fontSize: '13px', color: '#7d8590', marginTop: '4px', marginBottom: '16px' }}>
                   {activeJobForApply.company} · {activeJobForApply.location}
                 </p>
+
+                {/* ── ML Match Score Block ── */}
+                {(() => {
+                  const ms = matchScores[activeJobForApply.id];
+                  if (!ms) return null;
+                  if (ms.loading) return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#1a1a2e40', border: '1px solid #818cf830', borderRadius: '8px', padding: '10px 12px', marginBottom: '16px' }}>
+                      <div style={{ width: '12px', height: '12px', border: '2px solid #818cf8', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
+                      <span style={{ fontSize: '12px', color: '#818cf8' }}>Computing your profile match…</span>
+                    </div>
+                  );
+                  const score = ms.score ?? 0;
+                  const scoreColor = score >= 70 ? '#3fb950' : score >= 50 ? '#d29922' : '#f85149';
+                  const msg = score >= 80 ? '🎯 Excellent match' : score >= 60 ? '✔ Good match' : score >= 50 ? '⚡ Eligible' : '⚠️ Low match';
+                  return (
+                    <div style={{ background: `${scoreColor}0d`, border: `1px solid ${scoreColor}40`, borderRadius: '10px', padding: '12px 14px', marginBottom: '16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '13px', color: '#e6edf3', fontWeight: 500 }}>{msg} — Your profile match</span>
+                        <span style={{ fontSize: '22px', fontWeight: 800, color: scoreColor }}>{score}%</span>
+                      </div>
+                      <div style={{ height: '6px', background: '#21262d', borderRadius: '3px', overflow: 'hidden', marginBottom: '10px' }}>
+                        <div style={{ width: `${score}%`, height: '100%', background: scoreColor, borderRadius: '3px', transition: 'width 0.6s ease' }} />
+                      </div>
+                      <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                        {(ms.matched || []).slice(0, 5).map(s => (
+                          <span key={s} style={{ background: '#1a2e2260', color: '#3fb950', border: '1px solid #3fb95040', borderRadius: '3px', padding: '2px 6px', fontSize: '10px' }}>✓ {s}</span>
+                        ))}
+                        {(ms.gaps || []).slice(0, 3).map(s => (
+                          <span key={s} style={{ background: '#2d1b1b60', color: '#f85149', border: '1px solid #f8514940', borderRadius: '3px', padding: '2px 6px', fontSize: '10px' }}>✗ {s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <div style={{ marginBottom: '16px' }}>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#484f58', marginBottom: '8px', textTransform: 'uppercase' }}>
@@ -514,35 +727,26 @@ export default function Dashboard() {
                 <select
                   value={minPackage}
                   onChange={e => setMinPackage(Number(e.target.value))}
+                  aria-label="Minimum package filter"
+                  title="Minimum package filter"
                   style={{ background: '#0d1117', border: '1px solid #21262d', borderRadius: '6px', color: '#e6edf3', padding: '6px 10px', fontSize: '12px' }}
                 >
                   {[5, 8, 10, 12, 15, 20, 25, 30].map(p => (
                     <option key={p} value={p}>₹{p} LPA+</option>
                   ))}
                 </select>
-                <button onClick={runAutoApply} disabled={agentRunning}
+                <button onClick={openAutoApplyPreview} disabled={jobsLoading || Object.keys(matchScores).length === 0}
                   style={{
-                    background: agentRunning ? '#21262d' : '#7c3aed',
-                    color: agentRunning ? '#7d8590' : 'white',
+                    background: (jobsLoading || Object.keys(matchScores).length === 0) ? '#21262d' : '#7c3aed',
+                    color: (jobsLoading || Object.keys(matchScores).length === 0) ? '#7d8590' : 'white',
                     border: 'none', borderRadius: '6px',
                     padding: '7px 16px', fontSize: '12px',
-                    fontWeight: 600, cursor: agentRunning ? 'not-allowed' : 'pointer',
+                    fontWeight: 600, cursor: (jobsLoading || Object.keys(matchScores).length === 0) ? 'not-allowed' : 'pointer',
                     transition: 'all 0.2s'
                   }}>
-                  {agentRunning ? '⏳ Agent running...' : '⚡ Auto Apply'}
+                  ⚡ Auto Apply
                 </button>
               </div>
-              {agentResult && (
-                <div style={{
-                  width: '100%', marginTop: '10px',
-                  background: '#0d1117', border: '1px solid #21262d',
-                  borderRadius: '8px', padding: '12px',
-                  color: '#e6edf3', fontSize: '13px', lineHeight: 1.6,
-                  whiteSpace: 'pre-wrap'
-                }}>
-                  {agentResult}
-                </div>
-              )}
             </div>
 
             {jobsLoading && (
@@ -582,7 +786,7 @@ export default function Dashboard() {
                             display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7d8590', fontWeight: 700,
                             fontSize: '14px', flexShrink: 0, overflow: 'hidden'
                           }}>
-                            {job.company_logo ? <img src={job.company_logo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (job.company || job.company_name)?.charAt(0).toUpperCase()}
+                            {job.company_logo ? <img src={job.company_logo} alt={job.company || job.company_name || 'Company'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (job.company || job.company_name)?.charAt(0).toUpperCase()}
                           </div>
                           <div>
                             <div style={{ color: '#e6edf3', fontSize: '14px', fontWeight: 600 }}>{job.title}</div>
