@@ -1195,108 +1195,101 @@ export default function Login() {
         <div className="w-full max-w-[1200px] mx-auto">
           <div style={{
             textAlign: 'center',
-            marginBottom: 96,
-            position: 'relative',
-            zIndex: 1,
+            marginBottom: 100,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center'
           }}>
-            {/* Badge */}
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              padding: '6px 16px', borderRadius: 100,
-              background: 'rgba(59,130,246,0.12)',
-              border: '1px solid rgba(59,130,246,0.25)',
-              fontSize: 14, fontWeight: 800, letterSpacing: '0.1em',
-              color: '#fff', textTransform: 'uppercase',
-              fontFamily: 'DM Sans, sans-serif',
-              marginBottom: 20
-            }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff', display: 'inline-block', boxShadow: '0 0 10px #fff' }} />
-              How It Works
-            </span>
-
             <h2 style={{
               fontFamily: 'Sora, sans-serif',
-              fontSize: 'clamp(36px, 5vw, 64px)',
-              fontWeight: 800,
-              color: '#fff',
-              letterSpacing: '-0.03em',
+              fontSize: 'clamp(44px, 6vw, 76px)',
+              fontWeight: 500,
+              color: '#f8fafc',
+              letterSpacing: '-0.02em',
               lineHeight: 1.1,
               margin: 0
             }}>
-              Get hired in <span style={{
-                background: 'linear-gradient(90deg,#60a5fa,#a855f7)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
+              Get hired in <br />
+              <span style={{
+                color: '#a855f7',
+                textShadow: '0 0 60px rgba(168,85,247,0.5)',
               }}>4 simple steps</span>
             </h2>
           </div>
 
-          <div className="relative mt-4">
-            {/* Connecting Line (Desktop) */}
+          <div style={{ position: 'relative', maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '96px' }}>
+            {/* Center Vertical Glowing Line (Desktop Only) */}
             <div style={{
-              position: 'absolute', top: 43, left: '10%', right: '10%',
-              height: 2, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15) 20%, rgba(255,255,255,0.15) 80%, transparent)',
-              zIndex: 0
-            }} className="hidden md:block"></div>
+              position: 'absolute',
+              top: '0',
+              bottom: '0',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '2px',
+              background: 'linear-gradient(180deg, rgba(168,85,247,0) 0%, rgba(168,85,247,0.8) 15%, rgba(168,85,247,0.8) 85%, rgba(168,85,247,0) 100%)',
+              zIndex: 0,
+            }} className="hidden md:block">
+              {/* Optional ambient core glow */}
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 200, height: 400, background: 'radial-gradient(ellipse, rgba(168,85,247,0.15) 0%, transparent 70%)', filter: 'blur(30px)', pointerEvents: 'none' }}></div>
+            </div>
 
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: 32,
-              position: 'relative',
-              zIndex: 10
-            }}>
-              {[
-                { num: 1, title: "Create Profile", desc: "Fill out your details securely and upload your best resume." },
-                { num: 2, title: "AI Matching", desc: "Our powerful AI accurately matches you with the best roles." },
-                { num: 3, title: "Apply & Track", desc: "One-click apply and seamlessly track all applications." },
-                { num: 4, title: "Get Hired", desc: "Receive multiple offers and joyfully accept your dream job." }
-              ].map((step, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.15, duration: 0.8 }}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '0 16px' }}
-                >
-                  <div style={{
-                    width: 88, height: 88, borderRadius: '50%',
-                    background: 'linear-gradient(135deg, rgba(59,130,246,0.15), rgba(168,85,247,0.15))',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    marginBottom: 32, position: 'relative',
-                    backdropFilter: 'blur(10px)'
-                  }}>
-                    <div style={{
-                      width: 64, height: 64, borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #3b82f6, #a855f7)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: 'Sora, sans-serif', fontSize: 28, fontWeight: 800, color: '#fff',
-                      boxShadow: '0 12px 32px rgba(168,85,247,0.4)',
-                      border: '4px solid #070b18'
-                    }}>
-                      {step.num}
-                    </div>
+            {[
+              { num: "01", title: "Create Profile", subtitle: "STEP ONE", desc: "Fill out your details securely and upload your best resume." },
+              { num: "02", title: "AI Matching", subtitle: "STEP TWO", desc: "Our powerful AI accurately matches you with the best roles." },
+              { num: "03", title: "Apply & Track", subtitle: "STEP THREE", desc: "One-click apply and seamlessly track all applications." },
+              { num: "04", title: "Get Hired", subtitle: "STEP FOUR", desc: "Receive multiple offers and joyfully accept your dream job." }
+            ].map((step, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15, duration: 0.8 }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  position: 'relative',
+                  zIndex: 1,
+                  width: '100%',
+                }}
+                className="flex-col md:flex-row gap-6 md:gap-0"
+              >
+                {/* Left Side: Title & Number */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="w-full md:w-[45%] text-left md:pr-12 md:justify-between justify-start gap-8 md:gap-0">
+                  <div>
+                    <div style={{ fontFamily: 'Sora, sans-serif', fontSize: '26px', fontWeight: 600, color: '#e6edf3', marginBottom: '8px' }}>{step.title}</div>
+                    <div style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', fontWeight: 600, letterSpacing: '0.12em', color: '#a855f7', textTransform: 'uppercase' }}>{step.subtitle}</div>
                   </div>
-                  <h3 style={{
-                    fontFamily: 'Sora, sans-serif', fontSize: 26, fontWeight: 700, color: '#fff',
-                    marginBottom: 16, letterSpacing: '-0.02em'
-                  }}>
-                    {step.title}
-                  </h3>
+                  <div style={{ fontFamily: 'Sora, sans-serif', fontSize: '48px', fontWeight: 700, color: 'rgba(255,255,255,0.5)' }} className="hidden md:block">
+                    {step.num}
+                  </div>
+                </div>
+
+                {/* Glowing Dot on Line (Desktop Only) */}
+                <div style={{ width: '10%', display: 'flex', justifyContent: 'center' }} className="hidden md:flex relative">
+                  <div style={{
+                    width: 10, height: 10, borderRadius: '50%',
+                    background: '#d8b4fe',
+                    boxShadow: '0 0 20px 6px rgba(168,85,247,0.8), 0 0 40px 10px rgba(168,85,247,0.4)',
+                    border: '1px solid #fff'
+                  }} />
+                </div>
+
+                {/* Right Side: Description */}
+                <div className="w-full md:w-[45%] text-left md:pl-12">
                   <p style={{
-                    fontSize: 17, color: 'rgba(255,255,255,0.55)', fontFamily: 'DM Sans, sans-serif',
-                    lineHeight: 1.6, maxWidth: 280, margin: 0
+                    fontSize: '17px',
+                    color: 'rgba(255,255,255,0.6)',
+                    lineHeight: 1.65,
+                    fontFamily: 'DM Sans, sans-serif',
+                    margin: 0,
+                    maxWidth: '320px'
                   }}>
                     {step.desc}
                   </p>
-                </motion.div>
-              ))}
-            </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -1576,6 +1569,96 @@ export default function Login() {
           }
         `}} />
       </section>
+
+      {/* FOOTER */}
+      <footer className="w-full border-t border-white/5 py-16 px-6 relative z-20" style={{ background: '#0a0f1e' }}>
+        <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row flex-wrap justify-between gap-12 md:gap-8">
+          {/* Left Column (Brand & Socials) */}
+          <div className="w-full md:max-w-[300px] flex flex-col gap-8">
+            {/* Logo */}
+            <div style={{
+              fontFamily: 'Sora, sans-serif',
+              fontWeight: 800,
+              fontSize: '28px',
+              letterSpacing: '-1px',
+              color: '#fff'
+            }}>
+              Smart<span style={{ color: '#a855f7' }}>Placement</span>
+            </div>
+            
+            {/* Social Icons */}
+            <div className="flex gap-4 text-[#7d8590]">
+              {/* Twitter */}
+              <a href="#" className="hover:text-white transition-colors duration-200">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+              </a>
+              {/* YouTube */}
+              <a href="#" className="hover:text-white transition-colors duration-200">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+              </a>
+              {/* Instagram */}
+              <a href="#" className="hover:text-white transition-colors duration-200">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+              </a>
+              {/* LinkedIn */}
+              <a href="#" className="hover:text-white transition-colors duration-200">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              </a>
+              {/* Facebook */}
+               <a href="#" className="hover:text-white transition-colors duration-200">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              </a>
+            </div>
+          </div>
+
+          {/* Right Area (Links Grid) */}
+          <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+            {/* Column 1 */}
+            <div className="flex flex-col gap-4">
+              {["Features", "What's New", "Success Stories", "Career Paths", "About Us"].map((link) => (
+                <a key={link} href="#" className="text-[#7d8590] text-[14px] font-medium no-underline hover:text-white transition-colors duration-200">
+                  {link}
+                </a>
+              ))}
+            </div>
+            
+            {/* Column 2 */}
+            <div className="flex flex-col gap-4">
+              {["Universities", "Employers", "Partnerships", "Student Portal", "Campus Drives"].map((link) => (
+                <a key={link} href="#" className="text-[#7d8590] text-[14px] font-medium no-underline hover:text-white transition-colors duration-200">
+                  {link}
+                </a>
+              ))}
+            </div>
+
+            {/* Column 3 */}
+            <div className="flex flex-col gap-4">
+              {["Support", "Contact Us", "Help Center", "Careers", "Press"].map((link) => (
+                <a key={link} href="#" className="text-[#7d8590] text-[14px] font-medium no-underline hover:text-white transition-colors duration-200">
+                  {link}
+                </a>
+              ))}
+            </div>
+
+            {/* Column 4 */}
+            <div className="flex flex-col gap-4">
+              {["Privacy", "Cookie Policy", "Terms of Service", "Do Not Share My Personal Information"].map((link) => (
+                <a key={link} href="#" className="text-[#7d8590] text-[14px] font-medium no-underline hover:text-white transition-colors duration-200">
+                  {link}
+                </a>
+              ))}
+              <a href="#" className="text-[#a855f7] text-[14px] font-semibold no-underline hover:text-[#c084fc] transition-colors duration-200 mt-2">
+                Join for Free
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom copyright */}
+        <div className="max-w-[1200px] mx-auto mt-16 pt-6 border-t border-white/5 flex justify-center text-[#4b5563] text-[13px]">
+          © {new Date().getFullYear()} SmartPlacement Tracker
+        </div>
+      </footer>
 
     </div>
   )

@@ -806,9 +806,9 @@ export default function Dashboard() {
             )}
 
             {!jobsLoading && adminJobs.length > 0 && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', alignItems: 'start' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', height: 'calc(100vh - 200px)', minHeight: '600px' }}>
                 {/* Left Column: Job Cards List */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '800px', overflowY: 'auto', paddingRight: '4px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', height: '100%', overflowY: 'auto', paddingRight: '8px', paddingBottom: '16px' }}>
                   {adminJobs.map(job => {
                     const ms = matchScores[job.id];
                     const scoreColor = !ms || ms.loading || ms.score === undefined ? '#7d8590'
@@ -821,46 +821,46 @@ export default function Dashboard() {
                       <div key={job.id} 
                         onClick={() => setSelectedJob(job)}
                         style={{
-                          background: isSelected ? 'linear-gradient(145deg, #161b22, #0d1117)' : 'rgba(22, 27, 34, 0.4)', 
+                          background: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.9)', 
                           backdropFilter: 'blur(10px)',
                           border: '1px solid',
-                          borderColor: isSelected ? '#20c99740' : '#21262d',
-                          borderLeft: isSelected ? '4px solid #20c997' : '1px solid #21262d',
+                          borderColor: isSelected ? '#20c997' : '#e5e7eb',
+                          borderLeft: isSelected ? '4px solid #20c997' : '1px solid #e5e7eb',
                           borderRadius: '12px',
-                          boxShadow: isSelected ? '0 12px 32px rgba(32, 201, 151, 0.08)' : '0 4px 12px rgba(0, 0, 0, 0.2)',
+                          boxShadow: isSelected ? '0 12px 32px rgba(32, 201, 151, 0.15)' : '0 4px 12px rgba(0, 0, 0, 0.04)',
                           padding: '20px', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'pointer',
                           transform: isSelected ? 'translateY(-2px)' : 'none'
                         }}
-                        onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.borderColor = '#30363d'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.3)'; } }}
-                        onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.borderColor = '#21262d'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)'; } }}>
+                        onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.08)'; } }}
+                        onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.04)'; } }}>
                           
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                           <div style={{ flex: 1 }}>
-                            <div style={{ color: '#e6edf3', fontSize: '15px', fontWeight: 600 }}>{job.title}</div>
-                            <div style={{ color: '#7d8590', fontSize: '13px', marginTop: '2px' }}>{job.company || job.company_name}</div>
+                            <div style={{ color: '#111827', fontSize: '15px', fontWeight: 600 }}>{job.title}</div>
+                            <div style={{ color: '#4b5563', fontSize: '13px', marginTop: '2px' }}>{job.company || job.company_name}</div>
                           </div>
                           <div style={{
                             width: '44px', height: '44px', borderRadius: '10px', 
-                            background: 'linear-gradient(135deg, #2d333b, #21262d)',
-                            border: '1px solid #30363d',
+                            background: '#f3f4f6',
+                            border: '1px solid #e5e7eb',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                            color: '#e6edf3', fontWeight: 700,
+                            color: '#111827', fontWeight: 700,
                             fontSize: '18px', flexShrink: 0, overflow: 'hidden', marginLeft: '12px',
-                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1)'
+                            boxShadow: 'none'
                           }}>
                             {job.company_logo ? <img src={job.company_logo} alt={job.company || job.company_name || 'Company'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (job.company || job.company_name)?.charAt(0).toUpperCase()}
                           </div>
                         </div>
 
                         <div style={{ marginTop: '12px', marginBottom: '8px' }}>
-                          <span style={{ background: '#1a2e22', color: '#3fb950', border: '1px solid #23863633', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', fontWeight: 600 }}>
+                          <span style={{ background: '#dcfce7', color: '#166534', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', fontWeight: 600 }}>
                             {formatPackage(job.package_lpa || job.salary_min)}
                           </span>
                         </div>
 
                         <div style={{ display: 'flex', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
-                          {job.location && <span style={{ color: '#7d8590', fontSize: '12px' }}>📍 {job.location}</span>}
-                          {job.job_type && <span style={{ color: '#7d8590', fontSize: '12px' }}>💼 {job.job_type}</span>}
+                          {job.location && <span style={{ color: '#6b7280', fontSize: '12px' }}>📍 {job.location}</span>}
+                          {job.job_type && <span style={{ color: '#6b7280', fontSize: '12px' }}>💼 {job.job_type}</span>}
                         </div>
 
                         {job.required_skills && job.required_skills.length > 0 && (
@@ -869,15 +869,15 @@ export default function Dashboard() {
                               const hasIt = studentHas(skill)
                               return (
                                 <span key={idx} style={{ 
-                                  background: hasIt ? '#1a2e22' : '#2d1b1b', 
-                                  color: hasIt ? '#3fb950' : '#f85149', 
+                                  background: hasIt ? '#dcfce7' : '#fee2e2', 
+                                  color: hasIt ? '#166534' : '#991b1b', 
                                   borderRadius: '4px', padding: '2px 8px', fontSize: '11px', fontWeight: 500 
                                 }}>
                                   {cleanSkill(skill)}
                                 </span>
                               )
                             })}
-                            {job.required_skills.length > 5 && <span style={{ color: '#7d8590', fontSize: '11px', alignSelf: 'center' }}>+{job.required_skills.length - 5}</span>}
+                            {job.required_skills.length > 5 && <span style={{ color: '#6b7280', fontSize: '11px', alignSelf: 'center' }}>+{job.required_skills.length - 5}</span>}
                           </div>
                         )}
 
@@ -896,16 +896,17 @@ export default function Dashboard() {
 
                 {/* Right Column: Job Detail Panel */}
                 <div style={{ 
-                  background: 'rgba(22, 27, 34, 0.65)', 
+                  background: 'rgba(255, 255, 255, 0.95)', 
                   backdropFilter: 'blur(20px)',
-                  border: '1px solid #30363d', 
+                  border: '1px solid #e5e7eb', 
                   borderRadius: '16px', 
                   padding: '28px', 
-                  position: 'sticky', top: '20px',
-                  boxShadow: '0 12px 32px rgba(0, 0, 0, 0.2)'
+                  height: '100%',
+                  overflowY: 'auto',
+                  boxShadow: '0 12px 32px rgba(0, 0, 0, 0.08)'
                 }}>
                   {!selectedJob ? (
-                    <div style={{ textAlign: 'center', padding: '80px 0', color: '#7d8590' }}>
+                    <div style={{ textAlign: 'center', padding: '80px 0', color: '#6b7280' }}>
                       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '16px', opacity: 0.5, margin: '0 auto 16px auto', display: 'block' }}>
                         <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
                         <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
@@ -916,42 +917,42 @@ export default function Dashboard() {
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                         <div>
-                          <h2 style={{ color: '#e6edf3', fontSize: '20px', fontWeight: 700, margin: '0 0 4px', lineHeight: 1.3 }}>{selectedJob.title}</h2>
-                          <p style={{ color: '#7d8590', fontSize: '14px', margin: 0 }}>{selectedJob.company || selectedJob.company_name}</p>
+                          <h2 style={{ color: '#111827', fontSize: '20px', fontWeight: 700, margin: '0 0 4px', lineHeight: 1.3 }}>{selectedJob.title}</h2>
+                          <p style={{ color: '#4b5563', fontSize: '14px', margin: 0 }}>{selectedJob.company || selectedJob.company_name}</p>
                         </div>
                         <div style={{
                           width: '64px', height: '64px', borderRadius: '14px', 
-                          background: 'linear-gradient(135deg, #2d333b, #21262d)',
-                          border: '1px solid #30363d',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e6edf3', fontWeight: 700,
+                          background: '#f3f4f6',
+                          border: '1px solid #e5e7eb',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#111827', fontWeight: 700,
                           fontSize: '28px', flexShrink: 0, overflow: 'hidden', marginLeft: '16px',
-                          boxShadow: '0 8px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)'
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
                         }}>
                           {selectedJob.company_logo ? <img src={selectedJob.company_logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (selectedJob.company || selectedJob.company_name)?.charAt(0).toUpperCase()}
                         </div>
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px', padding: '16px', background: '#0d1117', borderRadius: '8px', border: '1px solid #21262d' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px', padding: '16px', background: '#f9fafb', borderRadius: '8px', border: '1px solid #f3f4f6' }}>
                         <div>
-                          <p style={{ color: '#7d8590', fontSize: '11px', textTransform: 'uppercase', margin: '0 0 4px', fontWeight: 600 }}>Salary</p>
-                          <p style={{ color: '#e6edf3', fontSize: '13px', margin: 0, fontWeight: 500 }}>{formatPackage(selectedJob.package_lpa || selectedJob.salary_min)}</p>
+                          <p style={{ color: '#6b7280', fontSize: '11px', textTransform: 'uppercase', margin: '0 0 4px', fontWeight: 600 }}>Salary</p>
+                          <p style={{ color: '#111827', fontSize: '13px', margin: 0, fontWeight: 600 }}>{formatPackage(selectedJob.package_lpa || selectedJob.salary_min)}</p>
                         </div>
                         {selectedJob.location && (
                           <div>
-                            <p style={{ color: '#7d8590', fontSize: '11px', textTransform: 'uppercase', margin: '0 0 4px', fontWeight: 600 }}>Location</p>
-                            <p style={{ color: '#e6edf3', fontSize: '13px', margin: 0, fontWeight: 500 }}>{selectedJob.location}</p>
+                            <p style={{ color: '#6b7280', fontSize: '11px', textTransform: 'uppercase', margin: '0 0 4px', fontWeight: 600 }}>Location</p>
+                            <p style={{ color: '#111827', fontSize: '13px', margin: 0, fontWeight: 600 }}>{selectedJob.location}</p>
                           </div>
                         )}
                         {selectedJob.job_type && (
                           <div>
-                            <p style={{ color: '#7d8590', fontSize: '11px', textTransform: 'uppercase', margin: '0 0 4px', fontWeight: 600 }}>Job Type</p>
-                            <p style={{ color: '#e6edf3', fontSize: '13px', margin: 0, fontWeight: 500 }}>{selectedJob.job_type}</p>
+                            <p style={{ color: '#6b7280', fontSize: '11px', textTransform: 'uppercase', margin: '0 0 4px', fontWeight: 600 }}>Job Type</p>
+                            <p style={{ color: '#111827', fontSize: '13px', margin: 0, fontWeight: 600 }}>{selectedJob.job_type}</p>
                           </div>
                         )}
                         {selectedJob.openings && (
                           <div>
-                            <p style={{ color: '#7d8590', fontSize: '11px', textTransform: 'uppercase', margin: '0 0 4px', fontWeight: 600 }}>Openings</p>
-                            <p style={{ color: '#e6edf3', fontSize: '13px', margin: 0, fontWeight: 500 }}>{selectedJob.openings}</p>
+                            <p style={{ color: '#6b7280', fontSize: '11px', textTransform: 'uppercase', margin: '0 0 4px', fontWeight: 600 }}>Openings</p>
+                            <p style={{ color: '#111827', fontSize: '13px', margin: 0, fontWeight: 600 }}>{selectedJob.openings}</p>
                           </div>
                         )}
                       </div>
@@ -961,7 +962,7 @@ export default function Dashboard() {
                           <div style={{ borderLeft: '3px solid #20c997', paddingLeft: '10px', marginBottom: '12px', marginTop: '20px' }}>
                             <span style={{ color: '#20c997', fontSize: '14px', fontWeight: 600 }}>Job description</span>
                           </div>
-                          <p style={{ color: '#e6edf3', fontSize: '13px', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
+                          <p style={{ color: '#374151', fontSize: '13px', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
                             {selectedJob.description}
                           </p>
                         </>
@@ -972,7 +973,7 @@ export default function Dashboard() {
                           <div style={{ borderLeft: '3px solid #20c997', paddingLeft: '10px', marginBottom: '12px', marginTop: '20px' }}>
                             <span style={{ color: '#20c997', fontSize: '14px', fontWeight: 600 }}>Required skills</span>
                           </div>
-                          <ol style={{ color: '#e6edf3', fontSize: '13px', margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <ol style={{ color: '#374151', fontSize: '13px', margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             {selectedJob.required_skills.map((skill: string, idx: number) => (
                               <li key={idx} style={{ paddingLeft: '4px' }}>{cleanSkill(skill)}</li>
                             ))}
@@ -985,7 +986,7 @@ export default function Dashboard() {
                           <div style={{ borderLeft: '3px solid #20c997', paddingLeft: '10px', marginBottom: '12px', marginTop: '20px' }}>
                             <span style={{ color: '#20c997', fontSize: '14px', fontWeight: 600 }}>Eligibility</span>
                           </div>
-                          <p style={{ color: '#e6edf3', fontSize: '13px', margin: 0 }}>Minimum CGPA: {selectedJob.min_cgpa}</p>
+                          <p style={{ color: '#374151', fontSize: '13px', margin: 0 }}>Minimum CGPA: {selectedJob.min_cgpa}</p>
                         </>
                       )}
 
@@ -994,14 +995,14 @@ export default function Dashboard() {
                           <div style={{ borderLeft: '3px solid #20c997', paddingLeft: '10px', marginBottom: '12px', marginTop: '20px' }}>
                             <span style={{ color: '#20c997', fontSize: '14px', fontWeight: 600 }}>Deadline</span>
                           </div>
-                          <p style={{ color: '#e6edf3', fontSize: '13px', margin: 0 }}>
+                          <p style={{ color: '#374151', fontSize: '13px', margin: 0 }}>
                             {new Date(selectedJob.application_deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                             {(() => {
                               const diff = new Date(selectedJob.application_deadline).getTime() - new Date().getTime();
                               const days = Math.ceil(diff / (1000 * 3600 * 24));
-                              if (diff < 0) return <span style={{ color: '#f85149', marginLeft: '6px' }}>(Expired)</span>;
-                              if (days === 0) return <span style={{ color: '#d29922', marginLeft: '6px' }}>(Ends today)</span>;
-                              return <span style={{ color: '#7d8590', marginLeft: '6px' }}>({days} days remaining)</span>;
+                              if (diff < 0) return <span style={{ color: '#dc2626', marginLeft: '6px' }}>(Expired)</span>;
+                              if (days === 0) return <span style={{ color: '#d97706', marginLeft: '6px' }}>(Ends today)</span>;
+                              return <span style={{ color: '#6b7280', marginLeft: '6px' }}>({days} days remaining)</span>;
                             })()}
                           </p>
                         </>
@@ -1052,22 +1053,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Placement Pulse CTA */}
-          <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '20px 24px', marginTop: '32px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h2 style={{ margin: 0, fontSize: 14, fontWeight: 500, color: '#e6edf3' }}>⚡ Placement Pulse</h2>
-              <Link to="/placement-pulse" style={{ fontSize: 12, color: '#20c997', textDecoration: 'none', fontWeight: 500 }}>Open Pulse →</Link>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: '#20c99712', border: '1px solid #20c99722', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#20c997' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-              </div>
-              <div style={{ flex: 1 }}>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#e6edf3' }}>Track your prep momentum</p>
-                <p style={{ margin: '2px 0 0', fontSize: 12, color: '#7d8590' }}>Daily actions · Streaks · Category readiness</p>
-              </div>
-            </div>
-          </div>
+
         </div>
 
         {/* Right Panel - Profile Summary */}
