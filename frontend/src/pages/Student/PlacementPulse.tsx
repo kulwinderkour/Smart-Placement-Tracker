@@ -18,8 +18,8 @@ interface CatDef { id: string; label: string; icon: string; color: string }
 
 // ─── Theme ───────────────────────────────────────────────────────────────────
 const C = {
-  bg: '#0d1117', card: '#161b22', border: '#21262d', borderH: '#30363d',
-  text: '#e6edf3', muted: '#7d8590', primary: '#20c997',
+  bg: '#121212', card: '#1c1c1c', border: '#2d2d2d', borderH: '#333333',
+  text: '#e0e0e0', muted: '#888888', primary: '#20c997',
   dim: '#0d2b22', warn: '#f0b429', danger: '#f85149', blue: '#58a6ff',
 }
 
@@ -27,7 +27,7 @@ const C = {
 const CATS: CatDef[] = [
   { id: 'dsa',    label: 'DSA',            icon: '🧠', color: '#58a6ff' },
   { id: 'apt',    label: 'Aptitude',       icon: '🔢', color: '#f0b429' },
-  { id: 'core',   label: 'Core Subjects',  icon: '📚', color: '#a78bfa' },
+  { id: 'core',   label: 'Core Subjects',  icon: '📚', color: '#4ade80' },
   { id: 'resume', label: 'Resume',         icon: '📄', color: '#20c997' },
   { id: 'proj',   label: 'Projects',       icon: '🛠️', color: '#f97316' },
   { id: 'comm',   label: 'Communication',  icon: '🎙️', color: '#ec4899' },
@@ -210,7 +210,7 @@ export default function PlacementPulse() {
               { label: 'Current Streak',  val: `${st.streak}d`,   icon: '🔥', col: '#f97316' },
               { label: 'Best Streak',     val: `${st.best}d`,     icon: '🏆', col: C.primary },
               { label: "Today's Actions", val: `${st.doneToday.length}/${ACTIONS.length}`, icon: '⚡', col: C.blue },
-              { label: 'Days This Week',  val: `${activeDays}/7`, icon: '📅', col: '#a78bfa' },
+              { label: 'Days This Week',  val: `${activeDays}/7`, icon: '📅', col: '#4ade80' },
             ].map(s => (
               <div key={s.label} style={{
                 background: C.card, border: `1px solid ${C.border}`, borderRadius: 14,

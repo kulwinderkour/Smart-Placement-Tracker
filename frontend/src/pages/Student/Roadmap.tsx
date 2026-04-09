@@ -116,7 +116,7 @@ export default function Roadmap() {
       case 'beginner': return '#20c997';
       case 'intermediate': return '#f1a732';
       case 'advanced': return '#f85149';
-      default: return '#7d8590';
+      default: return '#888888';
     }
   };
 
@@ -124,21 +124,21 @@ export default function Roadmap() {
     <div style={{ 
       display: 'flex', 
       minHeight: 'calc(100vh - 64px)', 
-      background: '#0d1117', 
-      color: '#e6edf3',
+      background: '#121212', 
+      color: '#e0e0e0',
       fontFamily: 'Inter, system-ui, sans-serif'
     }}>
       {/* Sidebar - Recent Roadmaps */}
       <aside style={{
         width: '280px',
-        background: '#0d1117',
-        borderRight: '1px solid #21262d',
+        background: '#121212',
+        borderRight: '1px solid #2d2d2d',
         padding: '24px',
         display: 'flex',
         flexDirection: 'column',
         gap: '20px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#7d8590' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#888888' }}>
           <History size={16} />
           <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Recent Roadmaps
@@ -147,7 +147,7 @@ export default function Roadmap() {
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {recentRoadmaps.length === 0 ? (
-            <p style={{ fontSize: '13px', color: '#484f58', fontStyle: 'italic', margin: '20px 0' }}>
+            <p style={{ fontSize: '13px', color: '#555555', fontStyle: 'italic', margin: '20px 0' }}>
               No roadmaps yet.
             </p>
           ) : (
@@ -165,7 +165,7 @@ export default function Roadmap() {
                   borderRadius: '6px',
                   padding: '8px 12px',
                   fontSize: '14px',
-                  color: '#7d8590',
+                  color: '#888888',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
                   whiteSpace: 'nowrap',
@@ -173,12 +173,12 @@ export default function Roadmap() {
                   textOverflow: 'ellipsis'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#161b22';
-                  e.currentTarget.style.color = '#e6edf3';
+                  e.currentTarget.style.background = '#1c1c1c';
+                  e.currentTarget.style.color = '#e0e0e0';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = '#7d8590';
+                  e.currentTarget.style.color = '#888888';
                 }}
               >
                 {name}
@@ -204,7 +204,7 @@ export default function Roadmap() {
               display: 'flex',
               alignItems: 'center'
             }}>
-              <Search size={18} style={{ position: 'absolute', left: '16px', color: '#7d8590' }} />
+              <Search size={18} style={{ position: 'absolute', left: '16px', color: '#888888' }} />
               <input 
                 type="text"
                 placeholder="Full Stack Developer"
@@ -213,17 +213,17 @@ export default function Roadmap() {
                 onKeyDown={(e) => e.key === 'Enter' && generateRoadmap()}
                 style={{
                   width: '100%',
-                  background: '#161b22',
-                  border: '1px solid #30363d',
+                  background: '#1c1c1c',
+                  border: '1px solid #333333',
                   borderRadius: '10px',
                   padding: '12px 16px 12px 48px',
-                  color: '#e6edf3',
+                  color: '#e0e0e0',
                   fontSize: '15px',
                   outline: 'none',
                   transition: 'border-color 0.2s'
                 }}
                 onFocus={(e) => e.currentTarget.style.borderColor = '#20c997'}
-                onBlur={(e) => e.currentTarget.style.borderColor = '#30363d'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#333333'}
               />
             </div>
             <button
@@ -234,7 +234,7 @@ export default function Roadmap() {
                 alignItems: 'center',
                 gap: '8px',
                 background: '#20c997',
-                color: '#0d1117',
+                color: '#121212',
                 border: 'none',
                 borderRadius: '10px',
                 padding: '0 24px',
@@ -276,14 +276,14 @@ export default function Roadmap() {
               <div style={{
                 width: '64px',
                 height: '64px',
-                background: '#161b22',
+                background: '#1c1c1c',
                 borderRadius: '16px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 margin: '0 auto 24px',
                 color: '#20c997',
-                border: '1px solid #21262d'
+                border: '1px solid #2d2d2d'
               }}>
                 <BookOpen size={32} />
               </div>
@@ -292,7 +292,7 @@ export default function Roadmap() {
               </h1>
               <p style={{ 
                 fontSize: '16px', 
-                color: '#7d8590', 
+                color: '#888888', 
                 lineHeight: 1.6, 
                 maxWidth: '600px', 
                 margin: '0 auto 40px' 
@@ -311,12 +311,12 @@ export default function Roadmap() {
                       generateRoadmap(role);
                     }}
                     style={{
-                      background: '#161b22',
-                      border: '1px solid #21262d',
+                      background: '#1c1c1c',
+                      border: '1px solid #2d2d2d',
                       borderRadius: '20px',
                       padding: '8px 16px',
                       fontSize: '13px',
-                      color: '#7d8590',
+                      color: '#888888',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -325,11 +325,11 @@ export default function Roadmap() {
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = '#20c997';
-                      e.currentTarget.style.color = '#e6edf3';
+                      e.currentTarget.style.color = '#e0e0e0';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = '#21262d';
-                      e.currentTarget.style.color = '#7d8590';
+                      e.currentTarget.style.borderColor = '#2d2d2d';
+                      e.currentTarget.style.color = '#888888';
                     }}
                   >
                     <Plus size={14} />
@@ -345,7 +345,7 @@ export default function Roadmap() {
             <div style={{ textAlign: 'center', marginTop: '60px' }}>
               <Loader2 size={48} className="animate-spin" style={{ color: '#20c997', margin: '0 auto 24px' }} />
               <h2 style={{ fontSize: '20px', fontWeight: 600 }}>Building your roadmap...</h2>
-              <p style={{ color: '#7d8590', marginTop: '8px' }}>Gemini is curating the best resources for you.</p>
+              <p style={{ color: '#888888', marginTop: '8px' }}>Gemini is curating the best resources for you.</p>
             </div>
           )}
 
@@ -353,14 +353,14 @@ export default function Roadmap() {
           {roadmap && !loading && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div style={{ 
-                background: '#161b22', 
-                border: '1px solid #30363d', 
+                background: '#1c1c1c', 
+                border: '1px solid #333333', 
                 borderRadius: '16px', 
                 padding: '32px',
                 marginBottom: '40px'
               }}>
                 <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>{roadmap.title}</h1>
-                <p style={{ color: '#7d8590', fontSize: '15px', lineHeight: 1.5 }}>{roadmap.description}</p>
+                <p style={{ color: '#888888', fontSize: '15px', lineHeight: 1.5 }}>{roadmap.description}</p>
               </div>
 
               {/* Sections */}
@@ -411,17 +411,17 @@ export default function Roadmap() {
                         <div 
                           key={topic.id}
                           style={{
-                            background: '#161b22',
-                            border: '1px solid #21262d',
+                            background: '#1c1c1c',
+                            border: '1px solid #2d2d2d',
                             borderRadius: '12px',
                             padding: '20px',
                             transition: 'border-color 0.2s'
                           }}
-                          onMouseEnter={(e) => e.currentTarget.style.borderColor = '#30363d'}
-                          onMouseLeave={(e) => e.currentTarget.style.borderColor = '#21262d'}
+                          onMouseEnter={(e) => e.currentTarget.style.borderColor = '#333333'}
+                          onMouseLeave={(e) => e.currentTarget.style.borderColor = '#2d2d2d'}
                         >
                           <h4 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '8px' }}>{topic.title}</h4>
-                          <p style={{ fontSize: '13px', color: '#7d8590', lineHeight: 1.5, marginBottom: '16px' }}>
+                          <p style={{ fontSize: '13px', color: '#888888', lineHeight: 1.5, marginBottom: '16px' }}>
                             {topic.description}
                           </p>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
