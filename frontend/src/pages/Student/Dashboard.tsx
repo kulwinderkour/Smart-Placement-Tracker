@@ -71,7 +71,7 @@ function StatCard({ value, label, icon, accent }: { value: string | number; labe
     <div 
       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{
-        background: '#161b22', border: `1px solid ${hov ? '#30363d' : '#21262d'}`,
+        background: '#1c1c1c', border: `1px solid ${hov ? '#333333' : '#2d2d2d'}`,
         borderRadius: 10, padding: '20px 22px', flex: 1, minWidth: 200, transition: 'all 0.15s ease'
       }}>
       <div style={{ color: accent, marginBottom: 16 }}>
@@ -79,8 +79,8 @@ function StatCard({ value, label, icon, accent }: { value: string | number; labe
           <path d={icon} />
         </svg>
       </div>
-      <h3 style={{ margin: 0, fontSize: 28, fontWeight: 600, color: '#e6edf3', lineHeight: 1.2 }}>{value}</h3>
-      <p style={{ margin: '4px 0 0', fontSize: 12, color: '#7d8590', fontWeight: 500 }}>{label}</p>
+      <h3 style={{ margin: 0, fontSize: 28, fontWeight: 600, color: '#e0e0e0', lineHeight: 1.2 }}>{value}</h3>
+      <p style={{ margin: '4px 0 0', fontSize: 12, color: '#888888', fontWeight: 500 }}>{label}</p>
     </div>
   )
 }
@@ -91,8 +91,8 @@ function ActionCard({ icon, title, subtitle, to }: { icon: string; title: string
     <Link to={to} 
       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{
-        background: hov ? '#1c2128' : '#161b22',
-        border: `1px solid ${hov ? '#30363d' : '#21262d'}`,
+        background: hov ? '#1f1f1f' : '#1c1c1c',
+        border: `1px solid ${hov ? '#333333' : '#2d2d2d'}`,
         borderRadius: 10, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14,
         textDecoration: 'none', transition: 'all 0.15s ease', cursor: 'pointer'
       }}
@@ -103,10 +103,10 @@ function ActionCard({ icon, title, subtitle, to }: { icon: string; title: string
         </svg>
       </div>
       <div style={{ flex: 1 }}>
-        <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: '#e6edf3', lineHeight: 1.5 }}>{title}</p>
-        <p style={{ margin: '2px 0 0', fontSize: 12, color: '#7d8590', lineHeight: 1.5 }}>{subtitle}</p>
+        <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: '#e0e0e0', lineHeight: 1.5 }}>{title}</p>
+        <p style={{ margin: '2px 0 0', fontSize: 12, color: '#888888', lineHeight: 1.5 }}>{subtitle}</p>
       </div>
-      <span style={{ color: hov ? '#7d8590' : '#484f58', fontSize: 18 }}>→</span>
+      <span style={{ color: hov ? '#888888' : '#555555', fontSize: 18 }}>→</span>
     </Link>
   )
 }
@@ -320,25 +320,25 @@ export default function Dashboard() {
   const resumeBase = profile.resumeBase64 || profile.resume_base64
 
   return (
-    <div style={{ width: '100%', minHeight: '100vh', background: '#0d1117' }}>
+    <div style={{ width: '100%', minHeight: '100vh', background: '#121212' }}>
       
       {/* ── Top Bar ── */}
       <header style={{
-        background: '#0d1117', borderBottom: '1px solid #21262d',
+        background: '#121212', borderBottom: '1px solid #2d2d2d',
         padding: '14px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         position: 'sticky', top: 0, zIndex: 10
       }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 18, fontWeight: 500, color: '#e6edf3' }}>
+          <h1 style={{ margin: 0, fontSize: 18, fontWeight: 500, color: '#e0e0e0' }}>
             {greeting}, {firstName} 👋
           </h1>
-          <p style={{ margin: '2px 0 0', fontSize: 13, color: '#7d8590' }}>
+          <p style={{ margin: '2px 0 0', fontSize: 13, color: '#888888' }}>
             {skills.length > 0 ? `Track your profile and skills efficiently.` : `Complete your profile to boost placement readiness.`}
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {/* Notification Bell */}
-          <div style={{ color: '#7d8590', cursor: 'pointer', padding: '6px', borderRadius: 8 }}>
+          <div style={{ color: '#888888', cursor: 'pointer', padding: '6px', borderRadius: 8 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           </div>
 
@@ -353,7 +353,7 @@ export default function Dashboard() {
           </div>
 
           {/* Separator */}
-          <div style={{ width: 1, height: 22, background: '#21262d', margin: '0 4px' }} />
+          <div style={{ width: 1, height: 22, background: '#2d2d2d', margin: '0 4px' }} />
 
           {/* Logout Button */}
           <button
@@ -368,7 +368,7 @@ export default function Dashboard() {
               border: `1px solid ${logoutHov ? '#da363344' : 'transparent'}`,
               borderRadius: 8,
               padding: '6px 12px',
-              color: logoutHov ? '#f85149' : '#7d8590',
+              color: logoutHov ? '#f85149' : '#888888',
               cursor: 'pointer',
               fontSize: 12,
               fontWeight: 500,
@@ -395,15 +395,15 @@ export default function Dashboard() {
           </div>
 
           {/* Readiness Bar */}
-          <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '20px 24px' }}>
+          <div style={{ background: '#1c1c1c', border: '1px solid #2d2d2d', borderRadius: 10, padding: '20px 24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <span style={{ fontSize: 14, fontWeight: 500, color: '#e6edf3' }}>Placement Readiness</span>
+              <span style={{ fontSize: 14, fontWeight: 500, color: '#e0e0e0' }}>Placement Readiness</span>
               <span style={{ fontSize: 14, fontWeight: 600, color: '#20c997' }}>{readiness}%</span>
             </div>
-            <div style={{ height: 6, background: '#21262d', borderRadius: 3, overflow: 'hidden' }}>
+            <div style={{ height: 6, background: '#2d2d2d', borderRadius: 3, overflow: 'hidden' }}>
               <div style={{ width: `${readiness}%`, height: '100%', background: '#20c997', transition: 'width 0.8s ease' }} />
             </div>
-            <p style={{ margin: '8px 0 0', fontSize: 12, color: '#7d8590' }}>
+            <p style={{ margin: '8px 0 0', fontSize: 12, color: '#888888' }}>
               💡 Profile completion status. Upload your latest resume to reach 100%.
             </p>
           </div>
@@ -416,14 +416,14 @@ export default function Dashboard() {
           </div>
 
           {/* Recent Apps */}
-          <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 10, padding: '20px 24px' }}>
+          <div style={{ background: '#1c1c1c', border: '1px solid #2d2d2d', borderRadius: 10, padding: '20px 24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h2 style={{ margin: 0, fontSize: 14, fontWeight: 500, color: '#e6edf3' }}>Recent Applications</h2>
+              <h2 style={{ margin: 0, fontSize: 14, fontWeight: 500, color: '#e0e0e0' }}>Recent Applications</h2>
               <Link to="/jobs" style={{ fontSize: 12, color: '#20c997', textDecoration: 'none', fontWeight: 500 }}>Browse Jobs →</Link>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {appsLoading ? (
-                <p style={{ fontSize: 13, color: '#7d8590', margin: 0 }}>Loading…</p>
+                <p style={{ fontSize: 13, color: '#888888', margin: 0 }}>Loading…</p>
               ) : applications.length > 0 ? applications.slice(0, 5).map((app, i) => {
                 const statusKey = app.status === 'applied' ? 'Applied'
                   : app.status === 'offer' ? 'Offered'
@@ -436,17 +436,17 @@ export default function Dashboard() {
                 return (
                   <div key={i} style={{ 
                     padding: '12px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    borderBottom: i === Math.min(applications.length, 5) - 1 ? 'none' : '1px solid #21262d'
+                    borderBottom: i === Math.min(applications.length, 5) - 1 ? 'none' : '1px solid #2d2d2d'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{
-                        width: 32, height: 32, borderRadius: 6, background: '#21262d', color: '#7d8590',
+                        width: 32, height: 32, borderRadius: 6, background: '#2d2d2d', color: '#888888',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 500,
                         flexShrink: 0
                       }}>{app.company[0]?.toUpperCase() ?? '?'}</div>
                       <div>
-                        <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: '#e6edf3' }}>{app.company}</p>
-                        <p style={{ margin: 0, fontSize: 12, color: '#7d8590' }}>{app.role} · {appliedDate}</p>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: '#e0e0e0' }}>{app.company}</p>
+                        <p style={{ margin: 0, fontSize: 12, color: '#888888' }}>{app.role} · {appliedDate}</p>
                       </div>
                     </div>
                     <span style={{
@@ -456,7 +456,7 @@ export default function Dashboard() {
                   </div>
                 )
               }) : (
-                <p style={{ fontSize: 13, color: '#7d8590', margin: 0 }}>
+                <p style={{ fontSize: 13, color: '#888888', margin: 0 }}>
                   No applications yet. <Link to="/jobs" style={{ color: '#20c997', textDecoration: 'none' }}>Browse jobs →</Link>
                 </p>
               )}
@@ -471,28 +471,28 @@ export default function Dashboard() {
               justifyContent: 'center', zIndex: 1000, padding: '16px'
             }}>
               <div style={{
-                background: '#161b22', border: '1px solid #30363d', borderRadius: '14px',
+                background: '#1c1c1c', border: '1px solid #333333', borderRadius: '14px',
                 width: '100%', maxWidth: '600px', maxHeight: '85vh',
                 display: 'flex', flexDirection: 'column', boxShadow: '0 24px 48px rgba(0,0,0,0.5)'
               }}>
                 {/* Header */}
-                <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #21262d', flexShrink: 0 }}>
+                <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #2d2d2d', flexShrink: 0 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
-                      <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#e6edf3' }}>⚡ Smart Placement Auto-Apply</h2>
-                      <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#7d8590' }}>
+                      <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#e0e0e0' }}>⚡ Smart Placement Auto-Apply</h2>
+                      <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#888888' }}>
                         Powered by trained ML profile matcher · Filter: ₹{minPackage} LPA+ · Match ≥ 50%
                       </p>
                     </div>
                     <button onClick={() => setShowAutoApplyModal(false)}
-                      style={{ background: 'none', border: 'none', color: '#7d8590', cursor: 'pointer', fontSize: '18px', lineHeight: 1 }}>✕</button>
+                      style={{ background: 'none', border: 'none', color: '#888888', cursor: 'pointer', fontSize: '18px', lineHeight: 1 }}>✕</button>
                   </div>
                 </div>
 
                 {/* Job List */}
                 <div style={{ overflowY: 'auto', flex: 1, padding: '16px 24px' }}>
                   {adminJobs.length === 0 && (
-                    <p style={{ color: '#484f58', textAlign: 'center', marginTop: '32px' }}>No placements posted yet.</p>
+                    <p style={{ color: '#555555', textAlign: 'center', marginTop: '32px' }}>No placements posted yet.</p>
                   )}
                   {adminJobs.map(job => {
                     const ms = matchScores[job.id];
@@ -519,7 +519,7 @@ export default function Dashboard() {
                     const statusConfig: Record<DS, { label: string; bg: string; fg: string; border: string }> = {
                       scoring:    { label: '⏳ Scoring…',      bg: '#1a1a2e', fg: '#818cf8', border: '#818cf833' },
                       eligible:   { label: '✓ Will Apply',    bg: '#1a2e22', fg: '#3fb950', border: '#23863633' },
-                      ineligible: { label: '— Skipped',       bg: '#161b22', fg: '#7d8590', border: '#21262d'   },
+                      ineligible: { label: '— Skipped',       bg: '#1c1c1c', fg: '#888888', border: '#2d2d2d'   },
                       applying:   { label: '⏳ Applying…',    bg: '#1a1a2e', fg: '#818cf8', border: '#818cf833' },
                       done:       { label: '✓ Applied',       bg: '#1a2e22', fg: '#3fb950', border: '#3fb95033' },
                       failed:     { label: '✗ Failed',        bg: '#2d1b1b', fg: '#f85149', border: '#f8514933' },
@@ -528,7 +528,7 @@ export default function Dashboard() {
 
                     return (
                       <div key={job.id} style={{
-                        background: '#0d1117', border: `1px solid ${ds === 'eligible' ? '#23863660' : '#21262d'}`,
+                        background: '#121212', border: `1px solid ${ds === 'eligible' ? '#23863660' : '#2d2d2d'}`,
                         borderRadius: '10px', padding: '14px 16px', marginBottom: '10px',
                         opacity: ds === 'ineligible' ? 0.5 : 1,
                         transition: 'border-color 0.3s'
@@ -536,8 +536,8 @@ export default function Dashboard() {
                         {/* Header row */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                           <div>
-                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#e6edf3' }}>{job.title}</div>
-                            <div style={{ fontSize: '12px', color: '#7d8590', marginTop: '2px' }}>
+                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#e0e0e0' }}>{job.title}</div>
+                            <div style={{ fontSize: '12px', color: '#888888', marginTop: '2px' }}>
                               {job.company || job.company_name} · {job.location || 'Remote'}
                               {pkg > 0 && <span style={{ color: '#3fb950', marginLeft: '8px' }}>{_fmtPkg(pkg)}</span>}
                             </div>
@@ -556,12 +556,12 @@ export default function Dashboard() {
                         ) : ds !== 'done' && ms && !ms.loading && ms.score !== undefined ? (
                           <div style={{ background: `${scoreColor}08`, border: `1px solid ${scoreColor}30`, borderRadius: '8px', padding: '10px 12px' }}>
                             {/* Prominence message */}
-                            <div style={{ fontSize: '13px', color: '#e6edf3', fontWeight: 500, marginBottom: '8px' }}>
+                            <div style={{ fontSize: '13px', color: '#e0e0e0', fontWeight: 500, marginBottom: '8px' }}>
                               {eligMsg} <span style={{ color: scoreColor, fontSize: '18px', fontWeight: 800 }}>{score}%</span>{' '}
                               <span style={{ color: scoreColor }}>eligible</span> for this placement
                             </div>
                             {/* Score bar */}
-                            <div style={{ height: '6px', background: '#21262d', borderRadius: '3px', overflow: 'hidden', marginBottom: '8px' }}>
+                            <div style={{ height: '6px', background: '#2d2d2d', borderRadius: '3px', overflow: 'hidden', marginBottom: '8px' }}>
                               <div style={{ width: `${score}%`, height: '100%', background: scoreColor, borderRadius: '3px', transition: 'width 0.6s ease' }} />
                             </div>
                             {/* Skills */}
@@ -573,7 +573,7 @@ export default function Dashboard() {
                                 <span key={s} style={{ background: '#2d1b1b60', color: '#f85149', border: '1px solid #f8514940', borderRadius: '3px', padding: '2px 6px', fontSize: '10px' }}>✗ {s}</span>
                               ))}
                               {ds === 'ineligible' && pkgLPA > 0 && pkgLPA < minPackage && (
-                                <span style={{ color: '#7d8590', fontSize: '10px', alignSelf: 'center', marginLeft: '4px' }}>Package below ₹{minPackage} LPA threshold</span>
+                                <span style={{ color: '#888888', fontSize: '10px', alignSelf: 'center', marginLeft: '4px' }}>Package below ₹{minPackage} LPA threshold</span>
                               )}
                             </div>
                           </div>
@@ -586,7 +586,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Footer */}
-                <div style={{ padding: '16px 24px', borderTop: '1px solid #21262d', flexShrink: 0 }}>
+                <div style={{ padding: '16px 24px', borderTop: '1px solid #2d2d2d', flexShrink: 0 }}>
                   {(() => {
                     const eligible = adminJobs.filter(j => {
                       const ms = matchScores[j.id];
@@ -602,7 +602,7 @@ export default function Dashboard() {
                     const failed = Object.values(autoApplyStatus).filter(s => s === 'failed').length;
                     return (
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '13px', color: scoring && !autoApplyConfirmed ? '#818cf8' : '#7d8590' }}>
+                        <span style={{ fontSize: '13px', color: scoring && !autoApplyConfirmed ? '#818cf8' : '#888888' }}>
                           {autoApplyConfirmed
                             ? `${done} applied · ${failed} failed · ${eligible} pending`
                             : scoring
@@ -612,7 +612,7 @@ export default function Dashboard() {
                         </span>
                         <div style={{ display: 'flex', gap: '10px' }}>
                           <button onClick={() => setShowAutoApplyModal(false)}
-                            style={{ background: 'transparent', border: '1px solid #30363d', color: '#e6edf3', borderRadius: '8px', padding: '8px 18px', fontSize: '13px', cursor: 'pointer' }}>
+                            style={{ background: 'transparent', border: '1px solid #333333', color: '#e0e0e0', borderRadius: '8px', padding: '8px 18px', fontSize: '13px', cursor: 'pointer' }}>
                             {autoApplyConfirmed && !agentRunning ? 'Close' : 'Cancel'}
                           </button>
                           {!autoApplyConfirmed && eligible > 0 && (
@@ -644,13 +644,13 @@ export default function Dashboard() {
               zIndex: 100, backdropFilter: 'blur(4px)'
             }}>
               <div style={{
-                background: '#161b22', border: '1px solid #21262d', borderRadius: '12px',
+                background: '#1c1c1c', border: '1px solid #2d2d2d', borderRadius: '12px',
                 width: '100%', maxWidth: '450px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
               }}>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#e6edf3' }}>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#e0e0e0' }}>
                   Apply for {activeJobForApply.title}
                 </h3>
-                <p style={{ fontSize: '13px', color: '#7d8590', marginTop: '4px', marginBottom: '16px' }}>
+                <p style={{ fontSize: '13px', color: '#888888', marginTop: '4px', marginBottom: '16px' }}>
                   {activeJobForApply.company} · {activeJobForApply.location}
                 </p>
 
@@ -670,10 +670,10 @@ export default function Dashboard() {
                   return (
                     <div style={{ background: `${scoreColor}0d`, border: `1px solid ${scoreColor}40`, borderRadius: '10px', padding: '12px 14px', marginBottom: '16px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '13px', color: '#e6edf3', fontWeight: 500 }}>{msg} — Your profile match</span>
+                        <span style={{ fontSize: '13px', color: '#e0e0e0', fontWeight: 500 }}>{msg} — Your profile match</span>
                         <span style={{ fontSize: '22px', fontWeight: 800, color: scoreColor }}>{score}%</span>
                       </div>
-                      <div style={{ height: '6px', background: '#21262d', borderRadius: '3px', overflow: 'hidden', marginBottom: '10px' }}>
+                      <div style={{ height: '6px', background: '#2d2d2d', borderRadius: '3px', overflow: 'hidden', marginBottom: '10px' }}>
                         <div style={{ width: `${score}%`, height: '100%', background: scoreColor, borderRadius: '3px', transition: 'width 0.6s ease' }} />
                       </div>
                       <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
@@ -689,7 +689,7 @@ export default function Dashboard() {
                 })()}
 
                 <div style={{ marginBottom: '16px' }}>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#484f58', marginBottom: '8px', textTransform: 'uppercase' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#555555', marginBottom: '8px', textTransform: 'uppercase' }}>
                     Notes for the Placement Cell / Company
                   </label>
                   <textarea 
@@ -697,8 +697,8 @@ export default function Dashboard() {
                     onChange={(e) => setApplyNotes(e.target.value)}
                     placeholder="Briefly state your interest or mention any relevant details..."
                     style={{
-                      width: '100%', height: '120px', background: '#0d1117', border: '1px solid #21262d',
-                      borderRadius: '8px', padding: '12px', color: '#e6edf3', fontSize: '14px',
+                      width: '100%', height: '120px', background: '#121212', border: '1px solid #2d2d2d',
+                      borderRadius: '8px', padding: '12px', color: '#e0e0e0', fontSize: '14px',
                       resize: 'none', outline: 'none'
                     }}
                   />
@@ -707,8 +707,8 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', gap: '12px' }}>
                   <button onClick={() => { setShowApplyModal(false); setApplyNotes(''); }}
                     style={{
-                      flex: 1, background: 'transparent', border: '1px solid #21262d',
-                      color: '#e6edf3', borderRadius: '8px', padding: '10px', fontSize: '14px',
+                      flex: 1, background: 'transparent', border: '1px solid #2d2d2d',
+                      color: '#e0e0e0', borderRadius: '8px', padding: '10px', fontSize: '14px',
                       fontWeight: 600, cursor: 'pointer'
                     }}>
                     Cancel
@@ -716,7 +716,7 @@ export default function Dashboard() {
                   <button onClick={handleManualApply} disabled={isApplying}
                     style={{
                       flex: 1, background: '#20c997', border: 'none',
-                      color: '#0d1117', borderRadius: '8px', padding: '10px', fontSize: '14px',
+                      color: '#121212', borderRadius: '8px', padding: '10px', fontSize: '14px',
                       fontWeight: 600, cursor: isApplying ? 'not-allowed' : 'pointer',
                       opacity: isApplying ? 0.7 : 1
                     }}>
@@ -732,46 +732,46 @@ export default function Dashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <h2 style={{ color: '#e6edf3', fontSize: '16px', fontWeight: 600, margin: 0 }}>
+                  <h2 style={{ color: '#e0e0e0', fontSize: '16px', fontWeight: 600, margin: 0 }}>
                     Opportunities from SmartPlacement
                   </h2>
                   <span style={{
-                    background: '#20c997', color: '#0d1117', fontSize: '10px', fontWeight: 700,
+                    background: '#20c997', color: '#121212', fontSize: '10px', fontWeight: 700,
                     padding: '2px 8px', borderRadius: '20px', letterSpacing: '0.05em'
                   }}>VERIFIED</span>
                 </div>
-                <p style={{ color: '#7d8590', fontSize: '12px', marginTop: '3px' }}>
+                <p style={{ color: '#888888', fontSize: '12px', marginTop: '3px' }}>
                   Handpicked opportunities posted directly by our placement team
                 </p>
               </div>
-              <span style={{ color: '#7d8590', fontSize: '12px' }}>
+              <span style={{ color: '#888888', fontSize: '12px' }}>
                 {adminJobs.length} active opening{adminJobs.length !== 1 ? 's' : ''}
               </span>
             </div>
 
-            <div style={{ height: '1px', background: '#21262d', marginBottom: '16px' }} />
+            <div style={{ height: '1px', background: '#2d2d2d', marginBottom: '16px' }} />
 
             {/* Auto apply bar */}
             <div style={{
-              background: '#161b22', border: '1px solid #21262d',
+              background: '#1c1c1c', border: '1px solid #2d2d2d',
               borderRadius: '10px', padding: '16px 20px',
               display: 'flex', alignItems: 'center', gap: '12px',
               marginBottom: '16px', flexWrap: 'wrap'
             }}>
-              <span style={{ color: '#e6edf3', fontSize: '13px', fontWeight: 500 }}>
+              <span style={{ color: '#e0e0e0', fontSize: '13px', fontWeight: 500 }}>
                 Auto Apply Agent
               </span>
-              <span style={{ color: '#7d8590', fontSize: '12px' }}>
+              <span style={{ color: '#888888', fontSize: '12px' }}>
                 Apply to all eligible jobs above
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
-                <span style={{ color: '#7d8590', fontSize: '12px' }}>Min package:</span>
+                <span style={{ color: '#888888', fontSize: '12px' }}>Min package:</span>
                 <select
                   value={minPackage}
                   onChange={e => setMinPackage(Number(e.target.value))}
                   aria-label="Minimum package filter"
                   title="Minimum package filter"
-                  style={{ background: '#0d1117', border: '1px solid #21262d', borderRadius: '6px', color: '#e6edf3', padding: '6px 10px', fontSize: '12px' }}
+                  style={{ background: '#121212', border: '1px solid #2d2d2d', borderRadius: '6px', color: '#e0e0e0', padding: '6px 10px', fontSize: '12px' }}
                 >
                   {[5, 8, 10, 12, 15, 20, 25, 30].map(p => (
                     <option key={p} value={p}>₹{p} LPA+</option>
@@ -779,8 +779,8 @@ export default function Dashboard() {
                 </select>
                 <button onClick={openAutoApplyPreview} disabled={jobsLoading || Object.keys(matchScores).length === 0}
                   style={{
-                    background: (jobsLoading || Object.keys(matchScores).length === 0) ? '#21262d' : '#7c3aed',
-                    color: (jobsLoading || Object.keys(matchScores).length === 0) ? '#7d8590' : 'white',
+                    background: (jobsLoading || Object.keys(matchScores).length === 0) ? '#2d2d2d' : '#7c3aed',
+                    color: (jobsLoading || Object.keys(matchScores).length === 0) ? '#888888' : 'white',
                     border: 'none', borderRadius: '6px',
                     padding: '7px 16px', fontSize: '12px',
                     fontWeight: 600, cursor: (jobsLoading || Object.keys(matchScores).length === 0) ? 'not-allowed' : 'pointer',
@@ -794,14 +794,14 @@ export default function Dashboard() {
             {jobsLoading && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
                 {[1, 2].map(i => (
-                  <div key={i} style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: '10px', padding: '18px', height: '100px' }} />
+                  <div key={i} style={{ background: '#1c1c1c', border: '1px solid #2d2d2d', borderRadius: '10px', padding: '18px', height: '100px' }} />
                 ))}
               </div>
             )}
 
             {!jobsLoading && adminJobs.length === 0 && (
-              <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: '10px', padding: '32px', textAlign: 'center' }}>
-                <p style={{ color: '#484f58', fontSize: '13px' }}>No opportunities posted yet. Check back soon.</p>
+              <div style={{ background: '#1c1c1c', border: '1px solid #2d2d2d', borderRadius: '10px', padding: '32px', textAlign: 'center' }}>
+                <p style={{ color: '#555555', fontSize: '13px' }}>No opportunities posted yet. Check back soon.</p>
               </div>
             )}
 
@@ -811,7 +811,7 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', height: '100%', overflowY: 'auto', paddingRight: '8px', paddingBottom: '16px' }}>
                   {adminJobs.map(job => {
                     const ms = matchScores[job.id];
-                    const scoreColor = !ms || ms.loading || ms.score === undefined ? '#7d8590'
+                    const scoreColor = !ms || ms.loading || ms.score === undefined ? '#888888'
                       : ms.score >= 70 ? '#3fb950'
                       : ms.score >= 40 ? '#d29922'
                       : '#f85149';
@@ -883,7 +883,7 @@ export default function Dashboard() {
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
                           {ms ? (
-                            <span style={{ fontSize: '12px', fontWeight: 600, color: ms.loading ? '#7d8590' : scoreColor }}>
+                            <span style={{ fontSize: '12px', fontWeight: 600, color: ms.loading ? '#888888' : scoreColor }}>
                               {ms.loading ? '⏳ Scoring...' : `🎯 Match Score: ${ms.score}%`}
                             </span>
                           ) : <div/>}
@@ -1014,7 +1014,7 @@ export default function Dashboard() {
                           const isExpired = selectedJob.application_deadline && new Date() > new Date(selectedJob.application_deadline);
                           if (isApplied) {
                             return (
-                              <button disabled style={{ width: '100%', background: '#21262d', color: '#7d8590', border: '1px solid #30363d', borderRadius: '8px', padding: '12px', fontSize: '14px', fontWeight: 600, cursor: 'not-allowed' }}>
+                              <button disabled style={{ width: '100%', background: '#2d2d2d', color: '#888888', border: '1px solid #333333', borderRadius: '8px', padding: '12px', fontSize: '14px', fontWeight: 600, cursor: 'not-allowed' }}>
                                 Applied ✓
                               </button>
                             );
@@ -1028,7 +1028,7 @@ export default function Dashboard() {
                             if (selectedJob.apply_link) {
                                 return (
                                   <a href={selectedJob.apply_link} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-                                    <button style={{ width: '100%', background: '#20c997', color: '#0d1117', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', transition: 'opacity 0.2s' }}
+                                    <button style={{ width: '100%', background: '#20c997', color: '#121212', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', transition: 'opacity 0.2s' }}
                                       onMouseEnter={e => e.currentTarget.style.opacity = '0.9'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
                                       Apply Externally
                                     </button>
@@ -1037,7 +1037,7 @@ export default function Dashboard() {
                             } else {
                                 return (
                                   <button onClick={() => { setActiveJobForApply(selectedJob); setShowApplyModal(true); }}
-                                    style={{ width: '100%', background: '#20c997', color: '#0d1117', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', transition: 'opacity 0.2s' }}
+                                    style={{ width: '100%', background: '#20c997', color: '#121212', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', transition: 'opacity 0.2s' }}
                                     onMouseEnter={e => e.currentTarget.style.opacity = '0.9'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
                                     Apply Now
                                   </button>
@@ -1058,7 +1058,7 @@ export default function Dashboard() {
 
         {/* Right Panel - Profile Summary */}
         <aside style={{
-          background: '#161b22', border: '1px solid #21262d', borderRadius: 10,
+          background: '#1c1c1c', border: '1px solid #2d2d2d', borderRadius: 10,
           padding: '20px', position: 'sticky', top: 16, height: 'fit-content'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
@@ -1067,37 +1067,37 @@ export default function Dashboard() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 600
             }}>{firstName[0].toUpperCase()}</div>
             <div>
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: '#e6edf3' }}>{profile.fullName || 'User'}</h3>
-              <p style={{ margin: 0, fontSize: 12, color: '#7d8590' }}>Batch of {profile.graduationYear}</p>
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: '#e0e0e0' }}>{profile.fullName || 'User'}</h3>
+              <p style={{ margin: 0, fontSize: 12, color: '#888888' }}>Batch of {profile.graduationYear}</p>
             </div>
           </div>
 
-          <div style={{ height: 1, background: '#21262d', margin: '16px 0' }} />
+          <div style={{ height: 1, background: '#2d2d2d', margin: '16px 0' }} />
 
           {/* CGPA Section */}
           <div style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 12, color: '#7d8590' }}>Academic CGPA</span>
-              <span style={{ fontSize: 12, fontWeight: 500, color: '#e6edf3' }}>{profile.cgpa || profile.cgpa} / 10</span>
+              <span style={{ fontSize: 12, color: '#888888' }}>Academic CGPA</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: '#e0e0e0' }}>{profile.cgpa || profile.cgpa} / 10</span>
             </div>
-            <div style={{ height: 4, background: '#21262d', borderRadius: 2 }}>
+            <div style={{ height: 4, background: '#2d2d2d', borderRadius: 2 }}>
               <div style={{ width: `${(cgpaNum / 10) * 100}%`, height: '100%', background: '#20c997', borderRadius: 2 }} />
             </div>
           </div>
 
           {/* Skills Section */}
           <div style={{ marginBottom: 20 }}>
-            <p style={{ margin: '0 0 10px', fontSize: 11, fontWeight: 600, color: '#484f58', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Skills</p>
+            <p style={{ margin: '0 0 10px', fontSize: 11, fontWeight: 600, color: '#555555', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Skills</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {skills.map(s => (
                 <span key={s} style={{
-                  background: '#21262d', color: '#7d8590', padding: '3px 10px', borderRadius: 4, fontSize: 11, border: '1px solid transparent'
+                  background: '#2d2d2d', color: '#888888', padding: '3px 10px', borderRadius: 4, fontSize: 11, border: '1px solid transparent'
                 }}>{s}</span>
               ))}
             </div>
           </div>
 
-          <div style={{ height: 1, background: '#21262d', margin: '16px 0' }} />
+          <div style={{ height: 1, background: '#2d2d2d', margin: '16px 0' }} />
 
           {/* Resume Section */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1123,7 +1123,7 @@ export default function Dashboard() {
           <Link to="/profile" style={{
             display: 'block', marginTop: 24, textAlign: 'center', fontSize: 13, fontWeight: 500,
             color: '#20c997', textDecoration: 'none', padding: '10px', borderRadius: 6,
-            border: '1px solid #21262d', background: '#0d1117'
+            border: '1px solid #2d2d2d', background: '#121212'
           }}>Edit Profile</Link>
         </aside>
 

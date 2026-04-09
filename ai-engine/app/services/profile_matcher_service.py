@@ -214,7 +214,11 @@ def _compute_features(
     n_required = len(required_set) or 1
 
     # Feature 0 — skill_match_ratio
-    skill_match_ratio = len(matched) / n_required
+    # Cap denominator at 10: jobs listing 15-21 skills shouldn't punish students
+    # who match all the core ones.  6/21 raw = 28%; 6/10 capped = 60% — fairer.
+    _REQUIRED_CAP = 10
+    n_effective = min(n_required, _REQUIRED_CAP)
+    skill_match_ratio = min(len(matched) / n_effective, 1.0)
 
     # Feature 1 — role_keyword_match
     role_keyword_match = 1.0 if (job_title and _normalize(job_title) in _normalize(profile_text)) else 0.0
@@ -304,13 +308,23 @@ def predict(student_profile: dict[str, Any], job: dict[str, Any]) -> dict[str, A
     job_title: str = (job.get("title") or job.get("job_role") or "").strip()
     description: str = (job.get("description") or "").strip()
 
-    # When no required_skills, extract them from description using skill taxonomy
-    if not required_skills and description:
+    # Always augment required_skills with skills extracted from the job description.
+    # This ensures jobs posted with only generic skills (e.g. ['Communication'])
+    # still get accurate domain-skill matching from the description text.
+    if description:
         try:
             from app.services.skill_extractor import extract_skills_from_text
             extracted = extract_skills_from_text(description)
-            required_skills = [item["name"] for item in extracted if item.get("name")]
-            logger.info("Extracted %d skills from job description for matching", len(required_skills))
+            existing_lower = {s.lower() for s in required_skills}
+            added = 0
+            for item in extracted:
+                name = (item.get("name") or "").lower().strip()
+                if name and name not in existing_lower:
+                    required_skills.append(name)
+                    existing_lower.add(name)
+                    added += 1
+            if added:
+                logger.info("Augmented required_skills with %d skills from description", added)
         except Exception as exc:
             logger.warning("Skill extraction from description failed: %s", exc)
 
