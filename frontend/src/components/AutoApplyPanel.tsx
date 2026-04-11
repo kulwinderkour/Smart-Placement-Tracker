@@ -12,7 +12,7 @@ interface JobResult {
   description?: string
 }
 
-type MessageRole = 'student' | 'agent' | 'thinking' | 'summary' | 'applied' | 'skipped'
+type MessageRole = 'student' | 'agent' | 'thinking' | 'summary' | 'applied' | 'skipped' | 'error'
 
 interface Message {
   id: string
@@ -283,6 +283,28 @@ function MessageBubble({ msg }: { msg: Message }) {
     )
   }
 
+  if (msg.role === 'error') {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 10 }}>
+        <div
+          style={{
+            maxWidth: '88%',
+            background: 'rgba(248,81,73,0.07)',
+            border: '1px solid rgba(248,81,73,0.28)',
+            borderRadius: '14px 14px 14px 4px',
+            padding: '9px 13px',
+            color: '#f85149',
+            fontSize: 13,
+            lineHeight: 1.55,
+            whiteSpace: 'pre-wrap',
+          }}
+        >
+          {msg.text}
+        </div>
+      </div>
+    )
+  }
+
   // agent text message
   return (
     <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 10 }}>
@@ -392,10 +414,21 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
       const data = await resp.json()
       const newMessages: Omit<Message, 'id'>[] = []
 
-      // Agent summary text
-      if (data.summary) {
-        newMessages.push({ role: 'agent', text: data.summary })
-      }
+      if (data.success === false) {
+        const displaySummary = typeof data.summary === 'string'
+          ? data.summary
+          : JSON.stringify(data.summary)
+        newMessages.push({ role: 'error', text: `⚠️ Agent Failed:\n${displaySummary}` })
+      } else {
+        // Agent summary text
+        if (data.summary) {
+          // Before displaying summary ensure it is a string
+          const displaySummary = typeof data.summary === 'string'
+            ? data.summary
+            : JSON.stringify(data.summary)
+            
+          newMessages.push({ role: 'agent', text: displaySummary })
+        }
 
       // Applied job cards
       for (const job of (data.jobs_applied ?? [])) {
@@ -427,13 +460,14 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
         })
       }
 
-      // Summary card
-      newMessages.push({
-        role: 'summary',
-        text: '',
-        totalApplied: data.total_applied ?? 0,
-        totalSkipped: data.total_skipped ?? 0,
-      })
+        // Summary card
+        newMessages.push({
+          role: 'summary',
+          text: '',
+          totalApplied: data.total_applied ?? 0,
+          totalSkipped: data.total_skipped ?? 0,
+        })
+      }
 
       replaceThinking(newMessages)
     } catch (err: any) {

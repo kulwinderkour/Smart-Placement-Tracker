@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import requests
 from typing import Any
 
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -144,6 +145,40 @@ def _build_executor() -> AgentExecutor:
 
 # ── Output parser ──────────────────────────────────────────────────────────────
 
+def extract_clean_text(raw_output) -> str:
+    # Already a clean string
+    if isinstance(raw_output, str):
+        # Check if it looks like a Python list repr
+        if raw_output.startswith("[{") or raw_output.startswith("[{'"):
+            try:
+                import ast
+                parsed = ast.literal_eval(raw_output)
+                return extract_clean_text(parsed)
+            except Exception:
+                pass
+        return raw_output
+
+    # List of content blocks — Gemma format
+    if isinstance(raw_output, list):
+        parts = []
+        for block in raw_output:
+            if isinstance(block, dict):
+                text = block.get('text', '')
+                if text and not text.startswith('ERROR'):
+                    parts.append(text)
+                elif text.startswith('ERROR'):
+                    parts.append(text.split('.')[0])  # just the error message
+            elif isinstance(block, str):
+                parts.append(block)
+        return ' '.join(parts).strip()
+
+    # Dict with output key
+    if isinstance(raw_output, dict):
+        output = raw_output.get('output', '')
+        return extract_clean_text(output)
+
+    return str(raw_output)
+
 def _parse_agent_output(
     raw_output: dict[str, Any],
     intent: dict[str, Any],
@@ -190,11 +225,12 @@ def _parse_agent_output(
                     if not already_captured:
                         jobs_skipped.append({"title": title, "company": company, "reason": "Filtered by scorer"})
 
-    final_output: str = str(raw_output.get("output", "Agent run completed."))
+    raw_summary = raw_output.get("output", "Agent run completed.")
+    clean_summary = extract_clean_text(raw_summary)
 
     return {
         "success": True,
-        "summary": final_output,
+        "summary": clean_summary,
         "jobs_applied": jobs_applied,
         "jobs_skipped": jobs_skipped,
         "total_applied": len(jobs_applied),
@@ -234,6 +270,35 @@ def run_auto_apply_agent(
             error        : str,     # only present on failure
         }
     """
+    # ── Pre-flight check — verify backend is reachable ────────────
+    backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+    try:
+        check = requests.get(f"{backend_url}/api/v1/jobs", timeout=5)
+        jobs_response = check.json()
+        jobs_available = jobs_response.get("data", []) if isinstance(jobs_response, dict) else jobs_response
+        logger.info(f"[PRE-FLIGHT] Backend reachable. Jobs available: {len(jobs_available)}")
+        if len(jobs_available) == 0:
+            return {
+                "success": False,
+                "summary": "No jobs are currently posted by admin. Ask your placement officer to post jobs first.",
+                "jobs_applied": [],
+                "jobs_skipped": [],
+                "total_applied": 0,
+                "total_skipped": 0,
+                "intent": {}
+            }
+    except Exception as e:
+        logger.error(f"[PRE-FLIGHT] Error reaching backend: {e}")
+        return {
+            "success": False,
+            "summary": f"Cannot reach backend server at {backend_url}. Make sure the backend is running on port 8000.",
+            "jobs_applied": [],
+            "jobs_skipped": [],
+            "total_applied": 0,
+            "total_skipped": 0,
+            "intent": {}
+        }
+
     # ── Step 0: Parse the instruction (pure Python, no LLM needed) ────────────
     intent = parse_instruction(instruction)
     logger.info(
