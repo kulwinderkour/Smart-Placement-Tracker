@@ -361,3 +361,19 @@ source venv/bin/activate
 pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 python train_profile_matcher.py
+
+
+
+
+Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
+:8002/api/agent/auto-apply:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+
+Hi! I'm your Smart Placement Agent. Tell me what kinds of jobs you want to apply to and I'll handle everything — scoring, cover letters, and submissions.
+
+Example: "Apply to software engineering jobs above 10 LPA in Bangalore"
+Apply to jobs above ₹5 LPA of software engineer
+⚠️ Agent returned an error (500):
+{"detail":"Agent error: No module named 'langchain_core'"}
+Apply to Software enginner above 5 LPA
+⚠️ Agent returned an error (500):
+{"detail":"Agent error: No module named 'langchain_core'"}

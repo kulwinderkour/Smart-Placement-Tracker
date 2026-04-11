@@ -18,6 +18,9 @@ import os
 from datetime import datetime, timezone
 from typing import Any
 
+from dotenv import load_dotenv
+load_dotenv()
+
 import requests
 from langchain.tools import tool
 
@@ -31,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 # ── runtime config ─────────────────────────────────────────────────────────────
 _BACKEND_URL: str = os.environ.get("BACKEND_URL", settings.BACKEND_URL).rstrip("/")
-_GEMMA_MODEL: str = os.environ.get("GEMMA_MODEL", "gemma-3-27b-it")
+_GEMINI_MODEL: str = os.environ.get("GEMINI_MODEL", settings.GEMINI_MODEL or "gemini-2.5-flash")
 _GOOGLE_API_KEY: str = os.environ.get("GOOGLE_AI_API_KEY", settings.GEMINI_API_KEY)
 
 
@@ -66,12 +69,13 @@ def _normalise_lpa(raw: Any) -> float:
 @tool
 def fetch_dashboard_jobs() -> str:
     """
-    Fetch all active jobs posted by the admin.
-    Calls GET /api/admin-jobs/active on the backend.
-    Returns a formatted listing: ID, title, company, package, skills, location, deadline.
+    Fetch all active jobs from the backend.
+    Calls GET /jobs on the backend (only active jobs are returned by default).
+    Returns a formatted listing: ID, role title, company, salary, location, deadline.
     Takes no arguments.
     """
-    url = f"{_BACKEND_URL}/api/admin-jobs/active"
+    url = f"{_BACKEND_URL}/api/v1/jobs"
+    print(f"[DEBUG] Fetching jobs from: {url}")
     try:
         resp = requests.get(url, timeout=10)
         resp.raise_for_status()
@@ -86,21 +90,26 @@ def fetch_dashboard_jobs() -> str:
     except Exception as exc:
         return f"ERROR: Failed to fetch jobs — {exc}"
 
-    jobs: list[dict] = data if isinstance(data, list) else data.get("jobs", [])
+    # Backend returns {success, data: [...], meta: {...}}
+    jobs: list[dict] = (
+        data.get("data", [])
+        if isinstance(data, dict)
+        else data
+    )
 
     if not jobs:
-        return "No jobs currently posted by admin."
+        return "No active jobs currently found."
 
     lines: list[str] = []
     for j in jobs:
-        skills_str = ", ".join(j.get("required_skills") or []) or "Not specified"
-        deadline = j.get("application_deadline") or j.get("deadline") or "No deadline"
+        salary_min = j.get("salary_min")
+        pkg_str = f"{salary_min} (annual, raw)" if salary_min else "Not specified"
+        deadline = j.get("deadline") or "No deadline"
         lines.append(
             f"ID: {j['id']}\n"
-            f"  Title    : {j.get('title', 'N/A')}\n"
-            f"  Company  : {j.get('company') or j.get('company_name', 'N/A')}\n"
-            f"  Package  : {j.get('package_lpa', 'Not specified')} LPA\n"
-            f"  Skills   : {skills_str}\n"
+            f"  Title    : {j.get('role_title', 'N/A')}\n"
+            f"  Company  : {j.get('company_name', 'N/A')}\n"
+            f"  Package  : {pkg_str}\n"
             f"  Location : {j.get('location', 'Not specified')}\n"
             f"  Deadline : {deadline}"
         )
@@ -135,7 +144,7 @@ def filter_and_score_jobs(student_profile_json: str, intent_json: str) -> str:
     except json.JSONDecodeError as exc:
         return f"ERROR: Invalid intent_json — {exc}"
 
-    url = f"{_BACKEND_URL}/api/admin-jobs/active"
+    url = f"{_BACKEND_URL}/jobs"
     try:
         resp = requests.get(url, timeout=10)
         resp.raise_for_status()
@@ -143,9 +152,11 @@ def filter_and_score_jobs(student_profile_json: str, intent_json: str) -> str:
     except Exception as exc:
         return f"ERROR: Could not fetch jobs — {exc}"
 
-    jobs: list[dict] = data if isinstance(data, list) else data.get("jobs", [])
+    jobs: list[dict] = (
+        data.get("data", []) if isinstance(data, dict) else data
+    )
     if not jobs:
-        return "No jobs currently posted by admin."
+        return "No active jobs currently found."
 
     min_lpa: float | None = intent.get("min_lpa")
     field_keywords: list[str] = intent.get("field_keywords") or []
@@ -168,10 +179,10 @@ def filter_and_score_jobs(student_profile_json: str, intent_json: str) -> str:
 
     for job in jobs:
         job_id = job.get("id")
-        title = job.get("title", "")
-        company = job.get("company") or job.get("company_name", "")
-        pkg = _normalise_lpa(job.get("package_lpa") or job.get("salary_min"))
-        deadline = job.get("application_deadline") or job.get("deadline")
+        title = job.get("role_title", "")        # backend field name
+        company = job.get("company_name", "")    # backend field name
+        pkg = _normalise_lpa(job.get("salary_min"))  # raw annual salary in rupees
+        deadline = job.get("deadline")
 
         # ── Filter: deadline ────────────────────────────────────────────────
         if _deadline_passed(deadline):
@@ -213,7 +224,7 @@ def filter_and_score_jobs(student_profile_json: str, intent_json: str) -> str:
                 {
                     "title": title,
                     "company": company,
-                    "required_skills": list(job.get("required_skills") or []),
+                    "required_skills": [],          # backend jobs schema has no skills list yet
                     "description": job.get("description", ""),
                 },
             )
@@ -335,7 +346,7 @@ def generate_application_description(
         from langchain_core.messages import HumanMessage
 
         llm = ChatGoogleGenerativeAI(
-            model=_GEMMA_MODEL,
+            model=_GEMINI_MODEL,
             google_api_key=_GOOGLE_API_KEY,
             temperature=0.7,
             max_output_tokens=320,
@@ -411,12 +422,12 @@ def submit_application(
     Returns:
         Success message with job title, or a clear skip/error message.
     """
-    url = f"{_BACKEND_URL}/api/admin-jobs/apply"
+    url = f"{_BACKEND_URL}/applications"
     payload: dict[str, Any] = {
-        "jobId": job_id,
-        "resumeUrl": resume_url,
-        "coverLetter": description,
-        "agentApplied": True,
+        "job_id": job_id,
+        "resume_url": resume_url,
+        "cover_letter": description,
+        "agent_applied": True,
     }
     headers: dict[str, str] = {"Authorization": f"Bearer {student_token}"}
 
@@ -429,17 +440,13 @@ def submit_application(
     except Exception as exc:
         return f"ERROR: Unexpected error submitting application — {exc}"
 
-    if resp.status_code == 200:
+    if resp.status_code in (200, 201):
         data = resp.json()
-        job_title = (
-            data.get("application", {}).get("job_title")
-            or data.get("job", {}).get("title")
-            or job_id
-        )
-        app_id = data.get("application", {}).get("id", "N/A")
+        # ApplicationResponse: {id, job_id, student_id, status, ...}
+        app_id = data.get("id", "N/A")
         return (
-            f"✅ Successfully applied to '{job_title}' (Job ID: {job_id}).\n"
-            f"Application ID: {app_id}"
+            f"✅ Successfully applied to job ID {job_id}.\n"
+            f"Application ID: {app_id} | Status: {data.get('status', 'applied')}"
         )
     elif resp.status_code == 409:
         return f"Already applied to this job — skipping (Job ID: {job_id})."
