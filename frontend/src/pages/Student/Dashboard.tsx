@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { LogOut } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { applicationsApi, type TrackedApplication } from '../../api/applications'
+import JobMatchScoreCard from '../../components/JobMatchScoreCard'
+import AutoApplyPanel from '../../components/AutoApplyPanel'
 
 // ── Types & Helpers ──────────────────────────────────────────────────────────
 interface PastApp { company: string; status: string }
@@ -133,10 +135,8 @@ export default function Dashboard() {
   const [jobsLoading, setJobsLoading] = useState(true)
   const [matchScores, setMatchScores] = useState<Record<string, { loading: boolean; score?: number; label?: string; matched?: string[]; gaps?: string[] }>>({});
 
-  const [agentRunning, setAgentRunning] = useState(false);
-  const [showAutoApplyModal, setShowAutoApplyModal] = useState(false);
-  const [autoApplyStatus, setAutoApplyStatus] = useState<Record<string, 'idle'|'applying'|'done'|'failed'|'skip'>>({});
-  const [autoApplyConfirmed, setAutoApplyConfirmed] = useState(false);
+  const [autoApplyOpen, setAutoApplyOpen] = useState(false);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
   const [minPackage, setMinPackage] = useState(10);
 
   const [showApplyModal, setShowApplyModal] = useState(false);
@@ -219,44 +219,6 @@ export default function Dashboard() {
     );
   };
 
-  const _pkgToLPA = (val: number) => val >= 10000 ? Math.round(val / 100000 * 10) / 10 : val;
-  const _fmtPkg = (val: number) => {
-    if (!val) return null;
-    const lpa = _pkgToLPA(val);
-    return `₹${lpa} LPA`;
-  };
-
-  const openAutoApplyPreview = () => {
-    setAutoApplyStatus({});
-    setAutoApplyConfirmed(false);
-    setShowAutoApplyModal(true);
-    const needsScoring = adminJobs.some(j => !matchScores[j.id] || matchScores[j.id].loading);
-    if (needsScoring) fetchMatchScores(adminJobs);
-  };
-
-  const confirmAutoApply = async () => {
-    setAutoApplyConfirmed(true);
-    setAgentRunning(true);
-    const eligibleJobs = adminJobs.filter(j => {
-      const ms = matchScores[j.id];
-      const pkgLPA = _pkgToLPA(Number(j.package_lpa || j.salary_min || 0));
-      const score = ms?.score ?? 0;
-      const alreadyApplied = applications.some((a: any) => a.job_id === j.id);
-      return !alreadyApplied && ms && !ms.loading && score >= 50 && (pkgLPA === 0 || pkgLPA >= minPackage);
-    });
-    for (const job of eligibleJobs) {
-      setAutoApplyStatus(prev => ({ ...prev, [job.id]: 'applying' }));
-      try {
-        await applicationsApi.apply(job.id, 'Auto-applied via Smart Placement Agent');
-        setAutoApplyStatus(prev => ({ ...prev, [job.id]: 'done' }));
-      } catch {
-        setAutoApplyStatus(prev => ({ ...prev, [job.id]: 'failed' }));
-      }
-    }
-    setAgentRunning(false);
-    applicationsApi.myApplications().then(res => setApplications(res.data as any));
-  };
-
   useEffect(() => {
     if (!user?.id) return
     applicationsApi.myApplications()
@@ -308,7 +270,7 @@ export default function Dashboard() {
       }
     };
     fetchJobs();
-  }, [user?.id])
+  }, [user?.id, refetchTrigger])
 
   const skills = profile.skills || []
 
@@ -463,178 +425,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ── Auto Apply Preview Modal ── */}
-          {showAutoApplyModal && (
-            <div style={{
-              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-              background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', zIndex: 1000, padding: '16px'
-            }}>
-              <div style={{
-                background: '#1c1c1c', border: '1px solid #333333', borderRadius: '14px',
-                width: '100%', maxWidth: '600px', maxHeight: '85vh',
-                display: 'flex', flexDirection: 'column', boxShadow: '0 24px 48px rgba(0,0,0,0.5)'
-              }}>
-                {/* Header */}
-                <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #2d2d2d', flexShrink: 0 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                      <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#e0e0e0' }}>⚡ Smart Placement Auto-Apply</h2>
-                      <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#888888' }}>
-                        Powered by trained ML profile matcher · Filter: ₹{minPackage} LPA+ · Match ≥ 50%
-                      </p>
-                    </div>
-                    <button onClick={() => setShowAutoApplyModal(false)}
-                      style={{ background: 'none', border: 'none', color: '#888888', cursor: 'pointer', fontSize: '18px', lineHeight: 1 }}>✕</button>
-                  </div>
-                </div>
-
-                {/* Job List */}
-                <div style={{ overflowY: 'auto', flex: 1, padding: '16px 24px' }}>
-                  {adminJobs.length === 0 && (
-                    <p style={{ color: '#555555', textAlign: 'center', marginTop: '32px' }}>No placements posted yet.</p>
-                  )}
-                  {adminJobs.map(job => {
-                    const ms = matchScores[job.id];
-                    const score = ms?.score ?? 0;
-                    const progressStatus = autoApplyStatus[job.id];
-                    const pkg = Number(job.package_lpa || job.salary_min || 0);
-                    const pkgLPA = _pkgToLPA(pkg);
-                    const alreadyApplied = applications.some((a: any) => a.job_id === job.id);
-
-                    // Compute display status reactively from live matchScores
-                    type DS = 'scoring'|'eligible'|'ineligible'|'applying'|'done'|'failed';
-                    let ds: DS;
-                    if (progressStatus === 'applying') ds = 'applying';
-                    else if (progressStatus === 'done' || alreadyApplied) ds = 'done';
-                    else if (progressStatus === 'failed') ds = 'failed';
-                    else if (!ms || ms.loading) ds = 'scoring';
-                    else if (score >= 50 && (pkgLPA === 0 || pkgLPA >= minPackage)) ds = 'eligible';
-                    else ds = 'ineligible';
-
-                    const scoreColor = score >= 70 ? '#3fb950' : score >= 50 ? '#d29922' : '#f85149';
-                    const eligMsg = score >= 80 ? `🎯 Excellent match — you are` :
-                                   score >= 60 ? `✔ Good match — you are` :
-                                   score >= 50 ? `⚡ You are` : `⚠️ Low match — only`;
-                    const statusConfig: Record<DS, { label: string; bg: string; fg: string; border: string }> = {
-                      scoring:    { label: '⏳ Scoring…',      bg: '#1a1a2e', fg: '#818cf8', border: '#818cf833' },
-                      eligible:   { label: '✓ Will Apply',    bg: '#1a2e22', fg: '#3fb950', border: '#23863633' },
-                      ineligible: { label: '— Skipped',       bg: '#1c1c1c', fg: '#888888', border: '#2d2d2d'   },
-                      applying:   { label: '⏳ Applying…',    bg: '#1a1a2e', fg: '#818cf8', border: '#818cf833' },
-                      done:       { label: '✓ Applied',       bg: '#1a2e22', fg: '#3fb950', border: '#3fb95033' },
-                      failed:     { label: '✗ Failed',        bg: '#2d1b1b', fg: '#f85149', border: '#f8514933' },
-                    };
-                    const sc = statusConfig[ds];
-
-                    return (
-                      <div key={job.id} style={{
-                        background: '#121212', border: `1px solid ${ds === 'eligible' ? '#23863660' : '#2d2d2d'}`,
-                        borderRadius: '10px', padding: '14px 16px', marginBottom: '10px',
-                        opacity: ds === 'ineligible' ? 0.5 : 1,
-                        transition: 'border-color 0.3s'
-                      }}>
-                        {/* Header row */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                          <div>
-                            <div style={{ fontSize: '14px', fontWeight: 600, color: '#e0e0e0' }}>{job.title}</div>
-                            <div style={{ fontSize: '12px', color: '#888888', marginTop: '2px' }}>
-                              {job.company || job.company_name} · {job.location || 'Remote'}
-                              {pkg > 0 && <span style={{ color: '#3fb950', marginLeft: '8px' }}>{_fmtPkg(pkg)}</span>}
-                            </div>
-                          </div>
-                          <span style={{ background: sc.bg, color: sc.fg, border: `1px solid ${sc.border}`, borderRadius: '6px', padding: '3px 10px', fontSize: '11px', fontWeight: 600, flexShrink: 0, marginLeft: '8px' }}>
-                            {sc.label}
-                          </span>
-                        </div>
-
-                        {/* Eligibility block */}
-                        {ds === 'scoring' ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', background: '#1a1a2e40', borderRadius: '8px' }}>
-                            <div style={{ width: '14px', height: '14px', border: '2px solid #818cf8', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
-                            <span style={{ fontSize: '12px', color: '#818cf8' }}>Computing your eligibility for this placement…</span>
-                          </div>
-                        ) : ds !== 'done' && ms && !ms.loading && ms.score !== undefined ? (
-                          <div style={{ background: `${scoreColor}08`, border: `1px solid ${scoreColor}30`, borderRadius: '8px', padding: '10px 12px' }}>
-                            {/* Prominence message */}
-                            <div style={{ fontSize: '13px', color: '#e0e0e0', fontWeight: 500, marginBottom: '8px' }}>
-                              {eligMsg} <span style={{ color: scoreColor, fontSize: '18px', fontWeight: 800 }}>{score}%</span>{' '}
-                              <span style={{ color: scoreColor }}>eligible</span> for this placement
-                            </div>
-                            {/* Score bar */}
-                            <div style={{ height: '6px', background: '#2d2d2d', borderRadius: '3px', overflow: 'hidden', marginBottom: '8px' }}>
-                              <div style={{ width: `${score}%`, height: '100%', background: scoreColor, borderRadius: '3px', transition: 'width 0.6s ease' }} />
-                            </div>
-                            {/* Skills */}
-                            <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                              {(ms.matched || []).slice(0, 4).map(s => (
-                                <span key={s} style={{ background: '#1a2e2260', color: '#3fb950', border: '1px solid #3fb95040', borderRadius: '3px', padding: '2px 6px', fontSize: '10px' }}>✓ {s}</span>
-                              ))}
-                              {(ms.gaps || []).slice(0, 3).map(s => (
-                                <span key={s} style={{ background: '#2d1b1b60', color: '#f85149', border: '1px solid #f8514940', borderRadius: '3px', padding: '2px 6px', fontSize: '10px' }}>✗ {s}</span>
-                              ))}
-                              {ds === 'ineligible' && pkgLPA > 0 && pkgLPA < minPackage && (
-                                <span style={{ color: '#888888', fontSize: '10px', alignSelf: 'center', marginLeft: '4px' }}>Package below ₹{minPackage} LPA threshold</span>
-                              )}
-                            </div>
-                          </div>
-                        ) : ds === 'done' ? (
-                          <div style={{ fontSize: '12px', color: '#3fb950' }}>✓ Application submitted successfully</div>
-                        ) : null}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Footer */}
-                <div style={{ padding: '16px 24px', borderTop: '1px solid #2d2d2d', flexShrink: 0 }}>
-                  {(() => {
-                    const eligible = adminJobs.filter(j => {
-                      const ms = matchScores[j.id];
-                      const pkgLPA = _pkgToLPA(Number(j.package_lpa || j.salary_min || 0));
-                      const score = ms?.score ?? 0;
-                      const alreadyApplied = applications.some((a: any) => a.job_id === j.id);
-                      const progress = autoApplyStatus[j.id];
-                      return !alreadyApplied && progress !== 'done' && progress !== 'applying' &&
-                             ms && !ms.loading && score >= 50 && (pkgLPA === 0 || pkgLPA >= minPackage);
-                    }).length;
-                    const scoring = adminJobs.some(j => !matchScores[j.id] || matchScores[j.id].loading);
-                    const done = Object.values(autoApplyStatus).filter(s => s === 'done').length;
-                    const failed = Object.values(autoApplyStatus).filter(s => s === 'failed').length;
-                    return (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '13px', color: scoring && !autoApplyConfirmed ? '#818cf8' : '#888888' }}>
-                          {autoApplyConfirmed
-                            ? `${done} applied · ${failed} failed · ${eligible} pending`
-                            : scoring
-                            ? '⏳ Computing your eligibility…'
-                            : `${eligible} eligible placement${eligible !== 1 ? 's' : ''} found`
-                          }
-                        </span>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                          <button onClick={() => setShowAutoApplyModal(false)}
-                            style={{ background: 'transparent', border: '1px solid #333333', color: '#e0e0e0', borderRadius: '8px', padding: '8px 18px', fontSize: '13px', cursor: 'pointer' }}>
-                            {autoApplyConfirmed && !agentRunning ? 'Close' : 'Cancel'}
-                          </button>
-                          {!autoApplyConfirmed && eligible > 0 && (
-                            <button onClick={confirmAutoApply}
-                              style={{ background: '#7c3aed', border: 'none', color: 'white', borderRadius: '8px', padding: '8px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
-                              Apply to {eligible} job{eligible !== 1 ? 's' : ''} →
-                            </button>
-                          )}
-                          {agentRunning && (
-                            <span style={{ color: '#818cf8', fontSize: '13px', alignSelf: 'center' }}>⏳ Applying…</span>
-                          )}
-                          {autoApplyConfirmed && !agentRunning && eligible === 0 && (
-                            <span style={{ color: '#3fb950', fontSize: '13px', alignSelf: 'center' }}>✓ All done!</span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* ── Apply Modal ── */}
           {showApplyModal && activeJobForApply && (
@@ -777,19 +567,32 @@ export default function Dashboard() {
                     <option key={p} value={p}>₹{p} LPA+</option>
                   ))}
                 </select>
-                <button onClick={openAutoApplyPreview} disabled={jobsLoading || Object.keys(matchScores).length === 0}
+                <button
+                  onClick={() => setAutoApplyOpen(true)}
+                  disabled={jobsLoading}
                   style={{
-                    background: (jobsLoading || Object.keys(matchScores).length === 0) ? '#2d2d2d' : '#7c3aed',
-                    color: (jobsLoading || Object.keys(matchScores).length === 0) ? '#888888' : 'white',
+                    background: jobsLoading ? '#2d2d2d' : '#7c3aed',
+                    color: jobsLoading ? '#888888' : 'white',
                     border: 'none', borderRadius: '6px',
                     padding: '7px 16px', fontSize: '12px',
-                    fontWeight: 600, cursor: (jobsLoading || Object.keys(matchScores).length === 0) ? 'not-allowed' : 'pointer',
+                    fontWeight: 600, cursor: jobsLoading ? 'not-allowed' : 'pointer',
                     transition: 'all 0.2s'
                   }}>
                   ⚡ Auto Apply
                 </button>
               </div>
             </div>
+
+            <AutoApplyPanel
+              isOpen={autoApplyOpen}
+              onClose={() => {
+                setAutoApplyOpen(false);
+                applicationsApi.myApplications().then(res => setApplications(res.data as any));
+                setRefetchTrigger(t => t + 1);
+              }}
+              adminJobs={adminJobs}
+              defaultInstruction={`Apply to jobs above ₹${minPackage} LPA`}
+            />
 
             {jobsLoading && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
@@ -1006,6 +809,24 @@ export default function Dashboard() {
                             })()}
                           </p>
                         </>
+                      )}
+
+                      {matchScores[selectedJob.id] && !matchScores[selectedJob.id].loading && (
+                        <div style={{ marginTop: '24px' }}>
+                          <JobMatchScoreCard
+                            matchScore={matchScores[selectedJob.id].score ?? 0}
+                            matchedSkills={
+                              matchScores[selectedJob.id].matched?.length
+                                ? matchScores[selectedJob.id].matched
+                                : (selectedJob.required_skills || []).filter((s: string) => studentHas(s)).map(cleanSkill)
+                            }
+                            missingSkills={
+                              matchScores[selectedJob.id].gaps?.length
+                                ? matchScores[selectedJob.id].gaps
+                                : (selectedJob.required_skills || []).filter((s: string) => !studentHas(s)).map(cleanSkill)
+                            }
+                          />
+                        </div>
                       )}
 
                       <div style={{ marginTop: '32px' }}>

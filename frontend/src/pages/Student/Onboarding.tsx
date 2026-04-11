@@ -267,7 +267,7 @@ export default function Onboarding() {
             {currentStep === 3 && (
               <div>
                 <h2 style={{ color: '#fff', fontSize: 22, fontWeight: 700, margin: '0 0 4px' }}>Upload your resume</h2>
-                <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13, margin: '0 0 24px' }}>We'll analyse it and give you an ATS score instantly.</p>
+                <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13, margin: '0 0 24px' }}>Upload your PDF resume to complete your profile.</p>
                 <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: `1.5px dashed ${dragging ? '#7c3aed' : 'rgba(255,255,255,0.15)'}`, borderRadius: 16, padding: '40px 24px', cursor: 'pointer', textAlign: 'center', background: dragging ? 'rgba(124,58,237,0.05)' : 'transparent', transition: 'all 0.2s' }}
                   onDragOver={e => { e.preventDefault(); setDragging(true) }} onDragLeave={() => setDragging(false)}
                   onDrop={e => { e.preventDefault(); setDragging(false); handleResumeFile(e.dataTransfer.files[0]) }}>
@@ -293,10 +293,6 @@ export default function Onboarding() {
                         <button onClick={() => update({ resumeName: '', resumeBase64: '' })} style={{ color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
                         </button>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 50, padding: '8px 16px' }}>
-                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
-                        <span style={{ color: '#10b981', fontSize: 13, fontWeight: 500 }}>ATS pre-check: Looks good!</span>
                       </div>
                     </motion.div>
                   )}

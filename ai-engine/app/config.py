@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     MATCHER_ADMIN_API_KEY: str = "change-me-admin-key"
     UPSTASH_REDIS_REST_URL: str = ""
     UPSTASH_REDIS_REST_TOKEN: str = ""
+    GEMMA_MODEL: str = "gemma-3-27b-it"
+    GOOGLE_AI_API_KEY: str = ""
+    USE_GEMMA: bool = True
 
     class Config:
         env_file = ".env"
