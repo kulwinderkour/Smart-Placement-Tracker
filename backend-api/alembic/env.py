@@ -7,7 +7,10 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.database import Base
-from app.models import User, Student, Job, Application, Skill  # import all models
+from app.models import (  # import all models
+    User, Student, Job, Application, Skill,
+    CompanyProfile, Interview, Roadmap, GeneratedRoadmap,
+)
 
 config = context.config
 if config.config_file_name is not None:
