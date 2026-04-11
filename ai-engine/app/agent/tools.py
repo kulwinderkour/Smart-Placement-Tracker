@@ -144,7 +144,7 @@ def filter_and_score_jobs(student_profile_json: str, intent_json: str) -> str:
     except json.JSONDecodeError as exc:
         return f"ERROR: Invalid intent_json — {exc}"
 
-    url = f"{_BACKEND_URL}/jobs"
+    url = f"{_BACKEND_URL}/api/v1/jobs"
     try:
         resp = requests.get(url, timeout=10)
         resp.raise_for_status()
