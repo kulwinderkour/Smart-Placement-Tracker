@@ -10,8 +10,10 @@ Endpoints:
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
@@ -19,6 +21,7 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+executor = ThreadPoolExecutor(max_workers=3)
 
 
 # ── Request / Response models ─────────────────────────────────────────────────
@@ -64,34 +67,48 @@ class AutoApplyResponse(BaseModel):
     ),
 )
 async def auto_apply(request: AutoApplyRequest) -> AutoApplyResponse:
+    from app.agent.auto_apply_agent import run_auto_apply_agent
+    
+    loop = asyncio.get_event_loop()
     try:
-        from app.agent.auto_apply_agent import run_auto_apply_agent
-
-        result: dict[str, Any] = await _run_in_thread(
-            run_auto_apply_agent,
-            instruction=request.instruction,
-            student_token=request.student_token,
-            student_profile=request.student_profile,
-            resume_url=request.resume_url,
+        result = await asyncio.wait_for(
+            loop.run_in_executor(
+                executor,
+                lambda: run_auto_apply_agent(
+                    instruction=request.instruction,
+                    student_token=request.student_token,
+                    student_profile=request.student_profile,
+                    resume_url=request.resume_url
+                )
+            ),
+            timeout=90.0  # 90 second hard limit
         )
-    except Exception as exc:
-        logger.exception("auto_apply endpoint crashed: %s", exc)
-        raise HTTPException(status_code=500, detail=f"Agent error: {exc}") from exc
-
-    if not result.get("success", True) and result.get("error"):
-        raise HTTPException(
-            status_code=500,
-            detail=result["error"],
+        return AutoApplyResponse(
+            success=result.get("success", True),
+            summary=result.get("summary", ""),
+            jobs_applied=result.get("jobs_applied", []),
+            jobs_skipped=result.get("jobs_skipped", []),
+            total_applied=result.get("total_applied", 0),
+            total_skipped=result.get("total_skipped", 0),
         )
-
-    return AutoApplyResponse(
-        success=result.get("success", True),
-        summary=result.get("summary", ""),
-        jobs_applied=result.get("jobs_applied", []),
-        jobs_skipped=result.get("jobs_skipped", []),
-        total_applied=result.get("total_applied", 0),
-        total_skipped=result.get("total_skipped", 0),
-    )
+    except asyncio.TimeoutError:
+        return AutoApplyResponse(
+            success=False,
+            summary="Agent took too long to respond. The backend may be slow. Please try again with fewer jobs or a higher minimum package filter.",
+            jobs_applied=[],
+            jobs_skipped=[],
+            total_applied=0,
+            total_skipped=0
+        )
+    except Exception as e:
+        return AutoApplyResponse(
+            success=False,
+            summary=f"Agent encountered an error: {str(e)}",
+            jobs_applied=[],
+            jobs_skipped=[],
+            total_applied=0,
+            total_skipped=0
+        )
 
 
 # ── GET /health ───────────────────────────────────────────────────────────────

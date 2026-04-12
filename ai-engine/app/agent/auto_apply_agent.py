@@ -1,8 +1,8 @@
 """
 ai-engine/app/agent/auto_apply_agent.py
 
-Creates the LangChain tool-calling agent executor and exposes
-run_auto_apply_agent() for the API route to call.
+Direct auto-apply pipeline that bypasses LangChain agent reasoning for speed.
+It calls endpoints directly and invokes the LLM only for description generation.
 """
 
 from __future__ import annotations
@@ -13,368 +13,257 @@ import os
 import requests
 from typing import Any
 
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_classic.agents import AgentExecutor, create_tool_calling_agent
-
 from app.config import settings
-from app.agent.intent_parser import parse_instruction
-from app.agent.tools import (
-    fetch_dashboard_jobs,
-    filter_and_score_jobs,
-    generate_application_description,
-    submit_application,
-    generate_final_summary,
-)
 
 logger = logging.getLogger(__name__)
 
-_TOOLS = [
-    fetch_dashboard_jobs,
-    filter_and_score_jobs,
-    generate_application_description,
-    submit_application,
-    generate_final_summary,
-]
-
-# ── System prompt ──────────────────────────────────────────────────────────────
-
-_SYSTEM_PROMPT = """\
-You are the Smart Placement Agent — an intelligent assistant that helps students \
-automatically apply to suitable jobs posted by the college admin.
-
-RULES (follow strictly, in every response):
-1. Only use jobs returned by fetch_dashboard_jobs — never suggest external sources.
-2. Always follow the 5-step workflow in order:
-   Step 1 → fetch_dashboard_jobs        (get all active jobs)
-   Step 2 → filter_and_score_jobs       (score + filter by intent and ML match)
-   Step 3 → generate_application_description  (write personalised cover for each APPLY job)
-   Step 4 → submit_application          (submit each APPLY job one by one)
-   Step 5 → generate_final_summary      (produce a full run summary)
-3. Parse the student's instruction FIRST to extract min_lpa and field_keywords \
-   before fetching or filtering jobs.
-4. The match score threshold for applying is 35%. Skip anything below this.
-5. Generate a unique, personalised cover description for every individual job — \
-   never reuse the same description across applications.
-6. Be fully transparent about every decision: show match scores, \
-   matched skills, gap skills, and the reason for APPLY or SKIP.
-7. If no jobs match the student's intent or score threshold, clearly tell the \
-   student which filters caused zero results and suggest relaxing criteria \
-   (e.g. lower min_lpa, broader field, or no field filter).
-8. Never apply to a job whose deadline has already passed.
-9. Never apply to a job the student has already applied to — a 409 response \
-   from submit_application means skip, not retry.
-"""
-
-# ── LLM factory with fallback ─────────────────────────────────────────────────
-
-def _build_llm() -> Any:
-    """
-    Build the agent's LLM using a Gemini model that supports tool/function calling.
-
-    NOTE: Gemma models (gemma-3-27b-it etc.) do NOT support function calling via
-    the Google AI API — they will raise INVALID_ARGUMENT at the first tool-call step.
-    Only Gemini models support tool calling.  Gemma is still used inside tools.py
-    for text generation (generate_application_description) where no tool calling
-    is required.
-
-    Priority:
-      1. AGENT_MODEL env var (override)
-      2. gemini-2.0-flash  (default — fast, supports tool calling)
-      3. gemini-1.5-flash  (fallback)
-    """
+def generate_description_with_gemma(student: dict, job: dict, match: dict) -> str:
+    """Generate a personalised cover description using Gemma."""
     from langchain_google_genai import ChatGoogleGenerativeAI
+    from langchain_core.messages import HumanMessage
 
-    primary_model: str = (
-        os.environ.get("AGENT_MODEL")
-        or settings.GEMINI_MODEL
-        or "gemini-2.0-flash"
-    )
-    api_key: str = (
-        os.environ.get("GOOGLE_AI_API_KEY")
-        or os.environ.get("GOOGLE_API_KEY")
-        or os.environ.get("GEMINI_API_KEY")
-        or settings.GOOGLE_AI_API_KEY
+    api_key = (
+        os.environ.get("GOOGLE_AI_API_KEY") 
+        or os.environ.get("GEMINI_API_KEY") 
+        or settings.GOOGLE_AI_API_KEY 
         or settings.GEMINI_API_KEY
-        or ""
     )
+    model = os.environ.get("GEMINI_MODEL") or settings.GEMINI_MODEL or "gemini-2.5-flash"
+
+    llm = ChatGoogleGenerativeAI(
+        model=model,
+        google_api_key=api_key,
+        temperature=0.7,
+        max_output_tokens=320,
+    )
+    
+    name = student.get("fullName") or student.get("name") or "I"
+    skills = ", ".join(student.get("skills") or [])
+    matched_skills = ", ".join(match.get("matched_skills") or [])
+    gap_skills = ", ".join(match.get("gap_skills") or [])
+    
+    prompt = f"""Write a professional job application cover description in exactly 130-170 words.
+
+Student: {name}
+Education: {student.get('branch', '')} from {student.get('college', '')}, CGPA {student.get('cgpa', '')}
+Skills: {skills}
+
+Job: {job.get('title', '')} at {job.get('company', '')}
+Required: {job.get('required_skills', '')}
+
+Match Analysis:
+Score: {match.get('score', 0)}%
+Matched Skills: {matched_skills or 'None'}
+Skills to Build: {gap_skills or 'None'}
+
+Instructions:
+- Write in first person as the student
+- Highlight matched skills and how they apply to the role
+- Acknowledge skill gaps briefly and express eagerness to grow
+- End with a confident, professional call to action
+- Output ONLY the cover description — no title, no heading, no bullet points"""
 
     try:
-        llm = ChatGoogleGenerativeAI(
-            model=primary_model,
-            google_api_key=api_key,
-            temperature=0.1,
-        )
-        logger.info("Agent LLM initialised with model '%s'.", primary_model)
-        return llm
-    except Exception as exc:
-        logger.warning(
-            "Failed to initialise '%s' (%s) — falling back to gemini-1.5-flash.",
-            primary_model, exc,
-        )
-        llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
-            google_api_key=api_key,
-            temperature=0.1,
-        )
-        logger.info("Agent LLM initialised with fallback model 'gemini-1.5-flash'.")
-        return llm
+        response = llm.invoke([HumanMessage(content=prompt)])
+        return response.content.strip()
+    except Exception as e:
+        logger.warning(f"Gemma cover generation failed: {e}")
+        return f"I am writing to express my eager interest in the {job.get('title', 'role')} position. With my background in {student.get('branch', 'engineering')} and skills in {skills}, I am a strong theoretical match and am highly motivated to quickly bridge any hands-on skill gaps. I have carefully reviewed the requirements and am ready to contribute immediately. Thank you for your time and consideration."
 
 
-# ── Agent executor factory ────────────────────────────────────────────────────
+def run_auto_apply_agent(instruction, student_token, student_profile, resume_url):
+    """Run the Smart Placement auto-apply pipeline (synchronous version)."""
+    
+    logger.info(f"Starting direct simple pipeline for instruction: {instruction}")
 
-def _build_executor() -> AgentExecutor:
-    llm = _build_llm()
+    # Step 1 — Parse intent (pure Python, no LLM)
+    from app.agent.intent_parser import parse_instruction
+    intent = parse_instruction(instruction)
+    min_lpa = intent.get('min_lpa') or 0
+    field_keywords = intent.get('field_keywords') or []
 
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", _SYSTEM_PROMPT),
-        ("human", "{input}"),
-        MessagesPlaceholder(variable_name="agent_scratchpad"),
-    ])
+    # Step 2 — Fetch jobs directly (no LLM)
+    backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+    try:
+        response = requests.get(f"{backend_url}/api/v1/jobs", timeout=10) # Admin jobs are fetched here
+        jobs_res = response.json()
+        all_jobs = jobs_res.get('data', []) if isinstance(jobs_res, dict) else jobs_res
+    except Exception as e:
+        return {
+            "success": False,
+            "summary": f"Could not fetch jobs from backend: {e}",
+            "jobs_applied": [],
+            "jobs_skipped": [],
+            "total_applied": 0,
+            "total_skipped": 0
+        }
 
-    agent = create_tool_calling_agent(llm=llm, tools=_TOOLS, prompt=prompt)
+    if not all_jobs:
+        return {
+            "success": True,
+            "summary": "No active jobs currently posted by admin.",
+            "jobs_applied": [],
+            "jobs_skipped": [],
+            "total_applied": 0,
+            "total_skipped": 0
+        }
 
-    return AgentExecutor(
-        agent=agent,
-        tools=_TOOLS,
-        verbose=True,
-        max_iterations=25,
-        handle_parsing_errors=True,
-        return_intermediate_steps=True,
-    )
+    # Step 3 — Filter and score jobs (no LLM — uses trained model)
+    from app.services import profile_matcher_service as match_scorer
+    # match_scorer is inherently loaded/ready in our app module.
 
+    qualifying_jobs = []
+    skipped_jobs = []
 
-# ── Output parser ──────────────────────────────────────────────────────────────
+    for job in all_jobs:
+        job_id = job.get('id')
+        title = job.get('role_title', '')
+        company = job.get('company_name', '')
+        
+        # Package filter
+        job_lpa_raw = job.get('salary_min') or 0
+        try:
+            val = float(job_lpa_raw)
+            job_lpa = round(val / 100_000, 2) if val > 1000 else val
+        except:
+            job_lpa = 0.0
 
-def extract_clean_text(raw_output) -> str:
-    # Already a clean string
-    if isinstance(raw_output, str):
-        # Check if it looks like a Python list repr
-        if raw_output.startswith("[{") or raw_output.startswith("[{'"):
-            try:
-                import ast
-                parsed = ast.literal_eval(raw_output)
-                return extract_clean_text(parsed)
-            except Exception:
-                pass
-        return raw_output
+        if min_lpa > 0 and job_lpa < min_lpa:
+            skipped_jobs.append({
+                'job_id': job_id,
+                'title': title,
+                'company': company,
+                'reason': f'Package {job_lpa} LPA below minimum {min_lpa} LPA'
+            })
+            continue
 
-    # List of content blocks — Gemma format
-    if isinstance(raw_output, list):
-        parts = []
-        for block in raw_output:
-            if isinstance(block, dict):
-                text = block.get('text', '')
-                if text and not text.startswith('ERROR'):
-                    parts.append(text)
-                elif text.startswith('ERROR'):
-                    parts.append(text.split('.')[0])  # just the error message
-            elif isinstance(block, str):
-                parts.append(block)
-        return ' '.join(parts).strip()
+        # Field filter
+        if field_keywords:
+            job_text = f"{title} {job.get('description', '')}".lower()
+            if not any(kw.lower() in job_text for kw in field_keywords):
+                skipped_jobs.append({
+                    'job_id': job_id,
+                    'title': title,
+                    'company': company,
+                    'reason': 'Job field does not match instruction intent'
+                })
+                continue
 
-    # Dict with output key
-    if isinstance(raw_output, dict):
-        output = raw_output.get('output', '')
-        return extract_clean_text(output)
+        # Match score using trained model
+        student_dict = {
+            "name": student_profile.get("fullName") or "Student",
+            "college": student_profile.get("college", ""),
+            "branch": student_profile.get("branch", ""),
+            "cgpa": float(student_profile.get("cgpa") or 0),
+            "skills": student_profile.get("skills", []),
+            "experience": student_profile.get("experience", ""),
+        }
+        
+        job_dict = {
+            "title": title,
+            "company": company,
+            "required_skills": [],
+            "description": job.get("description", ""),
+        }
 
-    return str(raw_output)
+        try:
+            match_res = match_scorer.predict(student_dict, job_dict)
+            match_score = match_res.get('match_score', 0)
+        except:
+            match_res = {'match_score': 0, 'matched_skills': [], 'gap_skills': []}
+            match_score = 0
 
-def _parse_agent_output(
-    raw_output: dict[str, Any],
-    intent: dict[str, Any],
-) -> dict[str, Any]:
-    """
-    Walk the intermediate_steps to reconstruct jobs_applied / jobs_skipped lists
-    from submit_application and filter_and_score_jobs tool outputs.
-    """
-    jobs_applied: list[dict] = []
-    jobs_skipped: list[dict] = []
+        if match_score < 35:
+            skipped_jobs.append({
+                'job_id': job_id,
+                'title': title,
+                'company': company,
+                'reason': f'Match score {match_score:.1f}% below 35% threshold'
+            })
+            continue
 
-    steps: list = raw_output.get("intermediate_steps", [])
-    for action, observation in steps:
-        tool_name: str = getattr(action, "tool", "")
+        job['title'] = title
+        job['company'] = company
+        qualifying_jobs.append({'job': job, 'match': match_res})
 
-        if tool_name == "submit_application":
-            obs_str = str(observation)
-            tool_input = getattr(action, "tool_input", {}) or {}
-            job_id = tool_input.get("job_id", "unknown")
+    # Step 4 — Generate descriptions and apply (LLM called ONCE per qual job)
+    applied_jobs = []
 
-            if obs_str.startswith("✅"):
-                jobs_applied.append({
-                    "job_id": job_id,
-                    "result": obs_str,
+    for item in qualifying_jobs:
+        job = item['job']
+        match = item['match']
+        
+        try:
+            # Generate description using Gemma
+            description = generate_description_with_gemma(
+                student=student_profile,
+                job=job,
+                match=match
+            )
+
+            # Submit application
+            apply_response = requests.post(
+                f"{backend_url}/applications",
+                json={
+                    "job_id": str(job['id']),
+                    "resume_url": resume_url,
+                    "cover_letter": description,
+                    "agent_applied": True
+                },
+                headers={"Authorization": f"Bearer {student_token}"},
+                timeout=10
+            )
+
+            if apply_response.status_code in (200, 201):
+                applied_jobs.append({
+                    'job_id': job['id'],
+                    'title': job['title'],
+                    'company': job['company'],
+                    'match_score': match['match_score'],
+                    'description': description,
+                    'result': '✅ Successfully applied'
+                })
+            elif apply_response.status_code == 409:
+                skipped_jobs.append({
+                    'job_id': job['id'],
+                    'title': job['title'],
+                    'company': job['company'],
+                    'reason': 'Already applied to this job'
                 })
             else:
-                jobs_skipped.append({
-                    "job_id": job_id,
-                    "reason": obs_str,
+                skipped_jobs.append({
+                    'job_id': job['id'],
+                    'title': job['title'],
+                    'company': job['company'],
+                    'reason': f"Failed to apply: HTTP {apply_response.status_code}"
                 })
 
-        elif tool_name == "filter_and_score_jobs":
-            # Supplement skipped list with jobs that were filtered out before apply
-            obs_str = str(observation)
-            for line in obs_str.splitlines():
-                if "❌ SKIP" in line:
-                    parts = line.replace("❌ SKIP —", "").strip().split(" at ")
-                    title = parts[0].strip() if parts else line.strip()
-                    company = parts[1].strip() if len(parts) > 1 else ""
-                    # Avoid duplicates already captured from submit_application
-                    already_captured = any(
-                        r.get("title") == title for r in jobs_skipped
-                    )
-                    if not already_captured:
-                        jobs_skipped.append({"title": title, "company": company, "reason": "Filtered by scorer"})
+        except Exception as e:
+            skipped_jobs.append({
+                'job_id': job['id'],
+                'title': job['title'],
+                'company': job['company'],
+                'reason': f'Error: {str(e)}'
+            })
 
-    raw_summary = raw_output.get("output", "Agent run completed.")
-    clean_summary = extract_clean_text(raw_summary)
+    # Step 5 — Build summary (no LLM)
+    summary_lines = [f"Processed {len(all_jobs)} jobs. Applied to {len(applied_jobs)}. Skipped {len(skipped_jobs)}."]
+    
+    if applied_jobs:
+        summary_lines.append(f"\nApplied to {len(applied_jobs)} job(s):")
+        for a in applied_jobs:
+            summary_lines.append(f"✓ {a['title']} at {a['company']} — {a['match_score']:.1f}% match")
+
+    if skipped_jobs:
+        summary_lines.append(f"\nSkipped {len(skipped_jobs)} job(s):")
+        for s in skipped_jobs:
+            summary_lines.append(f"✗ {s.get('title', 'Unknown')} — {s.get('reason', 'Skipped')}")
 
     return {
         "success": True,
-        "summary": clean_summary,
-        "jobs_applied": jobs_applied,
-        "jobs_skipped": jobs_skipped,
-        "total_applied": len(jobs_applied),
-        "total_skipped": len(jobs_skipped),
-        "intent": intent,
+        "summary": "\n".join(summary_lines),
+        "jobs_applied": applied_jobs,
+        "jobs_skipped": skipped_jobs,
+        "total_applied": len(applied_jobs),
+        "total_skipped": len(skipped_jobs)
     }
-
-
-# ── Public API ─────────────────────────────────────────────────────────────────
-
-def run_auto_apply_agent(
-    instruction: str,
-    student_token: str,
-    student_profile: dict[str, Any],
-    resume_url: str,
-) -> dict[str, Any]:
-    """
-    Run the Smart Placement auto-apply agent end-to-end.
-
-    Args:
-        instruction    : Raw natural language instruction from the student,
-                         e.g. "Apply to software jobs above 10 LPA in Bangalore"
-        student_token  : Student's JWT bearer token for the apply API.
-        student_profile: Dict with keys: fullName/name, college, branch,
-                         cgpa, skills (list), experience (str, optional).
-        resume_url     : Publicly accessible URL of the student's resume PDF.
-
-    Returns:
-        {
-            success      : bool,
-            summary      : str,
-            jobs_applied : list[dict],
-            jobs_skipped : list[dict],
-            total_applied: int,
-            total_skipped: int,
-            intent       : dict,    # parsed intent for reference
-            error        : str,     # only present on failure
-        }
-    """
-    # ── Pre-flight check — verify backend is reachable ────────────
-    backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
-    try:
-        check = requests.get(f"{backend_url}/api/v1/jobs", timeout=5)
-        jobs_response = check.json()
-        jobs_available = jobs_response.get("data", []) if isinstance(jobs_response, dict) else jobs_response
-        logger.info(f"[PRE-FLIGHT] Backend reachable. Jobs available: {len(jobs_available)}")
-        if len(jobs_available) == 0:
-            return {
-                "success": False,
-                "summary": "No jobs are currently posted by admin. Ask your placement officer to post jobs first.",
-                "jobs_applied": [],
-                "jobs_skipped": [],
-                "total_applied": 0,
-                "total_skipped": 0,
-                "intent": {}
-            }
-    except Exception as e:
-        logger.error(f"[PRE-FLIGHT] Error reaching backend: {e}")
-        return {
-            "success": False,
-            "summary": f"Cannot reach backend server at {backend_url}. Make sure the backend is running on port 8000.",
-            "jobs_applied": [],
-            "jobs_skipped": [],
-            "total_applied": 0,
-            "total_skipped": 0,
-            "intent": {}
-        }
-
-    # ── Step 0: Parse the instruction (pure Python, no LLM needed) ────────────
-    intent = parse_instruction(instruction)
-    logger.info(
-        "Auto-apply agent starting | instruction=%r | intent=%s",
-        instruction, intent,
-    )
-
-    # ── Build rich user message ───────────────────────────────────────────────
-    name = (
-        student_profile.get("fullName")
-        or student_profile.get("full_name")
-        or student_profile.get("name")
-        or "Student"
-    )
-    skills_str   = ", ".join(student_profile.get("skills") or []) or "Not provided"
-    college      = student_profile.get("college", "Not provided")
-    branch       = student_profile.get("branch", "Not provided")
-    cgpa         = student_profile.get("cgpa", "Not provided")
-    experience   = student_profile.get("experience", "") or "Fresher"
-    locations    = ", ".join(intent.get("preferred_locations") or []) or "Any"
-
-    profile_json  = json.dumps(student_profile, ensure_ascii=False)
-    intent_json   = json.dumps(intent, ensure_ascii=False)
-
-    user_message = f"""\
-Student Instruction: {instruction}
-
-[Parsed Intent]
-  Minimum LPA        : {intent.get("min_lpa") or "No minimum set"}
-  Field Keywords     : {", ".join(intent.get("field_keywords") or []) or "All fields (no filter)"}
-  Preferred Locations: {locations}
-
-[Student Profile]
-  Name       : {name}
-  College    : {college}
-  Branch     : {branch}
-  CGPA       : {cgpa}
-  Skills     : {skills_str}
-  Experience : {experience}
-
-[Context]
-  student_token : {student_token}
-  resume_url    : {resume_url}
-
-[Serialised data for tools]
-  student_profile_json : {profile_json}
-  intent_json          : {intent_json}
-
-Please execute the full 5-step auto-apply workflow now:
-1. Fetch all active jobs using fetch_dashboard_jobs.
-2. Filter and score them using filter_and_score_jobs with the profile and intent above.
-3. For each APPLY job, generate a unique cover description using generate_application_description.
-4. Submit each application using submit_application with the student_token and resume_url above.
-5. Call generate_final_summary with all results and return the formatted summary.
-"""
-
-    # ── Run the agent ─────────────────────────────────────────────────────────
-    try:
-        executor = _build_executor()
-        raw_output = executor.invoke({"input": user_message})
-        result = _parse_agent_output(raw_output, intent)
-        logger.info(
-            "Auto-apply agent finished | applied=%d skipped=%d",
-            result["total_applied"], result["total_skipped"],
-        )
-        return result
-
-    except Exception as exc:
-        logger.exception("Auto-apply agent crashed: %s", exc)
-        return {
-            "success": False,
-            "summary": f"Agent encountered an error: {exc}",
-            "jobs_applied": [],
-            "jobs_skipped": [],
-            "total_applied": 0,
-            "total_skipped": 0,
-            "intent": intent,
-            "error": str(exc),
-        }

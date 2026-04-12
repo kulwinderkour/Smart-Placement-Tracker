@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import DashboardSidebar from './DashboardSidebar'
-import FloatingAgent from '../FloatingAgent'
+
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -41,7 +41,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         {children}
       </main>
-      <FloatingAgent />
+
     </div>
   )
 }

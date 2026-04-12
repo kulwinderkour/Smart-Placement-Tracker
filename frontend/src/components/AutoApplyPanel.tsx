@@ -34,6 +34,15 @@ interface AutoApplyPanelProps {
 const AI_BASE =
   (import.meta as any).env?.VITE_AI_URL || 'http://localhost:8002'
 
+const PROGRESS_MESSAGES = [
+  'Fetching jobs posted by admin...',
+  'Scoring your profile against job requirements...',
+  'Checking eligibility for matching jobs...',
+  'Generating personalized descriptions...',
+  'Submitting applications...',
+  'Almost done — finalizing results...'
+]
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function uid(): string {
@@ -52,17 +61,32 @@ function parseResumeUrl(profile: any): string {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function ThinkingDots() {
-  const [frame, setFrame] = useState(0)
-  useEffect(() => {
-    const t = setInterval(() => setFrame(f => (f + 1) % 4), 420)
-    return () => clearInterval(t)
-  }, [])
-  const dots = '.'.repeat(frame)
+function ThinkingDots({ thinkingText }: { thinkingText: string }) {
   return (
-    <span style={{ color: '#888888', fontStyle: 'italic', fontSize: 13 }}>
-      Agent is thinking{dots}
-    </span>
+    <div style={{ padding: '4px 0', minWidth: '220px' }}>
+      <style>{`
+        @keyframes progressBar {
+          from { width: 0% }
+          to { width: 100% }
+        }
+      `}</style>
+      <div style={{
+        height: '2px',
+        background: '#21262d',
+        borderRadius: '1px',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          height: '2px',
+          background: '#20c997',
+          borderRadius: '1px',
+          animation: 'progressBar 90s linear forwards'
+        }} />
+      </div>
+      <p style={{ color: '#7d8590', fontSize: '11px', marginTop: '6px', marginBottom: 0 }}>
+        {thinkingText}
+      </p>
+    </div>
   )
 }
 
@@ -217,7 +241,7 @@ function SummaryCard({ applied, skipped }: { applied: number; skipped: number })
   )
 }
 
-function MessageBubble({ msg }: { msg: Message }) {
+function MessageBubble({ msg, thinkingText }: { msg: Message, thinkingText?: string }) {
   if (msg.role === 'student') {
     return (
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
@@ -250,7 +274,7 @@ function MessageBubble({ msg }: { msg: Message }) {
             padding: '9px 13px',
           }}
         >
-          <ThinkingDots />
+          <ThinkingDots thinkingText={thinkingText || ''} />
         </div>
       </div>
     )
@@ -339,6 +363,7 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
   ])
   const [inputText, setInputText]   = useState(defaultInstruction)
   const [isRunning, setIsRunning]   = useState(false)
+  const [thinkingText, setThinkingText] = useState(PROGRESS_MESSAGES[0])
   const [minPackage, setMinPackage] = useState(0) // reserved for future LPA filter UI
   void minPackage; void setMinPackage // suppress unused warning — required by spec
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -350,6 +375,19 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages])
+
+  useEffect(() => {
+    if (!isRunning) return
+    let index = 0
+    setThinkingText(PROGRESS_MESSAGES[0])
+    const interval = setInterval(() => {
+      index++
+      if (index < PROGRESS_MESSAGES.length) {
+        setThinkingText(PROGRESS_MESSAGES[index])
+      }
+    }, 12000)
+    return () => clearInterval(interval)
+  }, [isRunning])
 
   // Focus input when panel opens
   useEffect(() => {
@@ -386,6 +424,9 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
 
       const AI_URL = `${AI_BASE}/api/agent/auto-apply`
 
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 90000)
+
       const resp = await fetch(AI_URL, {
         method: 'POST',
         headers: {
@@ -398,7 +439,9 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
           student_profile: profile,
           resume_url,
         }),
+        signal: controller.signal
       })
+      clearTimeout(timeoutId)
 
       if (!resp.ok) {
         const errText = await resp.text()
@@ -471,12 +514,18 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
 
       replaceThinking(newMessages)
     } catch (err: any) {
-      replaceThinking([
-        {
-          role: 'agent',
-          text: `⚠️ Could not reach the agent. Make sure the AI engine is running at ${AI_BASE}.\n\n${err?.message ?? err}`,
-        },
-      ])
+      if (err.name === 'AbortError') {
+        replaceThinking([
+          { role: 'agent', text: 'Request timed out after 90 seconds. Please try again with a more specific instruction like "Apply to software engineering jobs above 10 LPA".' }
+        ])
+      } else {
+        replaceThinking([
+          {
+            role: 'agent',
+            text: `⚠️ Could not reach the agent. Make sure the AI engine is running at ${AI_BASE}.\n\n${err?.message ?? err}`,
+          },
+        ])
+      }
     } finally {
       setIsRunning(false)
       setTimeout(() => inputRef.current?.focus(), 100)
@@ -572,7 +621,7 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
         }}
       >
         {messages.map(msg => (
-          <MessageBubble key={msg.id} msg={msg} />
+          <MessageBubble key={msg.id} msg={msg} thinkingText={thinkingText} />
         ))}
       </div>
 
