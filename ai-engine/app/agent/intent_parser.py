@@ -61,7 +61,9 @@ FIELD_KEYWORD_MAP: dict[str, list[str]] = {
     "pm":                   ["product manager", "pm", "product", "roadmap"],
     "design":               ["design", "ui", "ux", "figma", "product design"],
     "ui ux":                ["ui", "ux", "design", "figma", "user experience"],
+    "ui/ux":                ["ui", "ux", "design", "figma", "user experience"],
     "ux":                   ["ux", "user experience", "design", "ui", "figma"],
+    "ui":                   ["ui", "ux", "design", "figma", "frontend"],
 
     # Consulting / Management
     "consulting":           ["consulting", "consultant", "strategy", "management", "advisory"],

@@ -180,9 +180,8 @@ def _title_keyword_score(
     if not job_title:
         return 0.0
 
-    title_words = set(_normalize(job_title).split()) - _TITLE_STOP_WORDS
-    if not title_words:
-        return 0.0
+    title_normalized = _normalize(job_title)
+    title_words = set(title_normalized.split()) - _TITLE_STOP_WORDS
 
     # Build token set from student skills + branch (split multi-word entries)
     student_tokens: set[str] = set()
@@ -192,6 +191,23 @@ def _title_keyword_score(
             student_tokens.update(_normalize(name).split())
     if branch:
         student_tokens.update(_normalize(branch).split())
+
+    # When ALL title words are stop words (e.g. "Software Engineer", "SDE Intern"),
+    # the title is a generic role. Check if student branch/skills are tech-related.
+    if not title_words:
+        # These words in the ORIGINAL title + student branch indicate a tech role match
+        tech_indicators = {"software", "sde", "swe", "fullstack", "full-stack",
+                           "frontend", "backend", "devops", "cloud", "data", "ml",
+                           "ai", "web", "mobile", "ios", "android", "qa", "test"}
+        title_has_tech = bool(set(title_normalized.split()) & tech_indicators)
+        branch_is_tech = any(kw in _normalize(branch) for kw in
+                            ["computer", "software", "information", "it", "electronics",
+                             "electrical", "data", "artificial"])
+        if title_has_tech and branch_is_tech:
+            return 0.6  # generic tech role + tech branch → reasonable match
+        if title_has_tech or branch_is_tech:
+            return 0.3  # partial match
+        return 0.0
 
     matched_title_words = title_words & student_tokens
     return len(matched_title_words) / len(title_words)
@@ -328,19 +344,38 @@ def predict(student_profile: dict[str, Any], job: dict[str, Any]) -> dict[str, A
         except Exception as exc:
             logger.warning("Skill extraction from description failed: %s", exc)
 
-    # When still no skills at all, fall back to pure semantic-similarity scoring
+    # When still no skills at all, fall back to title-keyword + semantic + CGPA scoring
     if not required_skills:
         profile_text = _build_profile_text(student_profile)
         job_text = _build_job_text(job)
         semantic_sim = _tfidf_similarity(profile_text, job_text)
-        match_score = round(float(np.clip(semantic_sim * 100, 0.0, 100.0)), 1)
-        logger.info("No skills available — semantic-only score: %.1f", match_score)
+
+        # Title keyword matching — does the student have skills related to the job title?
+        branch = student_profile.get("branch") or ""
+        title_kw_score = _title_keyword_score(job_title, student_skills, branch)
+
+        # CGPA floor
+        cgpa = float(student_profile.get("cgpa") or 0)
+        cgpa_floor = max(0.0, (cgpa - 7.0) / 3.0 * 25.0) if cgpa >= 7.0 else 0.0
+
+        # Combine: title match (up to 60pts) + semantic (up to 15pts) + cgpa floor
+        raw_score = (title_kw_score * 60.0) + min(semantic_sim * 15.0, 10.0)
+        match_score = round(float(np.clip(max(raw_score, cgpa_floor), 0.0, 100.0)), 1)
+
+        logger.info(
+            "No required_skills — fallback score: %.1f (title_kw=%.2f, semantic=%.4f, cgpa_floor=%.1f)",
+            match_score, title_kw_score, semantic_sim, cgpa_floor
+        )
         return {
             "match_score": match_score,
             "match_label": _match_label(match_score),
             "matched_skills": [],
             "gap_skills": [],
-            "feature_values": {"semantic_sim": round(semantic_sim, 4)},
+            "feature_values": {
+                "semantic_sim": round(semantic_sim, 4),
+                "title_keyword_score": round(title_kw_score, 4),
+                "cgpa_floor": round(cgpa_floor, 1),
+            },
         }
 
     profile_text = _build_profile_text(student_profile)

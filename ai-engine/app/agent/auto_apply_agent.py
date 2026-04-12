@@ -79,11 +79,19 @@ def run_auto_apply_agent(instruction, student_token, student_profile, resume_url
     # Step 1 — Parse intent (pure Python, no LLM)
     from app.agent.intent_parser import parse_instruction
     intent = parse_instruction(instruction)
-    min_lpa = intent.get('min_lpa') or 0
+    extracted_lpa = intent.get('min_lpa') or 0
     field_keywords = intent.get('field_keywords') or []
 
+    # Handle "below", "under", "less than" explicitly since parser defaults to min_lpa
+    is_max_lpa = any(kw in instruction.lower() for kw in ['below', 'under', 'less than', 'max'])
+    min_lpa = 0 if is_max_lpa else extracted_lpa
+    max_lpa = extracted_lpa if is_max_lpa else float('inf')
+
     # Step 2 — Fetch jobs directly (no LLM)
-    backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+    backend_url = os.getenv("BACKEND_URL", "http://backend-api:8000")
+    if "localhost" in backend_url or "127.0.0.1" in backend_url:
+        backend_url = "http://backend-api:8000"
+
     try:
         response = requests.get(f"{backend_url}/api/v1/jobs", timeout=10) # Admin jobs are fetched here
         jobs_res = response.json()
@@ -110,7 +118,31 @@ def run_auto_apply_agent(instruction, student_token, student_profile, resume_url
 
     # Step 3 — Filter and score jobs (no LLM — uses trained model)
     from app.services import profile_matcher_service as match_scorer
-    # match_scorer is inherently loaded/ready in our app module.
+
+    # Force-reload the model to pick up any retraining done since last run
+    try:
+        match_scorer.reload_model()
+        logger.info("Model reloaded successfully for agent run")
+    except Exception as reload_err:
+        logger.warning(f"Model reload failed (will try with existing): {reload_err}")
+
+    # Normalize skills ONCE outside the loop — they may be plain strings or {name, level} objects
+    raw_skills = student_profile.get("skills") or []
+    normalized_skills = [
+        s if isinstance(s, str) else (s.get("name") or s.get("skill") or "")
+        for s in raw_skills
+    ]
+    normalized_skills = [s.strip() for s in normalized_skills if s and s.strip()]
+    logger.info(f"Agent normalized student skills: {normalized_skills}")
+
+    student_dict = {
+        "name": student_profile.get("fullName") or student_profile.get("full_name") or "Student",
+        "college": student_profile.get("college", ""),
+        "branch": student_profile.get("branch", ""),
+        "cgpa": float(student_profile.get("cgpa") or 0),
+        "skills": normalized_skills,
+        "experience": student_profile.get("experience", ""),
+    }
 
     qualifying_jobs = []
     skipped_jobs = []
@@ -125,7 +157,7 @@ def run_auto_apply_agent(instruction, student_token, student_profile, resume_url
         try:
             val = float(job_lpa_raw)
             job_lpa = round(val / 100_000, 2) if val > 1000 else val
-        except:
+        except (TypeError, ValueError):
             job_lpa = 0.0
 
         if min_lpa > 0 and job_lpa < min_lpa:
@@ -134,6 +166,15 @@ def run_auto_apply_agent(instruction, student_token, student_profile, resume_url
                 'title': title,
                 'company': company,
                 'reason': f'Package {job_lpa} LPA below minimum {min_lpa} LPA'
+            })
+            continue
+
+        if max_lpa < float('inf') and job_lpa > max_lpa:
+            skipped_jobs.append({
+                'job_id': job_id,
+                'title': title,
+                'company': company,
+                'reason': f'Package {job_lpa} LPA above maximum {max_lpa} LPA'
             })
             continue
 
@@ -150,28 +191,29 @@ def run_auto_apply_agent(instruction, student_token, student_profile, resume_url
                 continue
 
         # Match score using trained model
-        student_dict = {
-            "name": student_profile.get("fullName") or "Student",
-            "college": student_profile.get("college", ""),
-            "branch": student_profile.get("branch", ""),
-            "cgpa": float(student_profile.get("cgpa") or 0),
-            "skills": student_profile.get("skills", []),
-            "experience": student_profile.get("experience", ""),
-        }
-        
         job_dict = {
             "title": title,
             "company": company,
-            "required_skills": [],
+            "required_skills": job.get("required_skills", []),
             "description": job.get("description", ""),
         }
 
         try:
             match_res = match_scorer.predict(student_dict, job_dict)
             match_score = match_res.get('match_score', 0)
-        except:
-            match_res = {'match_score': 0, 'matched_skills': [], 'gap_skills': []}
-            match_score = 0
+            logger.info(f"Match score for '{title}' at '{company}': {match_score}% | skills: {match_res.get('matched_skills', [])}")
+        except Exception as score_err:
+            logger.error(f"ML scorer FAILED for job '{title}': {score_err}", exc_info=True)
+            # Fallback: use CGPA-based minimum score instead of hard 0
+            cgpa = float(student_profile.get("cgpa") or 0)
+            fallback_score = max(0.0, (cgpa - 7.0) / 3.0 * 25.0) if cgpa >= 7.0 else 0.0
+            match_res = {
+                'match_score': round(fallback_score, 1),
+                'matched_skills': [],
+                'gap_skills': [],
+                'error': str(score_err)
+            }
+            match_score = fallback_score
 
         if match_score < 35:
             skipped_jobs.append({
