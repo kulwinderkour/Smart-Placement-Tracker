@@ -422,6 +422,14 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
       const profile         = JSON.parse(rawProfile)
       const resume_url      = parseResumeUrl(profile)
 
+      // Normalize skills to plain strings — they can be stored as {name, level} objects
+      const normalizedProfile = {
+        ...profile,
+        skills: (profile.skills || []).map((s: any) =>
+          typeof s === 'string' ? s : (s?.name || s?.skill || '')
+        ).filter(Boolean)
+      }
+
       const AI_URL = `${AI_BASE}/api/agent/auto-apply`
 
       const controller = new AbortController()
@@ -436,7 +444,7 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
         body: JSON.stringify({
           instruction,
           student_token: token,
-          student_profile: profile,
+          student_profile: normalizedProfile,
           resume_url,
         }),
         signal: controller.signal
