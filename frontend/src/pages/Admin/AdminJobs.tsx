@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Plus, Briefcase, MapPin, Users, X, ChevronDown,
@@ -717,6 +718,7 @@ function EditJobModal({
    Main AdminJobs Page
 ───────────────────────────────────────────── */
 export default function AdminJobs() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showPostModal, setShowPostModal] = useState(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
@@ -784,7 +786,7 @@ export default function AdminJobs() {
           <div className="flex items-center gap-3">
             {wsIndicator}
             <button
-              onClick={() => setShowPostModal(true)}
+              onClick={() => navigate("/admin/jobs/post")}
               className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all"
               style={{ background: "#7c3aed", color: "#ffffff" }}
               onMouseEnter={(e) => {
@@ -823,7 +825,7 @@ export default function AdminJobs() {
               Post your first job to start receiving applications
             </p>
             <button
-              onClick={() => setShowPostModal(true)}
+              onClick={() => navigate("/admin/jobs/post")}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
               style={{ background: "#7c3aed", color: "#ffffff" }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#6d28d9"; }}

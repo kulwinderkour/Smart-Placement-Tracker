@@ -207,6 +207,8 @@ export interface JobCreatePayload {
   location?: string
   salary_min?: number
   salary_max?: number
+  experience_min?: number
+  experience_max?: number
   job_type?: 'full_time' | 'intern' | 'contract'
   description?: string
   deadline?: string
@@ -254,6 +256,14 @@ export interface AnalyticsData {
   top_colleges: { college: string; count: number }[]
   offer_rate: number
   shortlist_rate: number
+}
+
+export interface AdminAnalyticsSummary {
+  activeJobs: number
+  totalApplicants: number
+  shortlisted: number
+  offersMade: number
+  offerRate: number
 }
 
 export interface ApiResponse<T> {

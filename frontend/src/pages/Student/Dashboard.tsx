@@ -5,6 +5,7 @@ import { useAuthStore } from '../../store/authStore'
 import { applicationsApi, type TrackedApplication } from '../../api/applications'
 import JobMatchScoreCard from '../../components/JobMatchScoreCard'
 import AutoApplyPanel from '../../components/AutoApplyPanel'
+import ConfirmActionModal from '../../components/common/ConfirmActionModal'
 
 // ── Types & Helpers ──────────────────────────────────────────────────────────
 interface PastApp { company: string; status: string }
@@ -73,16 +74,22 @@ function StatCard({ value, label, icon, accent }: { value: string | number; labe
     <div 
       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{
-        background: '#1c1c1c', border: `1px solid ${hov ? '#333333' : '#2d2d2d'}`,
-        borderRadius: 10, padding: '20px 22px', flex: 1, minWidth: 200, transition: 'all 0.15s ease'
+        background: hov ? '#181b20' : '#15181d',
+        border: `1px solid ${hov ? '#2c323b' : '#252b33'}`,
+        borderRadius: 14, padding: '16px 18px', flex: 1, minWidth: 200, transition: 'all 0.2s ease',
+        boxShadow: hov ? '0 8px 24px rgba(0,0,0,0.28)' : '0 3px 12px rgba(0,0,0,0.2)'
       }}>
-      <div style={{ color: accent, marginBottom: 16 }}>
+      <div style={{
+        color: accent, marginBottom: 12, width: 34, height: 34, borderRadius: 10,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: `${accent}20`, border: `1px solid ${accent}30`
+      }}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <path d={icon} />
         </svg>
       </div>
-      <h3 style={{ margin: 0, fontSize: 28, fontWeight: 600, color: '#e0e0e0', lineHeight: 1.2 }}>{value}</h3>
-      <p style={{ margin: '4px 0 0', fontSize: 12, color: '#888888', fontWeight: 500 }}>{label}</p>
+      <h3 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#e6edf3', lineHeight: 1.15, letterSpacing: '-0.01em' }}>{value}</h3>
+      <p style={{ margin: '6px 0 0', fontSize: 11, color: '#8b949e', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</p>
     </div>
   )
 }
@@ -93,22 +100,27 @@ function ActionCard({ icon, title, subtitle, to }: { icon: string; title: string
     <Link to={to} 
       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{
-        background: hov ? '#1f1f1f' : '#1c1c1c',
-        border: `1px solid ${hov ? '#333333' : '#2d2d2d'}`,
-        borderRadius: 10, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14,
-        textDecoration: 'none', transition: 'all 0.15s ease', cursor: 'pointer'
+        background: hov ? '#181b20' : '#15181d',
+        border: `1px solid ${hov ? '#2e3540' : '#252b33'}`,
+        borderRadius: 12, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12,
+        textDecoration: 'none', transition: 'all 0.18s ease', cursor: 'pointer',
+        boxShadow: hov ? '0 10px 24px rgba(0,0,0,0.25)' : '0 3px 10px rgba(0,0,0,0.18)'
       }}
     >
-      <div style={{ color: '#20c997', flexShrink: 0 }}>
+      <div style={{
+        color: '#20c997', flexShrink: 0, width: 30, height: 30, borderRadius: 8,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'rgba(32, 201, 151, 0.14)', border: '1px solid rgba(32, 201, 151, 0.26)'
+      }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <path d={icon} />
         </svg>
       </div>
       <div style={{ flex: 1 }}>
-        <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: '#e0e0e0', lineHeight: 1.5 }}>{title}</p>
-        <p style={{ margin: '2px 0 0', fontSize: 12, color: '#888888', lineHeight: 1.5 }}>{subtitle}</p>
+        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#e6edf3', lineHeight: 1.4 }}>{title}</p>
+        <p style={{ margin: '2px 0 0', fontSize: 11, color: '#8b949e', lineHeight: 1.45 }}>{subtitle}</p>
       </div>
-      <span style={{ color: hov ? '#888888' : '#555555', fontSize: 18 }}>→</span>
+      <span style={{ color: hov ? '#a0a8b3' : '#606a76', fontSize: 16 }}>→</span>
     </Link>
   )
 }
@@ -126,7 +138,15 @@ export default function Dashboard() {
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : hour < 21 ? 'Good evening' : 'Good night'
 
   const [logoutHov, setLogoutHov] = useState(false)
-  const handleLogout = () => { logout(); navigate('/login') }
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const handleLogout = () => {
+    setShowLogoutConfirm(true)
+  }
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false)
+    logout()
+    navigate('/landing')
+  }
 
   const [applications, setApplications] = useState<TrackedApplication[]>([])
   const [appsLoading, setAppsLoading] = useState(true)
@@ -289,19 +309,28 @@ export default function Dashboard() {
   const resumeBase = profile.resumeBase64 || profile.resume_base64
 
   return (
-    <div style={{ width: '100%', minHeight: '100vh', background: '#121212' }}>
+    <div style={{ width: '100%', minHeight: '100vh', background: '#0f1216' }}>
+      <ConfirmActionModal
+        isOpen={showLogoutConfirm}
+        title="Sign out"
+        message="Do you want to exit?"
+        confirmText="Yes"
+        cancelText="No"
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
       
       {/* ── Top Bar ── */}
       <header style={{
-        background: '#121212', borderBottom: '1px solid #2d2d2d',
-        padding: '14px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        background: '#0f1216', borderBottom: '1px solid #232a33',
+        padding: '18px 30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         position: 'sticky', top: 0, zIndex: 10
       }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 18, fontWeight: 500, color: '#e0e0e0' }}>
+          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 650, color: '#e6edf3', letterSpacing: '-0.01em' }}>
             {greeting}, {firstName} 👋
           </h1>
-          <p style={{ margin: '2px 0 0', fontSize: 13, color: '#888888' }}>
+          <p style={{ margin: '4px 0 0', fontSize: 12, color: '#8b949e' }}>
             {skills.length > 0 ? `Track your profile and skills efficiently.` : `Complete your profile to boost placement readiness.`}
           </p>
         </div>
@@ -322,7 +351,7 @@ export default function Dashboard() {
           </div>
 
           {/* Separator */}
-          <div style={{ width: 1, height: 22, background: '#2d2d2d', margin: '0 4px' }} />
+          <div style={{ width: 1, height: 22, background: '#2a313b', margin: '0 4px' }} />
 
           {/* Logout Button */}
           <button
@@ -333,11 +362,11 @@ export default function Dashboard() {
             title="Sign out"
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              background: logoutHov ? '#2d1b1b' : 'transparent',
-              border: `1px solid ${logoutHov ? '#da363344' : 'transparent'}`,
+              background: logoutHov ? '#2b1d22' : 'transparent',
+              border: `1px solid ${logoutHov ? '#da363344' : '#29303a'}`,
               borderRadius: 8,
               padding: '6px 12px',
-              color: logoutHov ? '#f85149' : '#888888',
+              color: logoutHov ? '#f85149' : '#9aa4af',
               cursor: 'pointer',
               fontSize: 12,
               fontWeight: 500,
@@ -350,10 +379,10 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, padding: '20px 28px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, padding: '24px 30px' }}>
         
         {/* Left Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           
           {/* Stats Row */}
           <div style={{ display: 'flex', gap: 16 }}>
@@ -364,15 +393,15 @@ export default function Dashboard() {
           </div>
 
           {/* Readiness Bar */}
-          <div style={{ background: '#1c1c1c', border: '1px solid #2d2d2d', borderRadius: 10, padding: '20px 24px' }}>
+          <div style={{ background: '#15181d', border: '1px solid #252b33', borderRadius: 14, padding: '18px 20px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <span style={{ fontSize: 14, fontWeight: 500, color: '#e0e0e0' }}>Placement Readiness</span>
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#20c997' }}>{readiness}%</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#e6edf3' }}>Placement Readiness</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#20c997' }}>{readiness}%</span>
             </div>
-            <div style={{ height: 6, background: '#2d2d2d', borderRadius: 3, overflow: 'hidden' }}>
-              <div style={{ width: `${readiness}%`, height: '100%', background: '#20c997', transition: 'width 0.8s ease' }} />
+            <div style={{ height: 8, background: '#222830', borderRadius: 99, overflow: 'hidden', border: '1px solid #2c333d' }}>
+              <div style={{ width: `${readiness}%`, height: '100%', background: '#20c997', transition: 'width 0.8s ease', boxShadow: '0 0 12px rgba(32,201,151,0.35)' }} />
             </div>
-            <p style={{ margin: '8px 0 0', fontSize: 12, color: '#888888' }}>
+            <p style={{ margin: '10px 0 0', fontSize: 11, color: '#8b949e' }}>
               💡 Profile completion status. Upload your latest resume to reach 100%.
             </p>
           </div>
@@ -385,9 +414,9 @@ export default function Dashboard() {
           </div>
 
           {/* Recent Apps */}
-          <div style={{ background: '#1c1c1c', border: '1px solid #2d2d2d', borderRadius: 10, padding: '20px 24px' }}>
+          <div style={{ background: '#15181d', border: '1px solid #252b33', borderRadius: 14, padding: '20px 22px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h2 style={{ margin: 0, fontSize: 14, fontWeight: 500, color: '#e0e0e0' }}>Recent Applications</h2>
+              <h2 style={{ margin: 0, fontSize: 14, fontWeight: 650, color: '#e6edf3' }}>Recent Applications</h2>
               <Link to="/jobs" style={{ fontSize: 12, color: '#20c997', textDecoration: 'none', fontWeight: 500 }}>Browse Jobs →</Link>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -404,18 +433,18 @@ export default function Dashboard() {
                   : '—'
                 return (
                   <div key={i} style={{ 
-                    padding: '12px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    borderBottom: i === Math.min(applications.length, 5) - 1 ? 'none' : '1px solid #2d2d2d'
+                    padding: '14px 2px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    borderBottom: i === Math.min(applications.length, 5) - 1 ? 'none' : '1px solid #242b34'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{
-                        width: 32, height: 32, borderRadius: 6, background: '#2d2d2d', color: '#888888',
+                        width: 34, height: 34, borderRadius: 8, background: '#232a33', color: '#9aa4af',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 500,
                         flexShrink: 0
                       }}>{app.company[0]?.toUpperCase() ?? '?'}</div>
                       <div>
-                        <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: '#e0e0e0' }}>{app.company}</p>
-                        <p style={{ margin: 0, fontSize: 12, color: '#888888' }}>{app.role} · {appliedDate}</p>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#e6edf3' }}>{app.company}</p>
+                        <p style={{ margin: 0, fontSize: 11, color: '#8b949e' }}>{app.role} · {appliedDate}</p>
                       </div>
                     </div>
                     <span style={{
@@ -546,12 +575,12 @@ export default function Dashboard() {
               </span>
             </div>
 
-            <div style={{ height: '1px', background: '#2d2d2d', marginBottom: '16px' }} />
+            <div style={{ height: '1px', background: '#242b34', marginBottom: '16px' }} />
 
             {/* Auto apply bar */}
             <div style={{
-              background: '#1c1c1c', border: '1px solid #2d2d2d',
-              borderRadius: '10px', padding: '16px 20px',
+              background: '#15181d', border: '1px solid #252b33',
+              borderRadius: '14px', padding: '15px 18px',
               display: 'flex', alignItems: 'center', gap: '12px',
               marginBottom: '16px', flexWrap: 'wrap'
             }}>
@@ -888,7 +917,7 @@ export default function Dashboard() {
 
         {/* Right Panel - Profile Summary */}
         <aside style={{
-          background: '#1c1c1c', border: '1px solid #2d2d2d', borderRadius: 10,
+          background: '#15181d', border: '1px solid #252b33', borderRadius: 14,
           padding: '20px', position: 'sticky', top: 16, height: 'fit-content'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
@@ -897,20 +926,20 @@ export default function Dashboard() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 600
             }}>{firstName[0].toUpperCase()}</div>
             <div>
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: '#e0e0e0' }}>{profile.fullName || 'User'}</h3>
-              <p style={{ margin: 0, fontSize: 12, color: '#888888' }}>Batch of {profile.graduationYear}</p>
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 650, color: '#e6edf3' }}>{profile.fullName || 'User'}</h3>
+              <p style={{ margin: 0, fontSize: 11, color: '#8b949e' }}>Batch of {profile.graduationYear}</p>
             </div>
           </div>
 
-          <div style={{ height: 1, background: '#2d2d2d', margin: '16px 0' }} />
+          <div style={{ height: 1, background: '#242b34', margin: '16px 0' }} />
 
           {/* CGPA Section */}
           <div style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 12, color: '#888888' }}>Academic CGPA</span>
-              <span style={{ fontSize: 12, fontWeight: 500, color: '#e0e0e0' }}>{profile.cgpa || profile.cgpa} / 10</span>
+              <span style={{ fontSize: 11, color: '#8b949e' }}>Academic CGPA</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#e6edf3' }}>{profile.cgpa || profile.cgpa} / 10</span>
             </div>
-            <div style={{ height: 4, background: '#2d2d2d', borderRadius: 2 }}>
+            <div style={{ height: 6, background: '#222830', borderRadius: 99, border: '1px solid #2c333d' }}>
               <div style={{ width: `${(cgpaNum / 10) * 100}%`, height: '100%', background: '#20c997', borderRadius: 2 }} />
             </div>
           </div>
@@ -921,13 +950,13 @@ export default function Dashboard() {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {skills.map(s => (
                 <span key={s} style={{
-                  background: '#2d2d2d', color: '#888888', padding: '3px 10px', borderRadius: 4, fontSize: 11, border: '1px solid transparent'
+                  background: '#20262f', color: '#a7b0bb', padding: '4px 10px', borderRadius: 999, fontSize: 11, border: '1px solid #2d353f'
                 }}>{s}</span>
               ))}
             </div>
           </div>
 
-          <div style={{ height: 1, background: '#2d2d2d', margin: '16px 0' }} />
+          <div style={{ height: 1, background: '#242b34', margin: '16px 0' }} />
 
           {/* Resume Section */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -953,7 +982,7 @@ export default function Dashboard() {
           <Link to="/profile" style={{
             display: 'block', marginTop: 24, textAlign: 'center', fontSize: 13, fontWeight: 500,
             color: '#20c997', textDecoration: 'none', padding: '10px', borderRadius: 6,
-            border: '1px solid #2d2d2d', background: '#121212'
+            border: '1px solid #2a323d', background: '#11161b'
           }}>Edit Profile</Link>
         </aside>
 

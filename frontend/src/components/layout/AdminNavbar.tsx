@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
+import ConfirmActionModal from '../common/ConfirmActionModal'
 
 export default function AdminNavbar() {
   const { user, logout } = useAuthStore()
   const location = useLocation()
   const navigate = useNavigate()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const email = user?.email || 'admin@example.com'
   const initials = email.substring(0, 2).toUpperCase()
@@ -19,12 +21,26 @@ export default function AdminNavbar() {
   ]
 
   const handleLogout = () => {
+    setShowLogoutConfirm(true)
+  }
+
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false)
     logout()
-    navigate('/login')
+    navigate('/landing')
   }
 
   return (
     <>
+      <ConfirmActionModal
+        isOpen={showLogoutConfirm}
+        title="Sign out"
+        message="Do you want to exit?"
+        confirmText="Yes"
+        cancelText="No"
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
       <nav className="h-[72px] flex items-center justify-center sticky top-0 z-40 bg-[#070b18]/80 backdrop-blur-[20px] border-b border-white/10">
         <div className="w-full max-w-[1400px] px-6 sm:px-10 flex justify-between items-center h-full">
           <div className="flex items-center gap-4 shrink-0">

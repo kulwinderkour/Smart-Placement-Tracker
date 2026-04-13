@@ -1,10 +1,13 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
+import { useState } from 'react'
+import ConfirmActionModal from '../common/ConfirmActionModal'
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuthStore()
   const location = useLocation()
   const navigate = useNavigate()
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const email = user?.email || 'user@example.com'
   const initials = email.substring(0, 2).toUpperCase()
@@ -22,13 +25,28 @@ export default function Navbar() {
   ]
 
   const handleLogout = () => {
+    setShowLogoutConfirm(true)
+  }
+
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false)
     logout()
-    navigate('/login')
+    navigate('/landing')
   }
 
   return (
-    <nav className="h-[56px] flex items-center justify-start sticky top-0 z-40" style={{background: '#0d1117', borderBottom: '1px solid #21262d'}}>
-      <div className="w-full px-[20px] flex justify-between items-center h-full gap-4">
+    <>
+      <ConfirmActionModal
+        isOpen={showLogoutConfirm}
+        title="Sign out"
+        message="Do you want to exit?"
+        confirmText="Yes"
+        cancelText="No"
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
+      <nav className="h-[56px] flex items-center justify-start sticky top-0 z-40" style={{background: '#0d1117', borderBottom: '1px solid #21262d'}}>
+        <div className="w-full px-[20px] flex justify-between items-center h-full gap-4">
         <div className="flex items-center gap-3 shrink-0">
           <Link to="/" className="flex items-center gap-2">
             <div className="w-[24px] h-[24px] bg-[#7c3aed] rounded-[6px] flex items-center justify-center">
@@ -74,7 +92,8 @@ export default function Navbar() {
             </div>
           )}
         </div>
-      </div>
-    </nav>
+        </div>
+      </nav>
+    </>
   )
 }

@@ -28,7 +28,6 @@ import AdminDashboard from "./pages/Admin/AdminDashboard";
 import AdminJobs from "./pages/Admin/AdminJobs";
 import AdminApplicants from "./pages/Admin/AdminApplicants";
 import AdminInterviews from "./pages/Admin/AdminInterviews";
-import AdminAnalytics from "./pages/Admin/AdminAnalytics";
 import AdminCompanyProfile from "./pages/Admin/AdminCompanyProfile";
 import AdminSettings from "./pages/Admin/AdminSettings";
 
@@ -296,14 +295,6 @@ export const router = createBrowserRouter([
     element: (
       <AdminRoute>
         <AdminInterviews />
-      </AdminRoute>
-    ),
-  },
-  {
-    path: "/admin/analytics",
-    element: (
-      <AdminRoute>
-        <AdminAnalytics />
       </AdminRoute>
     ),
   },

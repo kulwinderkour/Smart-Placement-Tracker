@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { CompanyProfile, Job, Student, ApiResponse, AdminStats, ApplicationWithStudent, Interview, AnalyticsData } from '../types'
+import type { CompanyProfile, Job, Student, ApiResponse, AdminStats, ApplicationWithStudent, Interview, AnalyticsData, AdminAnalyticsSummary } from '../types'
 
 export const adminApi = {
   getStats: () =>
@@ -48,4 +48,7 @@ export const adminApi = {
 
   getAnalytics: () =>
     apiClient.get<AnalyticsData>('/admin/analytics'),
+
+  getAnalyticsSummary: () =>
+    apiClient.get<AdminAnalyticsSummary>('/admin/analytics/summary'),
 }
