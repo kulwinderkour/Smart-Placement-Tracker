@@ -520,6 +520,55 @@ async def get_analytics(
     }
 
 
+@router.get("/analytics/summary")
+async def get_analytics_summary(
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """
+    Lightweight analytics summary for the top stat cards.
+    Pure SQL counts from the database.
+    """
+    active_jobs = await db.scalar(
+        select(func.count()).select_from(Job).where(Job.is_active == True)  # noqa: E712
+    ) or 0
+
+    total_applicants = await db.scalar(
+        select(func.count(func.distinct(Application.student_id))).select_from(Application)
+    ) or 0
+
+    shortlisted = await db.scalar(
+        select(func.count())
+        .select_from(Application)
+        .where(
+            Application.status.in_(
+                [
+                    ApplicationStatus.technical_round,  # "Interviewed"
+                    ApplicationStatus.hr_round,
+                    ApplicationStatus.offer,
+                ]
+            )
+        )
+    ) or 0
+
+    offers_made = await db.scalar(
+        select(func.count())
+        .select_from(Application)
+        .where(Application.status == ApplicationStatus.offer)
+    ) or 0
+
+    denom = total_applicants if total_applicants > 0 else 1
+    offer_rate = round((offers_made / denom) * 100)
+
+    return {
+        "activeJobs": int(active_jobs),
+        "totalApplicants": int(total_applicants),
+        "shortlisted": int(shortlisted),
+        "offersMade": int(offers_made),
+        "offerRate": int(offer_rate),
+    }
+
+
 @router.post("/invite-student")
 async def invite_student(
     payload: InviteStudentRequest,

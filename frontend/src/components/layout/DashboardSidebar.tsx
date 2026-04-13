@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
+import ConfirmActionModal from '../common/ConfirmActionModal'
 
 interface NavItem {
   label: string
@@ -67,17 +68,34 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const profile = JSON.parse(localStorage.getItem('userProfile') || '{}')
   const displayName = profile.fullName || user?.email?.split('@')[0] || 'User'
   const email = user?.email || 'user@example.com'
   const initials = displayName.split(' ').slice(0, 2).map((n: string) => n[0]?.toUpperCase() || '').join('')
 
-  const handleLogout = () => { logout(); navigate('/login') }
+  const handleLogout = () => {
+    setShowLogoutConfirm(true)
+  }
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false)
+    logout()
+    navigate('/landing')
+  }
   const sidebarWidth = isOpen ? EXPANDED_W : COLLAPSED_W
 
   return (
     <>
+      <ConfirmActionModal
+        isOpen={showLogoutConfirm}
+        title="Sign out"
+        message="Do you want to exit?"
+        confirmText="Yes"
+        cancelText="No"
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
       <style>{HIDE_SCROLLBAR_CSS}</style>
 
       <div style={{

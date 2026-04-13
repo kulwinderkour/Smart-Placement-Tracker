@@ -8,7 +8,6 @@ import {
   Plus,
   Eye,
   CalendarDays,
-  BarChart2,
 } from "lucide-react";
 import { companyJobsApi } from "../../api/companyJobs";
 import { useAuthStore } from "../../store/authStore";
@@ -83,7 +82,6 @@ export default function AdminDashboard() {
       icon: CalendarDays,
       path: "/admin/interviews",
     },
-    { label: "Analytics", icon: BarChart2, path: "/admin/analytics" },
   ];
 
   return (
@@ -174,6 +172,45 @@ export default function AdminDashboard() {
               </span>
             </button>
           ))}
+        </div>
+
+        {/* ── Dedicated Post Job Section ── */}
+        <div
+          className="glass-card p-5 mb-6"
+          style={{
+            border: "1px solid var(--color-border)",
+          }}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2
+                className="text-lg font-semibold"
+                style={{ color: "var(--color-text)" }}
+              >
+                Post a New Job
+              </h2>
+              <p
+                className="text-sm mt-1"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                Create a new opening with role details, required skills, and interview flow.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate("/admin/jobs/post")}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all"
+              style={{ background: "#7c3aed", color: "#ffffff" }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "#6d28d9";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "#7c3aed";
+              }}
+            >
+              <Plus size={15} />
+              Create Job Post
+            </button>
+          </div>
         </div>
 
         {/* ── Bottom: Recent Applications + Recent Jobs ── */}

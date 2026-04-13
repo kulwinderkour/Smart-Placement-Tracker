@@ -1,24 +1,30 @@
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { useCompanyProfileStore } from "../../store/companyProfileStore";
+import ConfirmActionModal from "../common/ConfirmActionModal";
 import {
   LayoutDashboard,
   Briefcase,
   Users,
   CalendarDays,
-  BarChart2,
   Building2,
   Settings,
   LogOut,
   GraduationCap,
+  FilePlus2,
 } from "lucide-react";
 
 const NAV = [
   { path: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { path: "/admin/jobs", label: "Jobs", icon: Briefcase },
+  {
+    path: "/admin/jobs/post",
+    label: "Post New Job",
+    icon: FilePlus2,
+  },
   { path: "/admin/applicants", label: "Applicants", icon: Users },
   { path: "/admin/interviews", label: "Interviews", icon: CalendarDays },
-  { path: "/admin/analytics", label: "Analytics", icon: BarChart2 },
   { path: "/admin/company-profile", label: "Company Profile", icon: Building2 },
   { path: "/admin/settings", label: "Settings", icon: Settings },
 ];
@@ -31,6 +37,14 @@ export default function AdminSidebar({ collapsed }: Props) {
   const location = useLocation();
   const { logout, user } = useAuthStore();
   const { profile } = useCompanyProfileStore();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false);
+    logout();
+  };
 
   const initials = (
     profile?.company_name?.[0] ??
@@ -49,6 +63,16 @@ export default function AdminSidebar({ collapsed }: Props) {
           "width 0.3s ease, background-color 0.25s ease, border-color 0.25s ease",
       }}
     >
+      <ConfirmActionModal
+        isOpen={showLogoutConfirm}
+        title="Sign out"
+        message="Do you want to exit?"
+        confirmText="Yes"
+        cancelText="No"
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
+
       {/* ── Logo ── */}
       <div
         className="flex items-center h-[60px] px-4 gap-3 overflow-hidden flex-shrink-0"
@@ -73,9 +97,14 @@ export default function AdminSidebar({ collapsed }: Props) {
       {/* ── Nav links ── */}
       <nav className="flex-1 overflow-y-auto py-3 space-y-0.5 px-2">
         {NAV.map(({ path, label, icon: Icon }) => {
+          const pathname = location.pathname;
           const active =
-            location.pathname === path ||
-            location.pathname.startsWith(path + "/");
+            pathname === path ||
+            (pathname.startsWith(path + "/") &&
+              !(
+                path === "/admin/jobs" &&
+                pathname.startsWith("/admin/jobs/post")
+              ));
           return (
             <Link
               key={path}
@@ -156,7 +185,7 @@ export default function AdminSidebar({ collapsed }: Props) {
 
         {/* Logout */}
         <button
-          onClick={() => logout()}
+          onClick={handleLogout}
           title="Logout"
           className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm transition-all"
           style={{ color: "var(--color-text-muted)" }}

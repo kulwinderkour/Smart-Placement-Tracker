@@ -4,12 +4,14 @@ import { useAuthStore } from "../../store/authStore";
 import { useNavigate } from "react-router-dom";
 import { useCompanyProfileStore } from "../../store/companyProfileStore";
 import { useTheme } from "../../hooks/use-theme";
+import ConfirmActionModal from "../common/ConfirmActionModal";
 
 export default function AdminTopBar() {
   const { user, logout } = useAuthStore();
   const { profile } = useCompanyProfileStore();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const { theme, toggleTheme } = useTheme();
 
   const companyName = profile?.company_name ?? "Company";
@@ -92,6 +94,20 @@ export default function AdminTopBar() {
 
         {/* ── Avatar / dropdown ── */}
         <div className="relative">
+          <ConfirmActionModal
+            isOpen={showLogoutConfirm}
+            title="Sign out"
+            message="Do you want to exit?"
+            confirmText="Yes"
+            cancelText="No"
+            onConfirm={() => {
+              setShowLogoutConfirm(false);
+              setDropdownOpen(false);
+              logout();
+              navigate("/landing");
+            }}
+            onCancel={() => setShowLogoutConfirm(false)}
+          />
           <button
             onClick={() => setDropdownOpen((v) => !v)}
             className="flex items-center gap-2.5 pl-1 pr-3 py-1.5 rounded-lg transition-all"
@@ -179,8 +195,7 @@ export default function AdminTopBar() {
                 {/* Sign Out */}
                 <button
                   onClick={() => {
-                    logout();
-                    navigate("/login");
+                    setShowLogoutConfirm(true);
                   }}
                   className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm transition-colors"
                   style={{ color: "var(--color-danger)" }}
