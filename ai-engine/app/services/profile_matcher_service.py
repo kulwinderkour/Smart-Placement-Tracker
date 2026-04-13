@@ -24,18 +24,49 @@ def _load_artifact() -> dict:
     if _artifact is not None:
         return _artifact
 
-    if not MATCHER_MODEL_PATH.exists():
-        raise FileNotFoundError(
-            f"Trained model not found at {MATCHER_MODEL_PATH}. "
-            "Run train_profile_matcher.py first."
-        )
+    fallback_feature_names = [
+        "skill_match_ratio",
+        "role_keyword_match",
+        "semantic_sim",
+        "matched_skill_count_n",
+        "profile_skill_density",
+    ]
 
-    import joblib
-    _artifact = joblib.load(MATCHER_MODEL_PATH)
-    logger.info(
-        "Profile matcher model loaded — version: %s",
-        _artifact.get("version", "unknown"),
-    )
+    if not MATCHER_MODEL_PATH.exists():
+        logger.warning(
+            "Trained model not found at %s — using fallback matcher artifact.",
+            MATCHER_MODEL_PATH,
+        )
+        _artifact = {
+            "version": "fallback-no-model",
+            "feature_names": fallback_feature_names,
+            "scaler": None,
+            "model_loaded": False,
+        }
+        return _artifact
+
+    try:
+        import joblib
+        _artifact = joblib.load(MATCHER_MODEL_PATH)
+        logger.info(
+            "Profile matcher model loaded — version: %s",
+            _artifact.get("version", "unknown"),
+        )
+        # Ensure required keys exist even for older artifacts
+        _artifact.setdefault("feature_names", fallback_feature_names)
+        _artifact.setdefault("scaler", None)
+        _artifact["model_loaded"] = True
+    except Exception as exc:
+        # Some historical joblib artifacts can become unloadable if they reference
+        # modules/classes not present in the runtime (e.g. pickled private modules).
+        logger.error("Model load failed — using fallback artifact: %s", exc, exc_info=True)
+        _artifact = {
+            "version": "fallback-load-failed",
+            "feature_names": fallback_feature_names,
+            "scaler": None,
+            "model_loaded": False,
+            "load_error": str(exc),
+        }
     return _artifact
 
 

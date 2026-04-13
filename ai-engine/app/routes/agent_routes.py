@@ -125,9 +125,10 @@ async def agent_health() -> dict[str, Any]:
     )
 
     try:
-        from app.agent.auto_apply_agent import _TOOLS  # noqa: F401  — confirms module loads
+        # Confirm agent module is importable (no side-effects / heavy loads).
+        from app.agent.auto_apply_agent import run_auto_apply_agent  # noqa: F401
         agent_ready = True
-        tool_names = [t.name for t in _TOOLS]
+        tool_names: list[str] = []
     except Exception as exc:
         logger.warning("Agent module not ready: %s", exc)
         agent_ready = False
