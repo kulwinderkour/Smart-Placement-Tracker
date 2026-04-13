@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 
 interface JobResult {
   job_id: string
+  application_id?: string
   title?: string
   company?: string
   match_score?: number
@@ -165,6 +166,16 @@ function AppliedCard({ job }: { job: JobResult }) {
               </span>
             )}
           </p>
+          {job.result && (
+            <p style={{ margin: '6px 0 0', color: '#3fb950', fontSize: 12, lineHeight: 1.5 }}>
+              {job.result}
+              {job.application_id ? (
+                <span style={{ display: 'block', marginTop: 4, color: '#7d8590', fontSize: 11 }}>
+                  Reference ID: {job.application_id}
+                </span>
+              ) : null}
+            </p>
+          )}
           {job.description && (
             <CollapsibleDescription text={job.description} />
           )}
@@ -215,28 +226,25 @@ function SummaryCard({ applied, skipped }: { applied: number; skipped: number })
       <p style={{ margin: '0 0 10px', color: '#e0e0e0', fontWeight: 700, fontSize: 14 }}>
         🏁 Run complete
       </p>
-      <div style={{ display: 'flex', gap: 12 }}>
-        <div
-          style={{
-            flex: 1, background: 'rgba(63,185,80,0.1)',
-            border: '1px solid rgba(63,185,80,0.25)',
-            borderRadius: 8, padding: '10px 14px', textAlign: 'center',
-          }}
-        >
-          <p style={{ margin: 0, color: '#3fb950', fontSize: 22, fontWeight: 700 }}>{applied}</p>
-          <p style={{ margin: '2px 0 0', color: '#888888', fontSize: 11, fontWeight: 500 }}>Applied</p>
-        </div>
-        <div
-          style={{
-            flex: 1, background: 'rgba(248,81,73,0.08)',
-            border: '1px solid rgba(248,81,73,0.2)',
-            borderRadius: 8, padding: '10px 14px', textAlign: 'center',
-          }}
-        >
-          <p style={{ margin: 0, color: '#f85149', fontSize: 22, fontWeight: 700 }}>{skipped}</p>
-          <p style={{ margin: '2px 0 0', color: '#888888', fontSize: 11, fontWeight: 500 }}>Skipped</p>
-        </div>
+      <div
+        style={{
+          background: 'rgba(63,185,80,0.1)',
+          border: '1px solid rgba(63,185,80,0.25)',
+          borderRadius: 8,
+          padding: '12px 14px',
+          textAlign: 'center',
+        }}
+      >
+        <p style={{ margin: 0, color: '#3fb950', fontSize: 22, fontWeight: 700 }}>{applied}</p>
+        <p style={{ margin: '4px 0 0', color: '#888888', fontSize: 11, fontWeight: 500 }}>
+          Application(s) submitted — visible to admins
+        </p>
       </div>
+      {skipped > 0 && (
+        <p style={{ margin: '10px 0 0', color: '#6e7681', fontSize: 11, lineHeight: 1.45 }}>
+          {skipped} other listing{skipped === 1 ? '' : 's'} did not meet your criteria (not shown).
+        </p>
+      )}
     </div>
   )
 }
@@ -481,32 +489,19 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
           newMessages.push({ role: 'agent', text: displaySummary })
         }
 
-      // Applied job cards
+      // Applied job cards only (skipped jobs omitted — avoids noise at scale)
       for (const job of (data.jobs_applied ?? [])) {
         newMessages.push({
           role: 'applied',
           text: '',
           job: {
             job_id: job.job_id ?? '',
+            application_id: job.application_id ?? '',
             title: job.title,
             company: job.company,
             match_score: job.match_score,
             result: job.result,
             description: job.description,
-          },
-        })
-      }
-
-      // Skipped job cards
-      for (const job of (data.jobs_skipped ?? [])) {
-        newMessages.push({
-          role: 'skipped',
-          text: '',
-          job: {
-            job_id: job.job_id ?? '',
-            title: job.title,
-            company: job.company,
-            reason: job.reason,
           },
         })
       }

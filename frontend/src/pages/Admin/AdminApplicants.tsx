@@ -61,7 +61,7 @@ function StudentModal({
       style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
     >
       <div
-        className="w-full max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-2xl rounded-2xl max-h-[90vh] overflow-y-auto"
         style={{
           background: "var(--color-bg-surface)",
           border: "1px solid var(--color-border)",
@@ -83,7 +83,10 @@ function StudentModal({
             Applicant Profile
           </h2>
           <button
+            type="button"
             onClick={onClose}
+            title="Close"
+            aria-label="Close"
             className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
             style={{ color: "var(--color-text-muted)" }}
             onMouseEnter={(e) => {
@@ -189,6 +192,51 @@ function StudentModal({
             >
               {app.role_title}
             </p>
+            {app.agent_applied ? (
+              <p
+                className="text-xs mt-2 leading-relaxed"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
+                Submitted via Auto Apply — cover letter below was generated for this role.
+              </p>
+            ) : null}
+          </div>
+
+          {/* Cover letter / Gemini application text */}
+          <div
+            className="rounded-xl p-4"
+            style={{
+              background: "var(--color-bg-elevated)",
+              border: "1px solid var(--color-border)",
+            }}
+          >
+            <p
+              className="text-[10px] font-semibold uppercase tracking-wider mb-2"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Cover letter / application message
+            </p>
+            {app.cover_letter && String(app.cover_letter).trim() ? (
+              <div
+                className="text-sm leading-relaxed rounded-lg p-3 max-h-64 overflow-y-auto"
+                style={{
+                  color: "var(--color-text)",
+                  background: "var(--color-bg-surface)",
+                  border: "1px solid var(--color-border)",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                }}
+              >
+                {app.cover_letter}
+              </div>
+            ) : (
+              <p
+                className="text-sm italic"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                No cover letter was submitted with this application.
+              </p>
+            )}
           </div>
 
           {/* Resume / LinkedIn links */}
@@ -647,8 +695,9 @@ export default function AdminApplicants() {
                           </div>
                           <div>
                             <p
-                              className="text-sm font-semibold"
+                              className="text-sm font-semibold cursor-pointer underline-offset-2 decoration-transparent hover:decoration-current"
                               style={{ color: "var(--color-text)" }}
+                              title="View applicant profile and cover letter"
                             >
                               {app.student_name}
                             </p>
@@ -677,10 +726,25 @@ export default function AdminApplicants() {
 
                       {/* Applied For */}
                       <td
-                        className="px-5 py-4 text-sm font-medium max-w-[160px] truncate"
+                        className="px-5 py-4 text-sm font-medium max-w-[200px]"
                         style={{ color: "var(--color-text)" }}
                       >
-                        {app.role_title}
+                        <div className="flex flex-col gap-1 min-w-0">
+                          <span className="truncate">{app.role_title}</span>
+                          {app.agent_applied ? (
+                            <span
+                              className="text-[10px] font-semibold uppercase tracking-wide w-fit px-1.5 py-0.5 rounded"
+                              style={{
+                                background: "rgba(32,201,151,0.12)",
+                                color: "#20c997",
+                                border: "1px solid rgba(32,201,151,0.28)",
+                              }}
+                              title="Submitted via Auto Apply agent"
+                            >
+                              Auto apply
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
 
                       {/* Applied Date */}
