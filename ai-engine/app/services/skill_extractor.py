@@ -3,15 +3,20 @@ import logging
 import re
 from pathlib import Path
 
-import spacy
-
 logger = logging.getLogger(__name__)
 
 # Load spaCy model once at startup
 try:
-    nlp = spacy.load("en_core_web_sm")
-except OSError:
-    logger.warning("spaCy model not found — run: python -m spacy download en_core_web_sm")
+    import spacy  # type: ignore
+    try:
+        nlp = spacy.load("en_core_web_sm")
+    except OSError:
+        # Optional dependency: we still support taxonomy-only matching without the model.
+        logger.warning("spaCy model not found — continuing with taxonomy-only skill extraction")
+        nlp = None
+except Exception:
+    # spaCy itself is optional for the app to run.
+    logger.warning("spaCy not available — continuing with taxonomy-only skill extraction")
     nlp = None
 
 # Load skills taxonomy

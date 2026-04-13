@@ -11,7 +11,9 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://backend-api:8000"],
+    # Allow both localhost and 127.0.0.1 on any dev port (3000, 5173, etc.)
+    # because the browser's Origin must match exactly or fetch() fails.
+    allow_origin_regex=r"^http://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
