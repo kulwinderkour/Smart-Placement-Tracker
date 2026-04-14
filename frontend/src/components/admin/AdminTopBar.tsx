@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, User, LogOut, Sun, Moon } from "lucide-react";
+import { User, LogOut, Sun, Moon } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { useNavigate } from "react-router-dom";
 import { useCompanyProfileStore } from "../../store/companyProfileStore";
@@ -28,31 +28,7 @@ export default function AdminTopBar() {
         transition: "background-color 0.25s ease, border-color 0.25s ease",
       }}
     >
-      {/* Left: sidebar toggle + search */}
-      <div className="flex items-center gap-3">
-
-
-        <div
-          className="flex items-center gap-2 px-3 py-2 rounded-lg w-60"
-          style={{
-            background: "var(--color-bg-surface)",
-            border: "1px solid var(--color-border)",
-            transition: "background-color 0.25s ease, border-color 0.25s ease",
-          }}
-        >
-          <Search
-            size={14}
-            style={{ color: "var(--color-text-muted)" }}
-            className="flex-shrink-0"
-          />
-          <input
-            type="text"
-            placeholder="Search..."
-            className="bg-transparent text-sm outline-none w-full theme-input"
-            style={{ color: "var(--color-text)" }}
-          />
-        </div>
-      </div>
+      <div />
 
       {/* Right: theme toggle + bell + avatar */}
       <div className="flex items-center gap-3">
