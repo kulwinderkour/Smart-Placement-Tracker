@@ -110,8 +110,8 @@ export default function JobBoard() {
   const [filters, setFilters] = useState({
     field: '',        // job field/domain
     location: '',     // city filter
-    type: '',         // Full-time / Internship / Remote
-    experience: '',   // Fresher / 1-3 years / 3+ years
+    type: '',         // Full-time / Remote
+    experience: '',   // (UI removed)
     salary: '',       // Any / Paid only
   });
 
@@ -150,12 +150,12 @@ export default function JobBoard() {
 
   const fetchArbeitnowJobs = async (search: string) => {
     try {
-      const res = await fetch(
-        `https://arbeitnow.com/api/job-board-api?search=${encodeURIComponent(search)}`
-      );
+      // Arbeitnow Job Board API does not support a free-text `search` param reliably.
+      // Fetch a page of jobs and filter client-side instead.
+      const res = await fetch(`https://arbeitnow.com/api/job-board-api`);
       if (!res.ok) return [];
       const data = await res.json();
-      return (data.data || []).slice(0, 20).map((job: any) => ({
+      const raw = (data.data || []).slice(0, 60).map((job: any) => ({
         id: `arb-${job.slug}`,
         title: job.title,
         company: job.company_name,
@@ -166,6 +166,16 @@ export default function JobBoard() {
         description: job.description?.replace(/<[^>]*>/g, '').substring(0, 200) + '...',
         employmentType: job.remote ? 'remote' : (job.job_types?.[0]?.toLowerCase() || 'full-time'),
       }));
+
+      const q = (search || '').trim().toLowerCase();
+      if (!q) return raw;
+
+      // Match loosely across title/company/location/description
+      const terms = q.split(/\s+/).filter(Boolean);
+      return raw.filter((j) => {
+        const hay = `${j.title} ${j.company} ${j.location} ${j.description || ''}`.toLowerCase();
+        return terms.every((t) => hay.includes(t));
+      });
     } catch {
       return [];
     }
@@ -180,7 +190,7 @@ export default function JobBoard() {
     try {
       const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
       const userSkills = profile.skills || [];
-      const city = filters.location || 'India';
+      const city = 'India';
       const skillQuery = userSkills.length > 0 ? userSkills[0] : 'Software Developer';
       const baseQuery = fieldOverride || filters.field || skillQuery;
 
@@ -234,7 +244,15 @@ export default function JobBoard() {
       let remotiveJobs: Job[] = [];
       try {
         const arbQuery = fieldOverride || filters.field || (userSkills.length > 0 ? userSkills[0] : 'software developer');
-        remotiveJobs = await fetchArbeitnowJobs(arbQuery);
+        // Prefer backend proxy to avoid CORS issues in the browser.
+        const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1').replace(/\/$/, '');
+        const proxyRes = await fetch(`${apiBase}/student/jobs/external?search=${encodeURIComponent(arbQuery)}&limit=30`);
+        if (proxyRes.ok) {
+          const proxyJson = await proxyRes.json();
+          remotiveJobs = (proxyJson.data || []) as Job[];
+        } else {
+          remotiveJobs = await fetchArbeitnowJobs(arbQuery);
+        }
       } catch (e) {}
 
       const allJobs = [...jsearchResults, ...internshalaResults, ...remotiveJobs];
@@ -260,9 +278,6 @@ export default function JobBoard() {
     if (searchQuery && !titleDesc.includes(searchQuery.toLowerCase()) &&
         !job.company?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
 
-    // Location filter
-    if (filters.location && !loc?.includes(filters.location.toLowerCase())) return false;
-
     // Job type filter
     if (filters.type) {
       const type = filters.type.toLowerCase();
@@ -270,23 +285,10 @@ export default function JobBoard() {
       if (type === 'full-time' || type === 'Full-time') {
         if (!empType.includes('fulltime') && !empType.includes('full_time') && !empType.includes('full-time')) return false;
       }
-      if (type === 'internship' || type === 'Internship') {
-        if (!titleDesc.includes('intern') && !empType.includes('intern')) return false;
-      }
-      if (type === 'contract' || type === 'Contract') {
-        if (!empType.includes('contract') && !empType.includes('contractor')) return false;
-      }
       if (type === 'remote' || type === 'Remote') {
         if (!loc?.includes('remote') && !titleDesc.includes('remote')) return false;
       }
     }
-
-    // Experience filter
-    if (filters.experience === 'fresher' &&
-      !titleDesc.includes('fresher') &&
-      !titleDesc.includes('0-1') &&
-      !titleDesc.includes('entry level') &&
-      !titleDesc.includes('graduate')) return false;
 
     return true;
   });
@@ -435,6 +437,7 @@ export default function JobBoard() {
             setFilters(f => ({ ...f, field: e.target.value }));
             fetchJobsByField(e.target.value);
           }}
+          aria-label="Job field"
           style={{
             background: '#1c1c1c',
             border: `1px solid ${filters.field ? '#20c997' : '#2d2d2d'}`,
@@ -457,7 +460,7 @@ export default function JobBoard() {
         </select>
 
         {/* Job type pills */}
-        {['All', 'Full-time', 'Internship', 'Remote', 'Contract'].map(type => (
+        {['All', 'Full-time', 'Remote'].map(type => (
           <button
             key={type}
             onClick={() => setFilters(f => ({ ...f, type: type === 'All' ? '' : type }))}
@@ -477,52 +480,8 @@ export default function JobBoard() {
           </button>
         ))}
 
-        {/* Experience filter */}
-        <select
-          value={filters.experience}
-          onChange={e => setFilters(f => ({ ...f, experience: e.target.value }))}
-          style={{
-            background: '#1c1c1c',
-            border: '1px solid #2d2d2d',
-            borderRadius: '6px',
-            color: filters.experience ? '#e0e0e0' : '#888888',
-            padding: '7px 12px',
-            fontSize: '13px',
-            cursor: 'pointer'
-          }}
-        >
-          <option value="">Experience</option>
-          <option value="fresher">Fresher / 0 years</option>
-          <option value="1 year">1+ years</option>
-          <option value="3 years">3+ years</option>
-        </select>
-
-        {/* Location filter */}
-        <select
-          value={filters.location}
-          onChange={e => setFilters(f => ({ ...f, location: e.target.value }))}
-          style={{
-            background: '#1c1c1c',
-            border: '1px solid #2d2d2d',
-            borderRadius: '6px',
-            color: filters.location ? '#e0e0e0' : '#888888',
-            padding: '7px 12px',
-            fontSize: '13px',
-            cursor: 'pointer'
-          }}
-        >
-          <option value="">All Locations</option>
-          <option value="bangalore">Bangalore</option>
-          <option value="hyderabad">Hyderabad</option>
-          <option value="pune">Pune</option>
-          <option value="mumbai">Mumbai</option>
-          <option value="delhi">Delhi / NCR</option>
-          <option value="chennai">Chennai</option>
-          <option value="remote">Remote</option>
-        </select>
-
         {/* Clear all filters */}
-        {(filters.field || filters.type || filters.location || filters.experience) && (
+        {(filters.field || filters.type) && (
           <button
             onClick={() => {
               setFilters({ field: '', location: '', type: '', experience: '', salary: '' });

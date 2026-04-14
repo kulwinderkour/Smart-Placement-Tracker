@@ -31,6 +31,8 @@ from sqlalchemy import or_, select, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import httpx
+
 from app.dependencies import get_db, get_current_user
 from app.models.company_profile import CompanyProfile
 from app.models.job import Job
@@ -171,6 +173,72 @@ async def list_all_jobs(
         "data": [_job_row(j) for j in jobs],
         "meta": {"page": page, "limit": limit, "total": total or 0},
     }
+
+
+@router.get("/jobs/external", response_model=dict)
+async def list_external_jobs(
+    search: Optional[str] = Query(None, description="Free-text search across external jobs"),
+    limit: int = Query(30, ge=1, le=60),
+):
+    """
+    External job feed proxy (CORS-safe for the frontend).
+
+    Why this exists:
+    - Many public job APIs don't send permissive CORS headers, so browser fetch() fails.
+    - We proxy via the backend to make the student job board reliable without API keys.
+
+    Current source:
+    - Arbeitnow Job Board API (no key)
+    """
+    q = (search or "").strip().lower()
+    terms = [t for t in q.split() if t]
+
+    def _matches(hay: str) -> bool:
+        if not terms:
+            return True
+        h = hay.lower()
+        return all(t in h for t in terms)
+
+    try:
+        async with httpx.AsyncClient(timeout=20, follow_redirects=True) as client:
+            # Arbeitnow redirects arbeitnow.com -> www.arbeitnow.com (301)
+            res = await client.get("https://www.arbeitnow.com/api/job-board-api")
+            res.raise_for_status()
+            payload = res.json()
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"External jobs fetch failed: {e}")
+
+    out = []
+    for j in (payload.get("data") or []):
+        title = j.get("title") or ""
+        company = j.get("company_name") or ""
+        location = j.get("location") or ("Remote" if j.get("remote") else "Not specified")
+        desc = (j.get("description") or "")
+        url = j.get("url") or ""
+        slug = j.get("slug") or url
+
+        hay = f"{title} {company} {location} {desc}"
+        if not _matches(hay):
+            continue
+
+        # Keep it close to the frontend's Student JobBoard shape.
+        out.append(
+            {
+                "id": f"arb-{slug}",
+                "title": title,
+                "company": company,
+                "location": location,
+                "salary": "Not listed",
+                "applyUrl": url,
+                "source": "Arbeitnow",
+                "description": (desc.replace("<", " <") if desc else "")[:220] + ("..." if len(desc) > 220 else ""),
+                "employmentType": "remote" if j.get("remote") else "full-time",
+            }
+        )
+        if len(out) >= limit:
+            break
+
+    return {"success": True, "data": out, "meta": {"limit": limit, "returned": len(out)}}
 
 
 @router.get("/jobs/{job_id}")
