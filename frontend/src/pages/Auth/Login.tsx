@@ -1091,22 +1091,86 @@ export default function Login() {
                 {
                   id: "01",
                   title: "AI Resume Analyser Built Right In",
-                  desc: "Get instant feedback on your resume with our AI-powered analyzer. Match your skills to top job descriptions seamlessly and pass the ATS every time."
+                  desc: "Get instant feedback on your resume with our AI-powered analyzer. Match your skills to top job descriptions seamlessly and pass the ATS every time.",
+                  preview: {
+                    title: "Resume Match",
+                    subtitle: "ATS-ready highlights",
+                    pill: "MATCH",
+                    iconGradient: "linear-gradient(135deg, rgba(124,58,237,0.95), rgba(59,130,246,0.9))",
+                    iconGlow: "0 0 26px rgba(124,58,237,0.35)",
+                    ambient:
+                      "radial-gradient(circle at 30% 20%, rgba(124,58,237,0.38), transparent 55%)," +
+                      "radial-gradient(circle at 75% 70%, rgba(96,165,250,0.22), transparent 60%)," +
+                      "radial-gradient(circle at 30% 85%, rgba(167,139,250,0.18), transparent 60%)",
+                    skeleton: ["88%", "72%", "92%", "64%", "78%"],
+                    chips: [
+                      { label: "Resume Score", value: "92%", accent: "rgba(124,58,237,0.20)", border: "rgba(124,58,237,0.28)", text: "#c4b5fd" },
+                      { label: "Speed", value: "Fast", accent: "rgba(59,130,246,0.14)", border: "rgba(59,130,246,0.22)", text: "#93c5fd" },
+                    ],
+                  },
                 },
                 {
                   id: "02",
                   title: "Smart Application Tracker for Results",
-                  desc: "Organize your job hunt with our intuitive tracker. Monitor application statuses, upcoming deadlines, and interview schedules in one centralized dashboard."
+                  desc: "Organize your job hunt with our intuitive tracker. Monitor application statuses, upcoming deadlines, and interview schedules in one centralized dashboard.",
+                  preview: {
+                    title: "Pipeline Sync",
+                    subtitle: "Auto-updated statuses",
+                    pill: "SYNC",
+                    iconGradient: "linear-gradient(135deg, rgba(99,102,241,0.95), rgba(168,85,247,0.9))",
+                    iconGlow: "0 0 26px rgba(168,85,247,0.32)",
+                    ambient:
+                      "radial-gradient(circle at 25% 25%, rgba(168,85,247,0.34), transparent 58%)," +
+                      "radial-gradient(circle at 80% 30%, rgba(129,140,248,0.22), transparent 62%)," +
+                      "radial-gradient(circle at 70% 85%, rgba(96,165,250,0.14), transparent 60%)",
+                    skeleton: ["76%", "94%", "68%", "86%", "58%"],
+                    chips: [
+                      { label: "Status Sync", value: "Realtime", accent: "rgba(168,85,247,0.18)", border: "rgba(168,85,247,0.26)", text: "#e9d5ff" },
+                      { label: "Reminders", value: "On", accent: "rgba(99,102,241,0.14)", border: "rgba(99,102,241,0.22)", text: "#c7d2fe" },
+                    ],
+                  },
                 },
                 {
                   id: "03",
                   title: "Realistic AI Mock Interview Room",
-                  desc: "Practice with our high-fidelity AI interviewer. Receive real-time feedback on your answers, technical accuracy, tone, and confidence levels."
+                  desc: "Practice with our high-fidelity AI interviewer. Receive real-time feedback on your answers, technical accuracy, tone, and confidence levels.",
+                  preview: {
+                    title: "Interview Notes",
+                    subtitle: "Clarity & confidence",
+                    pill: "COACH",
+                    iconGradient: "linear-gradient(135deg, rgba(59,130,246,0.95), rgba(34,211,238,0.85))",
+                    iconGlow: "0 0 26px rgba(34,211,238,0.26)",
+                    ambient:
+                      "radial-gradient(circle at 30% 20%, rgba(34,211,238,0.24), transparent 58%)," +
+                      "radial-gradient(circle at 75% 55%, rgba(59,130,246,0.22), transparent 62%)," +
+                      "radial-gradient(circle at 30% 85%, rgba(129,140,248,0.16), transparent 60%)",
+                    skeleton: ["92%", "66%", "80%", "90%", "62%"],
+                    chips: [
+                      { label: "Confidence", value: "A+", accent: "rgba(34,211,238,0.14)", border: "rgba(34,211,238,0.22)", text: "#a5f3fc" },
+                      { label: "Tone", value: "Clear", accent: "rgba(59,130,246,0.14)", border: "rgba(59,130,246,0.22)", text: "#93c5fd" },
+                    ],
+                  },
                 },
                 {
                   id: "04",
                   title: "Personalized Career Learning Roadmaps",
-                  desc: "Generate AI-driven career roadmaps tailored to your target roles. Learn exactly what skills you need, where to learn them, and how to master them."
+                  desc: "Generate AI-driven career roadmaps tailored to your target roles. Learn exactly what skills you need, where to learn them, and how to master them.",
+                  preview: {
+                    title: "Roadmap",
+                    subtitle: "Week-by-week plan",
+                    pill: "PLAN",
+                    iconGradient: "linear-gradient(135deg, rgba(124,58,237,0.9), rgba(244,114,182,0.85))",
+                    iconGlow: "0 0 26px rgba(244,114,182,0.22)",
+                    ambient:
+                      "radial-gradient(circle at 26% 18%, rgba(244,114,182,0.24), transparent 58%)," +
+                      "radial-gradient(circle at 78% 35%, rgba(124,58,237,0.22), transparent 62%)," +
+                      "radial-gradient(circle at 60% 90%, rgba(167,139,250,0.14), transparent 62%)",
+                    skeleton: ["70%", "86%", "94%", "60%", "82%"],
+                    chips: [
+                      { label: "Roadmap Fit", value: "Personal", accent: "rgba(244,114,182,0.14)", border: "rgba(244,114,182,0.22)", text: "#fbcfe8" },
+                      { label: "Weeks", value: "12", accent: "rgba(124,58,237,0.14)", border: "rgba(124,58,237,0.22)", text: "#c4b5fd" },
+                    ],
+                  },
                 }
               ].map((feature, i) => (
                 <motion.div
@@ -1154,7 +1218,7 @@ export default function Login() {
                     {feature.id}
                   </div>
 
-                  <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: 24 }}>
+                  <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: 24, flex: 1, minWidth: 0 }}>
                     <h3 style={{
                       fontFamily: 'Sora, sans-serif',
                       fontSize: 'clamp(24px, 3.5vw, 42px)',
@@ -1164,11 +1228,7 @@ export default function Login() {
                       margin: 0,
                       maxWidth: '80%'
                     }}>
-                      {feature.title.split(' ').slice(0, -2).join(' ')} <span style={{
-                        background: 'linear-gradient(90deg, #a78bfa, #c4b5fd)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent'
-                      }}>{feature.title.split(' ').slice(-2).join(' ')}</span>
+                      {feature.title}
                     </h3>
                     <p style={{
                       fontSize: 18,
@@ -1180,6 +1240,121 @@ export default function Login() {
                     }}>
                       {feature.desc}
                     </p>
+                  </div>
+
+                  {/* Right-side visual (fills the empty space) */}
+                  <div
+                    className="hidden lg:block"
+                    style={{
+                      position: 'relative',
+                      width: 360,
+                      height: 300,
+                      flex: '0 0 360px',
+                      borderRadius: 22,
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.10)',
+                      overflow: 'hidden',
+                      boxShadow: '0 18px 60px rgba(0,0,0,0.35)',
+                    }}
+                  >
+                    {(() => {
+                      const p = feature.preview
+                      const skeleton = p?.skeleton?.length ? p.skeleton : ["78%", "92%", "64%", "84%", "56%"]
+                      const chips = p?.chips?.length ? p.chips : [
+                        { label: 'Metric', value: '—', accent: 'rgba(124,58,237,0.20)', border: 'rgba(124,58,237,0.28)', text: '#c4b5fd' },
+                        { label: 'Speed', value: 'Fast', accent: 'rgba(59,130,246,0.14)', border: 'rgba(59,130,246,0.22)', text: '#93c5fd' },
+                      ]
+                      return (
+                        <>
+                    {/* Ambient glows */}
+                    <div style={{
+                      position: 'absolute',
+                      inset: -40,
+                      background: p?.ambient ||
+                        'radial-gradient(circle at 30% 20%, rgba(124,58,237,0.35), transparent 55%),' +
+                          'radial-gradient(circle at 75% 70%, rgba(96,165,250,0.22), transparent 60%),' +
+                          'radial-gradient(circle at 30% 85%, rgba(167,139,250,0.18), transparent 60%)',
+                      filter: 'blur(18px)',
+                      pointerEvents: 'none',
+                    }} />
+
+                    {/* Fake “generated” preview card */}
+                    <div style={{
+                      position: 'absolute',
+                      left: 18,
+                      right: 18,
+                      top: 18,
+                      padding: '14px 14px 12px',
+                      borderRadius: 18,
+                      background: 'rgba(13,13,26,0.72)',
+                      border: '1px solid rgba(167,139,250,0.24)',
+                      backdropFilter: 'blur(14px)',
+                      WebkitBackdropFilter: 'blur(14px)',
+                      boxShadow: '0 14px 40px rgba(0,0,0,0.45)',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                        <div style={{
+                          width: 36, height: 36, borderRadius: 12,
+                          background: p?.iconGradient || 'linear-gradient(135deg, rgba(124,58,237,0.95), rgba(59,130,246,0.9))',
+                          boxShadow: p?.iconGlow || '0 0 26px rgba(124,58,237,0.35)',
+                        }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: 'Sora,sans-serif', fontWeight: 700, fontSize: 14, color: '#fff', lineHeight: 1.15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {p?.title || 'AI Preview'}
+                          </div>
+                          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>
+                            {p?.subtitle || 'Tailored to this feature'}
+                          </div>
+                        </div>
+                        <div style={{
+                          fontSize: 10,
+                          fontWeight: 800,
+                          letterSpacing: '0.12em',
+                          color: '#a78bfa',
+                          textTransform: 'uppercase',
+                        }}>
+                          {p?.pill || 'LIVE'}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {skeleton.map((w, idx) => (
+                          <div key={idx} style={{ height: 10, borderRadius: 999, width: w, background: idx % 2 === 0 ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.08)' }} />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Mini “metric” chips */}
+                    <div style={{
+                      position: 'absolute',
+                      left: 18,
+                      bottom: 18,
+                      display: 'flex',
+                      gap: 10,
+                      flexWrap: 'wrap',
+                    }}>
+                      {chips.map((chip, idx) => (
+                        <div key={idx} style={{
+                          padding: '10px 12px',
+                          borderRadius: 16,
+                          background: chip.accent,
+                          border: `1px solid ${chip.border}`,
+                          backdropFilter: 'blur(10px)',
+                          WebkitBackdropFilter: 'blur(10px)',
+                          minWidth: 150,
+                        }}>
+                          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)' }}>
+                            {chip.label}
+                          </div>
+                          <div style={{ marginTop: 6, fontFamily: 'Sora,sans-serif', fontWeight: 800, fontSize: 16, color: chip.text }}>
+                            {chip.value}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                        </>
+                      )
+                    })()}
                   </div>
                 </motion.div>
               ))}

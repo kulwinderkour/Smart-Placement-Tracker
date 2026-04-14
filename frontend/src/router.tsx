@@ -37,6 +37,7 @@ import InterviewLog from "./pages/Student/InterviewLog";
 import AdminPlatformJobs from "./pages/Admin/AdminPlatformJobs";
 import PlacementPulse from "./pages/Student/PlacementPulse";
 import Settings from "./pages/Student/Settings";
+import Freepad from "./pages/Student/Freepad";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -154,7 +155,7 @@ export const router = createBrowserRouter([
     element: (
       <OnboardingGuard>
         <DashboardLayout>
-          <PrepChecklist />
+          <Freepad />
         </DashboardLayout>
       </OnboardingGuard>
     ),

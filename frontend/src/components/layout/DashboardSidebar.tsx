@@ -37,7 +37,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Mock Interviews', path: '/mock-interview', icon: <Icon d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.89L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" /> },
       { label: 'Resume Analyser', path: '/resume', icon: <Icon d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8" /> },
-      { label: 'Task Board', path: '/eligibility', icon: <Icon d="M3 3h18v18H3z M9 3v18 M15 3h18" /> },
+      { label: 'Freepad Notebook', path: '/eligibility', icon: <Icon d="M4 4h16v16H4z M8 4v16 M12 8h6 M12 12h6 M12 16h6" /> },
       { label: 'Resource Bookmarks', path: '/bookmarks', icon: <Icon d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" /> },
       { label: 'Interview Replay Log', path: '/interview-log', icon: <Icon d="M12 21a9 9 0 100-18 9 9 0 000 18zm-1-12l5 3-5 3V9z" /> },
       { label: 'Placement Pulse', path: '/placement-pulse', icon: <Icon d="M22 12h-4l-3 9L9 3l-3 9H2" /> },
@@ -143,7 +143,12 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
           )}
 
           {isOpen && (
-            <button onClick={onToggle} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#484f58' }}>
+            <button
+              onClick={onToggle}
+              title="Toggle sidebar"
+              aria-label="Toggle sidebar"
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#484f58' }}
+            >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
           )}
