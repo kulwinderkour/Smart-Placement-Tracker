@@ -1,6 +1,6 @@
 import uuid
-from sqlalchemy import Column, Text, Integer, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import Column, Text, Integer, DateTime, JSON
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from app.database import Base
 
@@ -15,7 +15,7 @@ class GeneratedRoadmap(Base):
     level = Column(Text, nullable=True)
     duration_weeks = Column(Integer, nullable=True)
     source_prompt = Column(Text, nullable=True)
-    payload = Column(JSONB, nullable=False)
+    payload = Column(JSON, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

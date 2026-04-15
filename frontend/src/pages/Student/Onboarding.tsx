@@ -178,7 +178,7 @@ export default function Onboarding() {
       {/* Navbar */}
       <nav style={{ position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 100, display: 'flex', alignItems: 'center', gap: 20, borderRadius: 50, padding: '10px 24px', background: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#5b21b6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
           </div>
           <span style={{ color: '#fff', fontWeight: 700, fontSize: 15 }}>SmartPlacement</span>
@@ -290,7 +290,12 @@ export default function Onboarding() {
                         <div style={{ flex: 1, overflow: 'hidden' }}>
                           <p style={{ color: '#fff', fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>{data.resumeName}</p>
                         </div>
-                        <button onClick={() => update({ resumeName: '', resumeBase64: '' })} style={{ color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+                        <button
+                          onClick={() => update({ resumeName: '', resumeBase64: '' })}
+                          aria-label="Remove uploaded resume"
+                          title="Remove uploaded resume"
+                          style={{ color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
+                        >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
                         </button>
                       </div>
@@ -319,12 +324,18 @@ export default function Onboarding() {
                             <div style={{ position: 'relative' }}>
                               <select value={app.status}
                                 onChange={e => { const a = [...data.previousCompanies]; a[idx].status = e.target.value; update({ previousCompanies: a }) }}
+                                aria-label="Application status"
                                 style={{ ...inputBase, width: 130, paddingRight: 30, appearance: 'none', cursor: 'pointer' }}>
                                 {['Applied','Interviewed','Offered','Rejected'].map(s => <option key={s} value={s}>{s}</option>)}
                               </select>
                               <svg style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(255,255,255,0.4)' }} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                             </div>
-                            <button onClick={() => update({ previousCompanies: data.previousCompanies.filter((_, i) => i !== idx) })} style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <button
+                              onClick={() => update({ previousCompanies: data.previousCompanies.filter((_, i) => i !== idx) })}
+                              aria-label="Remove previous company entry"
+                              title="Remove previous company entry"
+                              style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                            >
                               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
                             </button>
                           </div>
