@@ -732,9 +732,8 @@ export default function Login() {
       <style dangerouslySetInnerHTML={{
         __html: `
         @media (max-width: 768px) {
-          .about-grid { grid-template-columns: 1fr !important; }
+          .about-choose-grid { grid-template-columns: 1fr !important; grid-template-rows: auto !important; }
           .about-divider-v, .about-divider-h { display: none !important; }
-          .about-grid-wrapper { height: auto !important; }
         }
       `}} />
       <section ref={aboutRef} style={{
@@ -743,7 +742,7 @@ export default function Login() {
         background: '#0a0f1e',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         padding: '90px 24px',
         position: 'relative',
         overflow: 'hidden'
@@ -772,269 +771,166 @@ export default function Login() {
 
       <div
         style={{
-          maxWidth: 1100,
           width: '100%',
           position: 'relative',
           zIndex: 1,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 30
+          justifyContent: 'center'
         }}
       >
-        {/* Top Title Block */}
-        <div style={{ textAlign: 'center', maxWidth: 620 }}>
-          <div style={{ marginBottom: 18 }}>
-            <span style={{
-              display: 'inline-block',
-              fontFamily: 'Sora, sans-serif',
-              fontWeight: 800,
-                fontSize: 'clamp(26px, 3.4vw, 38px)',
-              letterSpacing: '-0.02em',
-              textTransform: 'uppercase',
-              background: 'linear-gradient(90deg, #FF9FFC 0%, #966485 50%, #FF9FFC 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>
-              WHY SMART PLACEMENT TRACKER?
-            </span>
-          </div>
-
+        {/* Heading uses full width; text stays centered */}
+        <div style={{ width: '100%', textAlign: 'center', marginBottom: 44, padding: '0 12px' }}>
           <h2 style={{
-            fontFamily: 'Sora,sans-serif',
-              fontSize: 'clamp(36px,4.7vw,62px)',
-            fontWeight: 800,
+            fontFamily: 'Sora, sans-serif',
+            fontSize: 'clamp(38px, 5.5vw, 64px)',
+            fontWeight: 900,
             color: '#fff',
-            lineHeight: 1.12,
             letterSpacing: '-0.03em',
-            marginBottom: 20
+            margin: 0,
+            lineHeight: 1.03
           }}>
-            The smarter way<br />
-            to <span style={{
-              background: 'linear-gradient(90deg, #FF9FFC 0%, #966485 45%, #FF9FFC 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              textShadow: '0 0 28px rgba(255,159,252,0.22)'
-            }}>track, prepare, and secure</span> your dream job
+            Why choose <span style={{
+              color: '#fff',
+              background: 'transparent',
+              WebkitBackgroundClip: 'initial',
+              WebkitTextFillColor: 'initial'
+            }}>Smart</span>
+            <br />
+            Placement Tracker?
           </h2>
 
           <p style={{
-            fontSize: 17,
+            margin: '18px auto 0',
+            maxWidth: 780,
+            fontFamily: 'DM Sans, sans-serif',
+            fontSize: 15,
             color: 'rgba(255,255,255,0.55)',
-            lineHeight: 1.75,
-            fontFamily: 'DM Sans,sans-serif',
-            margin: '0 auto',
-            maxWidth: 520
+            lineHeight: 1.7
           }}>
-            Stay ahead in your placement journey with AI-powered tracking, resume optimization, and smart insights. Smart Placement Tracker helps you manage applications, monitor progress, and improve your chances of success — all in one place.
+            Experience the next evolution in placement intelligence. Smart Placement Tracker understands your skills, goals, and progress to create a journey that feels truly guided.
           </p>
         </div>
 
-        {/* 2x2 Grid with Center Dividers */}
-        <div
-          className="about-grid-wrapper"
-          style={{ width: '100%', maxWidth: 1000, position: 'relative', height: 'clamp(420px, 55vh, 520px)' }}
-        >
-          <div className="about-divider-v" style={{
-            position: 'absolute',
-            left: '50%',
-            top: 0,
-            bottom: 0,
-            width: 1,
-            transform: 'translateX(-0.5px)',
-            background: 'linear-gradient(180deg, rgba(255,159,252,0) 0%, rgba(255,159,252,0.35) 50%, rgba(150,100,133,0) 100%)',
-            pointerEvents: 'none'
-          }} />
-          <div className="about-divider-h" style={{
-            position: 'absolute',
-            top: '50%',
-            left: 0,
-            right: 0,
-            height: 1,
-            transform: 'translateY(-0.5px)',
-            background: 'linear-gradient(90deg, rgba(255,159,252,0) 0%, rgba(255,159,252,0.35) 50%, rgba(150,100,133,0) 100%)',
-            pointerEvents: 'none'
-          }} />
+        <div style={{ width: 'min(980px, 100%)', position: 'relative' }}>
+          {/* Center dividers */}
+          <div
+            className="about-divider-v"
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: 0,
+              bottom: 0,
+              width: 1,
+              transform: 'translateX(-0.5px)',
+              background: 'linear-gradient(180deg, rgba(255,159,252,0) 0%, rgba(255,159,252,0.35) 50%, rgba(150,100,133,0) 100%)',
+              zIndex: 3,
+              pointerEvents: 'none'
+            }}
+          />
+          <div
+            className="about-divider-h"
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              top: '50%',
+              height: 1,
+              transform: 'translateY(-0.5px)',
+              background: 'linear-gradient(90deg, rgba(255,159,252,0) 0%, rgba(255,159,252,0.35) 50%, rgba(150,100,133,0) 100%)',
+              zIndex: 3,
+              pointerEvents: 'none'
+            }}
+          />
 
           <div
-            className="about-grid"
+            className="about-choose-grid"
             style={{
               position: 'relative',
               zIndex: 1,
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
               gridTemplateRows: '1fr 1fr',
-              gap: 0
+              gap: 0,
+              borderRadius: 26,
+              overflow: 'hidden',
+              border: '1px solid rgba(255,255,255,0.08)',
+              background: 'rgba(255,255,255,0.02)',
+              boxShadow: '0 30px 120px rgba(0,0,0,0.55)'
             }}
           >
-            {/* Panel 1 */}
-            <div style={{
-              padding: '32px 32px',
-              background: 'rgba(255,255,255,0.02)',
-              borderRadius: 18,
-              border: '1px solid rgba(255,255,255,0.07)',
-              boxShadow: '0 22px 70px rgba(0,0,0,0.35)',
-              backdropFilter: 'blur(10px)',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              <div style={{ fontFamily: 'Sora,sans-serif', fontWeight: 800, fontSize: 18, color: '#fff', marginBottom: 10 }}>
-                Application Tracking Dashboard
-              </div>
-              <div style={{ fontFamily: 'DM Sans,sans-serif', fontSize: 14, color: 'rgba(255,255,255,0.45)', lineHeight: 1.65 }}>
-                Track every job application, interview stage, and status in one organized view.
-              </div>
-            </div>
-
-            {/* Panel 2 */}
-            <div style={{
-              padding: '32px 32px',
-              background: 'rgba(255,255,255,0.02)',
-              borderRadius: 18,
-              border: '1px solid rgba(255,255,255,0.07)',
-              boxShadow: '0 22px 70px rgba(0,0,0,0.35)',
-              backdropFilter: 'blur(10px)',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              <div style={{ fontFamily: 'Sora,sans-serif', fontWeight: 800, fontSize: 18, color: '#fff', marginBottom: 10 }}>
-                ATS Resume Optimization
-              </div>
-              <div style={{ fontFamily: 'DM Sans,sans-serif', fontSize: 14, color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, marginBottom: 18 }}>
-                Improve resume score with AI suggestions tailored for recruiter systems.
-              </div>
-
-              <div style={{
-                background: 'linear-gradient(135deg, rgba(255,159,252,0.16), rgba(150,100,133,0.12))',
-                border: '1px solid rgba(255,159,252,0.22)',
-                borderRadius: 20,
-                padding: 16
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(255,159,252,0.2)', border: '1px solid rgba(255,159,252,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF9FFC' }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></svg>
-                  </div>
-                  <div>
-                    <div style={{ fontFamily: 'Sora,sans-serif', fontWeight: 700, color: '#fff', fontSize: 14 }}>
-                      Resume Score Analyzer
-                    </div>
-                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>
-                      Role Match • Resume Strength Analysis
-                    </div>
-                  </div>
+            {[
+              {
+                title: 'Application Tracking Dashboard',
+                desc: 'Track every job application and interview stage in one place.',
+                icon: (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9" />
+                    <path d="M7 21h10" />
+                    <path d="M9 17h6" />
+                  </svg>
+                )
+              },
+              {
+                title: 'ATS Resume Optimization',
+                desc: 'Improve resume score using AI-based suggestions.',
+                icon: (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
+                )
+              },
+              {
+                title: 'Smart Job Recommendations',
+                desc: 'Get personalized job matches based on skills.',
+                icon: (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 16l4-4-4-4-4 4 4 4z" />
+                  </svg>
+                )
+              },
+              {
+                title: 'Interview Preparation Support',
+                desc: 'Prepare with commonly asked interview questions.',
+                icon: (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 16v-4" />
+                    <path d="M12 8h.01" />
+                  </svg>
+                )
+              }
+            ].map((card, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: '34px 36px',
+                  minHeight: 260,
+                  background: 'rgba(0,0,0,0.08)'
+                }}
+                className="about-choose-card"
+              >
+                <div style={{ color: '#FF9FFC', marginBottom: 16 }}>{card.icon}</div>
+                <div
+                  style={{
+                    fontFamily: 'Sora, sans-serif',
+                    fontSize: 20,
+                    fontWeight: 900,
+                    color: '#fff',
+                    lineHeight: 1.15,
+                    marginBottom: 12
+                  }}
+                >
+                  {card.title}
                 </div>
-
-                <div style={{ marginTop: 10 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontFamily: 'DM Sans,sans-serif' }}>Match Score</span>
-                    <span style={{ fontSize: 14, fontWeight: 800, color: '#FF9FFC', fontFamily: 'Sora,sans-serif' }}>94%</span>
-                  </div>
-                  <div style={{ width: '100%', height: 7, background: 'rgba(255,255,255,0.08)', borderRadius: 999 }}>
-                    <div style={{ height: '100%', width: '92%', background: 'linear-gradient(90deg,#FF9FFC,#966485)', borderRadius: 999 }} />
-                  </div>
-                </div>
-
-                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', fontFamily: 'DM Sans,sans-serif', marginTop: 12, marginBottom: 10 }}>
-                  Skills Detected:
-                </div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {['React', 'Java', 'SQL', 'System Design'].map((tag, i) => (
-                    <span key={i} style={{ padding: '4px 11px', borderRadius: 999, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, color: 'rgba(255,255,255,0.5)', fontFamily: 'DM Sans,sans-serif' }}>
-                      {tag}
-                    </span>
-                  ))}
+                <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7 }}>
+                  {card.desc}
                 </div>
               </div>
-            </div>
-
-            {/* Panel 3 */}
-            <div style={{
-              padding: '32px 32px',
-              background: 'rgba(255,255,255,0.02)',
-              borderRadius: 18,
-              border: '1px solid rgba(255,255,255,0.07)',
-              boxShadow: '0 22px 70px rgba(0,0,0,0.35)',
-              backdropFilter: 'blur(10px)',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              <div style={{ fontFamily: 'Sora,sans-serif', fontWeight: 800, fontSize: 18, color: '#fff', marginBottom: 10 }}>
-                Smart Job Recommendations
-              </div>
-              <div style={{ fontFamily: 'DM Sans,sans-serif', fontSize: 14, color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, marginBottom: 18 }}>
-                Get personalized job suggestions based on skills, interests, and career goals.
-              </div>
-
-              <div style={{
-                background: 'linear-gradient(135deg, rgba(255,159,252,0.18), rgba(150,100,133,0.12))',
-                border: '1px solid rgba(255,159,252,0.25)',
-                borderRadius: 18,
-                padding: '16px 18px',
-                marginTop: 8
-              }}>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', fontFamily: 'DM Sans,sans-serif', marginBottom: 6 }}>
-                  Applications Tracked
-                </div>
-                <div style={{ fontFamily: 'Sora,sans-serif', fontSize: 34, fontWeight: 900, color: '#FF9FFC', lineHeight: 1 }}>
-                  1.8k+
-                </div>
-                <div style={{ fontSize: 13, color: 'rgba(255,159,252,0.7)', marginTop: 6, fontFamily: 'DM Sans,sans-serif' }}>
-                  ↑ 12% this month
-                </div>
-              </div>
-            </div>
-
-            {/* Panel 4 */}
-            <div style={{
-              padding: '32px 32px',
-              background: 'rgba(255,255,255,0.02)',
-              borderRadius: 18,
-              border: '1px solid rgba(255,255,255,0.07)',
-              boxShadow: '0 22px 70px rgba(0,0,0,0.35)',
-              backdropFilter: 'blur(10px)',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              <div style={{ fontFamily: 'Sora,sans-serif', fontWeight: 800, fontSize: 18, color: '#fff', marginBottom: 10 }}>
-                Interview Preparation Support
-              </div>
-              <div style={{ fontFamily: 'DM Sans,sans-serif', fontSize: 14, color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, marginBottom: 18 }}>
-                Access commonly asked questions, tips, and preparation resources.
-              </div>
-
-              <div style={{
-                background: 'rgba(15,20,40,0.9)',
-                border: '1px solid rgba(255,159,252,0.20)',
-                borderRadius: 20,
-                padding: 16
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(255,159,252,0.2)', border: '1px solid rgba(255,159,252,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF9FFC' }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
-                  </div>
-                  <div>
-                    <div style={{ fontFamily: 'Sora,sans-serif', fontWeight: 700, color: '#fff', fontSize: 15 }}>Interview Planner</div>
-                    <div style={{ fontSize: 13, color: 'rgba(255,159,252,0.95)', marginTop: 2, fontWeight: 600, fontFamily: 'DM Sans,sans-serif' }}>Upcoming Interviews</div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  {[
-                    { day: 'Mon', co: 'TCS', color: '#FF9FFC' },
-                    { day: 'Wed', co: 'Infosys', color: '#966485' },
-                    { day: 'Fri', co: 'Accenture', color: '#FF9FFC' },
-                  ].map((item, i) => (
-                    <div key={i} style={{ flex: 1, padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: `1px solid ${item.color}30`, textAlign: 'center' }}>
-                      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontFamily: 'DM Sans,sans-serif' }}>{item.day}</div>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: item.color, marginTop: 4, fontFamily: 'Sora,sans-serif' }}>{item.co}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
@@ -1063,10 +959,11 @@ export default function Login() {
             }}>
               Everything you need<br />
               <span style={{
-                background: 'linear-gradient(90deg, #FF9FFC 0%, #966485 45%, #FF9FFC 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                textShadow: '0 0 28px rgba(255,159,252,0.22)'
+                color: '#fff',
+                background: 'transparent',
+                WebkitBackgroundClip: 'initial',
+                WebkitTextFillColor: 'initial',
+                textShadow: 'none'
               }}>to get hired</span>
             </h2>
 
@@ -1556,9 +1453,10 @@ export default function Login() {
               margin: 0
             }}>
               Loved by students <span style={{
-                background: 'linear-gradient(90deg,#eab308,#fde047)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
+                  color: '#fff',
+                  background: 'transparent',
+                  WebkitBackgroundClip: 'initial',
+                  WebkitTextFillColor: 'initial'
               }}>across India</span>
             </h2>
           </div>
