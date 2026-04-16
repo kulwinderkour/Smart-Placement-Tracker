@@ -1,6 +1,6 @@
 ## ✅ Prerequisites — Install Once
 
-### 🍎 Mac
+###  Mac
 1. Download and install **[Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/)**
 2. Open Docker Desktop and wait until it shows **"Docker is running"** in the menu bar
 3. That's it — no other installs needed
