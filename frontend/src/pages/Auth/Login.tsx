@@ -164,7 +164,7 @@ export default function Login() {
           color: #fff !important;
           background: rgba(255, 255, 255, 0.08) !important;
           border-color: rgba(255, 255, 255, 0.12) !important;
-          box-shadow: 0 0 25px rgba(99, 102, 241, 0.25), inset 0 0 10px rgba(255, 255, 255, 0.05);
+          box-shadow: 0 0 25px rgba(150, 100, 133, 0.25), inset 0 0 10px rgba(255, 255, 255, 0.05);
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
         }
@@ -193,13 +193,13 @@ export default function Login() {
           transform: translateY(-3px) scale(1.02);
           background: rgba(255, 255, 255, 0.1);
           border-color: rgba(255, 255, 255, 0.25);
-          box-shadow: 0 20px 40px rgba(99, 102, 241, 0.3);
+          box-shadow: 0 20px 40px rgba(150, 100, 133, 0.3);
         }
         .cta-glass-button::before {
           content: '';
           position: absolute;
           inset: 0;
-          background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2));
+          background: linear-gradient(135deg, rgba(150, 100, 133, 0.2), rgba(150, 100, 133, 0.2));
           opacity: 0.6;
           transition: opacity 0.4s;
           pointer-events: none;
@@ -278,7 +278,7 @@ export default function Login() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <div style={{
             width: 34, height: 34, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #6d28d9, #3b82f6)',
+            background: '#966485',
             display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>
@@ -347,7 +347,7 @@ export default function Login() {
         <div className="absolute inset-0 z-0 flex items-center justify-center">
           <div style={{ width: '100%', height: '100%', position: 'relative' }}>
             <GradientBlinds
-              gradientColors={["#FF9FFC", "#5227FF"]}
+              gradientColors={["#966485", "#FF9FFC"]}
               angle={20}
               noise={0.5}
               blindCount={16}
@@ -550,9 +550,10 @@ export default function Login() {
           }}>
             Numbers that<br />
             <span style={{
-              background: 'linear-gradient(90deg,#818cf8,#a78bfa,#60a5fa)',
+              background: 'linear-gradient(90deg, #FF9FFC 0%, #966485 45%, #FF9FFC 100%)',
               WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
+              WebkitTextFillColor: 'transparent',
+              textShadow: '0 0 28px rgba(255,159,252,0.22)'
             }}>speak for themselves</span>
           </h2>
           <p style={{
@@ -720,7 +721,7 @@ export default function Login() {
             direction="left"
             interactive
             fontSize={34}
-            gradientColors={['#818cf8', '#60a5fa']}
+            gradientColors={['#FF9FFC', '#966485']}
           />
         </motion.div>
       </section>
@@ -730,12 +731,10 @@ export default function Login() {
       {/* SECTION 3 — ABOUT */}
       <style dangerouslySetInnerHTML={{
         __html: `
-        @media (max-width: 1024px) {
-          .about-inner-grid { grid-template-columns: 1fr !important; }
-          .about-right-col { height: 380px !important; }
-        }
         @media (max-width: 768px) {
-          .about-right-col { display: none !important; }
+          .about-grid { grid-template-columns: 1fr !important; }
+          .about-divider-v, .about-divider-h { display: none !important; }
+          .about-grid-wrapper { height: auto !important; }
         }
       `}} />
       <section ref={aboutRef} style={{
@@ -745,7 +744,7 @@ export default function Login() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '120px 24px',
+        padding: '90px 24px',
         position: 'relative',
         overflow: 'hidden'
       }}>
@@ -771,230 +770,274 @@ export default function Login() {
           pointerEvents: 'none'
         }} />
 
-        <div className="about-inner-grid" style={{
+      <div
+        style={{
           maxWidth: 1100,
           width: '100%',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 80,
-          alignItems: 'center',
           position: 'relative',
-          zIndex: 1
-        }}>
-          {/* LEFT COLUMN — TEXT */}
-          <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+          zIndex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 30
+        }}
+      >
+        {/* Top Title Block */}
+        <div style={{ textAlign: 'center', maxWidth: 620 }}>
+          <div style={{ marginBottom: 18 }}>
+            <span style={{
+              display: 'inline-block',
+              fontFamily: 'Sora, sans-serif',
+              fontWeight: 800,
+                fontSize: 'clamp(26px, 3.4vw, 38px)',
+              letterSpacing: '-0.02em',
+              textTransform: 'uppercase',
+              background: 'linear-gradient(90deg, #FF9FFC 0%, #966485 50%, #FF9FFC 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              WHY SMART PLACEMENT TRACKER?
+            </span>
+          </div>
+
+          <h2 style={{
+            fontFamily: 'Sora,sans-serif',
+              fontSize: 'clamp(36px,4.7vw,62px)',
+            fontWeight: 800,
+            color: '#fff',
+            lineHeight: 1.12,
+            letterSpacing: '-0.03em',
+            marginBottom: 20
+          }}>
+            The smarter way<br />
+            to <span style={{
+              background: 'linear-gradient(90deg, #FF9FFC 0%, #966485 45%, #FF9FFC 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textShadow: '0 0 28px rgba(255,159,252,0.22)'
+            }}>track, prepare, and secure</span> your dream job
+          </h2>
+
+          <p style={{
+            fontSize: 17,
+            color: 'rgba(255,255,255,0.55)',
+            lineHeight: 1.75,
+            fontFamily: 'DM Sans,sans-serif',
+            margin: '0 auto',
+            maxWidth: 520
+          }}>
+            Stay ahead in your placement journey with AI-powered tracking, resume optimization, and smart insights. Smart Placement Tracker helps you manage applications, monitor progress, and improve your chances of success — all in one place.
+          </p>
+        </div>
+
+        {/* 2x2 Grid with Center Dividers */}
+        <div
+          className="about-grid-wrapper"
+          style={{ width: '100%', maxWidth: 1000, position: 'relative', height: 'clamp(420px, 55vh, 520px)' }}
+        >
+          <div className="about-divider-v" style={{
+            position: 'absolute',
+            left: '50%',
+            top: 0,
+            bottom: 0,
+            width: 1,
+            transform: 'translateX(-0.5px)',
+            background: 'linear-gradient(180deg, rgba(255,159,252,0) 0%, rgba(255,159,252,0.35) 50%, rgba(150,100,133,0) 100%)',
+            pointerEvents: 'none'
+          }} />
+          <div className="about-divider-h" style={{
+            position: 'absolute',
+            top: '50%',
+            left: 0,
+            right: 0,
+            height: 1,
+            transform: 'translateY(-0.5px)',
+            background: 'linear-gradient(90deg, rgba(255,159,252,0) 0%, rgba(255,159,252,0.35) 50%, rgba(150,100,133,0) 100%)',
+            pointerEvents: 'none'
+          }} />
+
+          <div
+            className="about-grid"
+            style={{
+              position: 'relative',
+              zIndex: 1,
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gridTemplateRows: '1fr 1fr',
+              gap: 0
+            }}
           >
-            {/* Badge */}
-            <div style={{ marginBottom: 20, width: '100%', textAlign: 'center' }}>
-              <span style={{
-                display: 'inline-block',
-                fontFamily: 'Sora, sans-serif',
-                fontWeight: 800,
-                fontSize: 'clamp(24px, 3vw, 32px)',
-                letterSpacing: '-0.02em',
-                textTransform: 'uppercase',
-                background: 'linear-gradient(180deg, #FFFFFF 0%, #888888 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }}>
-                Why SmartPlacement?
-              </span>
+            {/* Panel 1 */}
+            <div style={{
+              padding: '32px 32px',
+              background: 'rgba(255,255,255,0.02)',
+              borderRadius: 18,
+              border: '1px solid rgba(255,255,255,0.07)',
+              boxShadow: '0 22px 70px rgba(0,0,0,0.35)',
+              backdropFilter: 'blur(10px)',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
+              <div style={{ fontFamily: 'Sora,sans-serif', fontWeight: 800, fontSize: 18, color: '#fff', marginBottom: 10 }}>
+                Application Tracking Dashboard
+              </div>
+              <div style={{ fontFamily: 'DM Sans,sans-serif', fontSize: 14, color: 'rgba(255,255,255,0.45)', lineHeight: 1.65 }}>
+                Track every job application, interview stage, and status in one organized view.
+              </div>
             </div>
 
-            {/* Heading */}
-            <h2 style={{
-              fontFamily: 'Sora,sans-serif',
-              fontSize: 'clamp(32px,4vw,52px)',
-              fontWeight: 800,
-              color: '#fff',
-              lineHeight: 1.12,
-              letterSpacing: '-0.03em',
-              marginBottom: 24
+            {/* Panel 2 */}
+            <div style={{
+              padding: '32px 32px',
+              background: 'rgba(255,255,255,0.02)',
+              borderRadius: 18,
+              border: '1px solid rgba(255,255,255,0.07)',
+              boxShadow: '0 22px 70px rgba(0,0,0,0.35)',
+              backdropFilter: 'blur(10px)',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column'
             }}>
-              The smarter way<br />to land your{' '}
-              <span style={{
-                background: 'linear-gradient(90deg,#818cf8,#a78bfa,#60a5fa)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }}>next role</span>
-            </h2>
+              <div style={{ fontFamily: 'Sora,sans-serif', fontWeight: 800, fontSize: 18, color: '#fff', marginBottom: 10 }}>
+                ATS Resume Optimization
+              </div>
+              <div style={{ fontFamily: 'DM Sans,sans-serif', fontSize: 14, color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, marginBottom: 18 }}>
+                Improve resume score with AI suggestions tailored for recruiter systems.
+              </div>
 
-            {/* Body */}
-            <p style={{
-              fontSize: 16, color: 'rgba(255,255,255,0.55)',
-              lineHeight: 1.75, marginBottom: 32,
-              fontFamily: 'DM Sans,sans-serif',
-              maxWidth: 440
-            }}>
-              Navigate the complex landscape of placements with an unfair advantage. We combine AI-driven networking, automatic ATS resume optimization, and real-time application tracking.
-            </p>
-
-            {/* Bullet points */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 36 }}>
-              {[
-                { text: 'ATS Resume Optimization', desc: 'Beat the bots, reach the humans' },
-                { text: 'One-click Applications', desc: 'Apply to 10 jobs in under a minute' },
-                { text: 'Direct Recruiter Messaging', desc: 'Skip the queue, talk directly' },
-              ].map((item, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.3 + i * 0.1 }}
-                  style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}
-                >
-                  <div style={{
-                    width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-                    background: 'rgba(52,211,153,0.15)',
-                    border: '1px solid rgba(52,211,153,0.3)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    marginTop: 2
-                  }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(255,159,252,0.16), rgba(150,100,133,0.12))',
+                border: '1px solid rgba(255,159,252,0.22)',
+                borderRadius: 20,
+                padding: 16
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(255,159,252,0.2)', border: '1px solid rgba(255,159,252,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF9FFC' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></svg>
                   </div>
                   <div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: 'rgba(255,255,255,0.9)', fontFamily: 'DM Sans,sans-serif' }}>{item.text}</div>
-                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', fontFamily: 'DM Sans,sans-serif', marginTop: 2 }}>{item.desc}</div>
+                    <div style={{ fontFamily: 'Sora,sans-serif', fontWeight: 700, color: '#fff', fontSize: 14 }}>
+                      Resume Score Analyzer
+                    </div>
+                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>
+                      Role Match • Resume Strength Analysis
+                    </div>
                   </div>
-                </motion.div>
-              ))}
+                </div>
+
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontFamily: 'DM Sans,sans-serif' }}>Match Score</span>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: '#FF9FFC', fontFamily: 'Sora,sans-serif' }}>94%</span>
+                  </div>
+                  <div style={{ width: '100%', height: 7, background: 'rgba(255,255,255,0.08)', borderRadius: 999 }}>
+                    <div style={{ height: '100%', width: '92%', background: 'linear-gradient(90deg,#FF9FFC,#966485)', borderRadius: 999 }} />
+                  </div>
+                </div>
+
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', fontFamily: 'DM Sans,sans-serif', marginTop: 12, marginBottom: 10 }}>
+                  Skills Detected:
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {['React', 'Java', 'SQL', 'System Design'].map((tag, i) => (
+                    <span key={i} style={{ padding: '4px 11px', borderRadius: 999, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', fontSize: 13, color: 'rgba(255,255,255,0.5)', fontFamily: 'DM Sans,sans-serif' }}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
 
-
-          </motion.div>
-
-          {/* RIGHT COLUMN — VISUAL CARDS STACK */}
-          <motion.div
-            className="about-right-col"
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-            style={{ position: 'relative', height: 500, width: '100%' }}
-          >
-            {/* Glow behind cards */}
+            {/* Panel 3 */}
             <div style={{
-              position: 'absolute', top: '30%', left: '20%',
-              width: 320, height: 320, borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(124,58,237,0.2) 0%, transparent 70%)',
-              filter: 'blur(40px)', pointerEvents: 'none'
-            }} />
+              padding: '32px 32px',
+              background: 'rgba(255,255,255,0.02)',
+              borderRadius: 18,
+              border: '1px solid rgba(255,255,255,0.07)',
+              boxShadow: '0 22px 70px rgba(0,0,0,0.35)',
+              backdropFilter: 'blur(10px)',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
+              <div style={{ fontFamily: 'Sora,sans-serif', fontWeight: 800, fontSize: 18, color: '#fff', marginBottom: 10 }}>
+                Smart Job Recommendations
+              </div>
+              <div style={{ fontFamily: 'DM Sans,sans-serif', fontSize: 14, color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, marginBottom: 18 }}>
+                Get personalized job suggestions based on skills, interests, and career goals.
+              </div>
 
-            {/* CARD 1 — AI Resume Matcher */}
-            <motion.div
-              initial={{ opacity: 0, y: 20, rotate: 2 }}
-              whileInView={{ opacity: 1, y: 0, rotate: 3 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.8 }}
-              style={{
-                position: 'absolute', top: 20, left: '2%',
-                width: '100%', maxWidth: 440,
-                background: 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(124,58,237,0.15))',
-                border: '1px solid rgba(129,140,248,0.25)',
-                borderRadius: 24, padding: '32px 36px',
-                backdropFilter: 'blur(20px)',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.4), 0 0 40px rgba(124,58,237,0.15)',
-                zIndex: 1
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-                <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(167,139,250,0.2)', border: '1px solid rgba(167,139,250,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a78bfa' }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></svg>
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(255,159,252,0.18), rgba(150,100,133,0.12))',
+                border: '1px solid rgba(255,159,252,0.25)',
+                borderRadius: 18,
+                padding: '16px 18px',
+                marginTop: 8
+              }}>
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', fontFamily: 'DM Sans,sans-serif', marginBottom: 6 }}>
+                  Applications Tracked
                 </div>
-                <div>
-                  <div style={{ fontFamily: 'Sora,sans-serif', fontWeight: 700, color: '#fff', fontSize: 17 }}>AI Resume Matcher</div>
-                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginTop: 4 }}>Google SWE Role • Just matched</div>
+                <div style={{ fontFamily: 'Sora,sans-serif', fontSize: 34, fontWeight: 900, color: '#FF9FFC', lineHeight: 1 }}>
+                  1.8k+
                 </div>
-                <div style={{ marginLeft: 'auto', padding: '6px 14px', borderRadius: 100, background: 'rgba(52,211,153,0.15)', border: '1px solid rgba(52,211,153,0.3)', fontSize: 12, fontWeight: 600, color: '#34d399' }}>LIVE</div>
-              </div>
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontFamily: 'DM Sans,sans-serif' }}>Match Score</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#34d399', fontFamily: 'Sora,sans-serif' }}>92%</span>
-                </div>
-                <div style={{ width: '100%', height: 8, background: 'rgba(255,255,255,0.08)', borderRadius: 100 }}>
-                  <motion.div
-                    initial={{ width: 0 }}
-                    whileInView={{ width: '92%' }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.6, duration: 1.2, ease: 'easeOut' }}
-                    style={{ height: '100%', background: 'linear-gradient(90deg,#34d399,#10b981)', borderRadius: 100 }}
-                  />
+                <div style={{ fontSize: 13, color: 'rgba(255,159,252,0.7)', marginTop: 6, fontFamily: 'DM Sans,sans-serif' }}>
+                  ↑ 12% this month
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-                {['React', 'Node.js', 'System Design'].map((tag, i) => (
-                  <span key={i} style={{ padding: '4px 12px', borderRadius: 100, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', fontSize: 12, color: 'rgba(255,255,255,0.5)', fontFamily: 'DM Sans,sans-serif' }}>{tag}</span>
-                ))}
-              </div>
-            </motion.div>
+            </div>
 
-            {/* CARD 2 — Interview Scheduler */}
-            <motion.div
-              initial={{ opacity: 0, y: 20, rotate: -2 }}
-              whileInView={{ opacity: 1, y: 0, rotate: -2 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              style={{
-                position: 'absolute', top: 250, left: '10%',
-                width: '95%', maxWidth: 400,
+            {/* Panel 4 */}
+            <div style={{
+              padding: '32px 32px',
+              background: 'rgba(255,255,255,0.02)',
+              borderRadius: 18,
+              border: '1px solid rgba(255,255,255,0.07)',
+              boxShadow: '0 22px 70px rgba(0,0,0,0.35)',
+              backdropFilter: 'blur(10px)',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
+              <div style={{ fontFamily: 'Sora,sans-serif', fontWeight: 800, fontSize: 18, color: '#fff', marginBottom: 10 }}>
+                Interview Preparation Support
+              </div>
+              <div style={{ fontFamily: 'DM Sans,sans-serif', fontSize: 14, color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, marginBottom: 18 }}>
+                Access commonly asked questions, tips, and preparation resources.
+              </div>
+
+              <div style={{
                 background: 'rgba(15,20,40,0.9)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 24, padding: '28px 32px',
-                backdropFilter: 'blur(20px)',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-                zIndex: 2
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(59,130,246,0.2)', border: '1px solid rgba(59,130,246,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#60a5fa' }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
-                </div>
-                <div>
-                  <div style={{ fontFamily: 'Sora,sans-serif', fontWeight: 700, color: '#fff', fontSize: 17 }}>Interview Scheduler</div>
-                  <div style={{ fontSize: 14, color: '#60a5fa', marginTop: 4, fontWeight: 500, fontFamily: 'DM Sans,sans-serif' }}>3 interviews this week</div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-                {[
-                  { day: 'Mon', co: 'Google', color: '#818cf8' },
-                  { day: 'Wed', co: 'Amazon', color: '#f59e0b' },
-                  { day: 'Fri', co: 'Microsoft', color: '#34d399' },
-                ].map((item, i) => (
-                  <div key={i} style={{ flex: 1, padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: `1px solid ${item.color}30`, textAlign: 'center' }}>
-                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontFamily: 'DM Sans,sans-serif' }}>{item.day}</div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: item.color, marginTop: 4, fontFamily: 'Sora,sans-serif' }}>{item.co}</div>
+                border: '1px solid rgba(255,159,252,0.20)',
+                borderRadius: 20,
+                padding: 16
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(255,159,252,0.2)', border: '1px solid rgba(255,159,252,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF9FFC' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
                   </div>
-                ))}
+                  <div>
+                    <div style={{ fontFamily: 'Sora,sans-serif', fontWeight: 700, color: '#fff', fontSize: 15 }}>Interview Planner</div>
+                    <div style={{ fontSize: 13, color: 'rgba(255,159,252,0.95)', marginTop: 2, fontWeight: 600, fontFamily: 'DM Sans,sans-serif' }}>Upcoming Interviews</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  {[
+                    { day: 'Mon', co: 'TCS', color: '#FF9FFC' },
+                    { day: 'Wed', co: 'Infosys', color: '#966485' },
+                    { day: 'Fri', co: 'Accenture', color: '#FF9FFC' },
+                  ].map((item, i) => (
+                    <div key={i} style={{ flex: 1, padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: `1px solid ${item.color}30`, textAlign: 'center' }}>
+                      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontFamily: 'DM Sans,sans-serif' }}>{item.day}</div>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: item.color, marginTop: 4, fontFamily: 'Sora,sans-serif' }}>{item.co}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </motion.div>
-
-            {/* CARD 3 — small floating stat */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.6, duration: 0.6 }}
-              style={{
-                position: 'absolute', top: 0, right: '-5%',
-                background: 'rgba(52,211,153,0.12)',
-                border: '1px solid rgba(52,211,153,0.25)',
-                borderRadius: 20, padding: '18px 24px',
-                backdropFilter: 'blur(16px)',
-                zIndex: 3
-              }}
-            >
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', fontFamily: 'DM Sans,sans-serif', marginBottom: 6 }}>Offers received</div>
-              <div style={{ fontFamily: 'Sora,sans-serif', fontSize: 34, fontWeight: 800, color: '#34d399', lineHeight: 1 }}>2.4k+</div>
-              <div style={{ fontSize: 12, color: 'rgba(52,211,153,0.7)', marginTop: 6, fontFamily: 'DM Sans,sans-serif' }}>↑ 18% this month</div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </div>
+      </div>
       </section>
 
       <Divider />
@@ -1020,9 +1063,10 @@ export default function Login() {
             }}>
               Everything you need<br />
               <span style={{
-                background: 'linear-gradient(90deg,#a78bfa,#818cf8,#60a5fa)',
+                background: 'linear-gradient(90deg, #FF9FFC 0%, #966485 45%, #FF9FFC 100%)',
                 WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
+                WebkitTextFillColor: 'transparent',
+                textShadow: '0 0 28px rgba(255,159,252,0.22)'
               }}>to get hired</span>
             </h2>
 
@@ -1096,16 +1140,16 @@ export default function Login() {
                     title: "Resume Match",
                     subtitle: "ATS-ready highlights",
                     pill: "MATCH",
-                    iconGradient: "linear-gradient(135deg, rgba(124,58,237,0.95), rgba(59,130,246,0.9))",
-                    iconGlow: "0 0 26px rgba(124,58,237,0.35)",
+                    iconGradient: "linear-gradient(135deg, rgba(255,159,252,0.95), rgba(150,100,133,0.9))",
+                    iconGlow: "0 0 26px rgba(255,159,252,0.35)",
                     ambient:
-                      "radial-gradient(circle at 30% 20%, rgba(124,58,237,0.38), transparent 55%)," +
-                      "radial-gradient(circle at 75% 70%, rgba(96,165,250,0.22), transparent 60%)," +
-                      "radial-gradient(circle at 30% 85%, rgba(167,139,250,0.18), transparent 60%)",
+                      "radial-gradient(circle at 30% 20%, rgba(255,159,252,0.38), transparent 55%)," +
+                      "radial-gradient(circle at 75% 70%, rgba(150,100,133,0.22), transparent 60%)," +
+                      "radial-gradient(circle at 30% 85%, rgba(255,159,252,0.18), transparent 60%)",
                     skeleton: ["88%", "72%", "92%", "64%", "78%"],
                     chips: [
-                      { label: "Resume Score", value: "92%", accent: "rgba(124,58,237,0.20)", border: "rgba(124,58,237,0.28)", text: "#c4b5fd" },
-                      { label: "Speed", value: "Fast", accent: "rgba(59,130,246,0.14)", border: "rgba(59,130,246,0.22)", text: "#93c5fd" },
+                      { label: "Resume Score", value: "92%", accent: "rgba(255,159,252,0.20)", border: "rgba(255,159,252,0.28)", text: "#ffd1f4" },
+                      { label: "Speed", value: "Fast", accent: "rgba(150,100,133,0.14)", border: "rgba(150,100,133,0.22)", text: "#f1c7d8" },
                     ],
                   },
                 },
@@ -1117,16 +1161,16 @@ export default function Login() {
                     title: "Pipeline Sync",
                     subtitle: "Auto-updated statuses",
                     pill: "SYNC",
-                    iconGradient: "linear-gradient(135deg, rgba(99,102,241,0.95), rgba(168,85,247,0.9))",
-                    iconGlow: "0 0 26px rgba(168,85,247,0.32)",
+                    iconGradient: "linear-gradient(135deg, rgba(255,159,252,0.95), rgba(150,100,133,0.9))",
+                    iconGlow: "0 0 26px rgba(255,159,252,0.32)",
                     ambient:
-                      "radial-gradient(circle at 25% 25%, rgba(168,85,247,0.34), transparent 58%)," +
-                      "radial-gradient(circle at 80% 30%, rgba(129,140,248,0.22), transparent 62%)," +
-                      "radial-gradient(circle at 70% 85%, rgba(96,165,250,0.14), transparent 60%)",
+                      "radial-gradient(circle at 25% 25%, rgba(255,159,252,0.34), transparent 58%)," +
+                      "radial-gradient(circle at 80% 30%, rgba(150,100,133,0.22), transparent 62%)," +
+                      "radial-gradient(circle at 70% 85%, rgba(255,159,252,0.14), transparent 60%)",
                     skeleton: ["76%", "94%", "68%", "86%", "58%"],
                     chips: [
-                      { label: "Status Sync", value: "Realtime", accent: "rgba(168,85,247,0.18)", border: "rgba(168,85,247,0.26)", text: "#e9d5ff" },
-                      { label: "Reminders", value: "On", accent: "rgba(99,102,241,0.14)", border: "rgba(99,102,241,0.22)", text: "#c7d2fe" },
+                      { label: "Status Sync", value: "Realtime", accent: "rgba(255,159,252,0.18)", border: "rgba(255,159,252,0.26)", text: "#ffd1f4" },
+                      { label: "Reminders", value: "On", accent: "rgba(150,100,133,0.14)", border: "rgba(150,100,133,0.22)", text: "#f1c7d8" },
                     ],
                   },
                 },
@@ -1159,16 +1203,16 @@ export default function Login() {
                     title: "Roadmap",
                     subtitle: "Week-by-week plan",
                     pill: "PLAN",
-                    iconGradient: "linear-gradient(135deg, rgba(124,58,237,0.9), rgba(244,114,182,0.85))",
-                    iconGlow: "0 0 26px rgba(244,114,182,0.22)",
+                    iconGradient: "linear-gradient(135deg, rgba(255,159,252,0.95), rgba(150,100,133,0.9))",
+                    iconGlow: "0 0 26px rgba(255,159,252,0.22)",
                     ambient:
-                      "radial-gradient(circle at 26% 18%, rgba(244,114,182,0.24), transparent 58%)," +
-                      "radial-gradient(circle at 78% 35%, rgba(124,58,237,0.22), transparent 62%)," +
-                      "radial-gradient(circle at 60% 90%, rgba(167,139,250,0.14), transparent 62%)",
+                      "radial-gradient(circle at 26% 18%, rgba(255,159,252,0.24), transparent 58%)," +
+                      "radial-gradient(circle at 78% 35%, rgba(150,100,133,0.22), transparent 62%)," +
+                      "radial-gradient(circle at 60% 90%, rgba(255,159,252,0.14), transparent 62%)",
                     skeleton: ["70%", "86%", "94%", "60%", "82%"],
                     chips: [
                       { label: "Roadmap Fit", value: "Personal", accent: "rgba(244,114,182,0.14)", border: "rgba(244,114,182,0.22)", text: "#fbcfe8" },
-                      { label: "Weeks", value: "12", accent: "rgba(124,58,237,0.14)", border: "rgba(124,58,237,0.22)", text: "#c4b5fd" },
+                      { label: "Weeks", value: "12", accent: "rgba(150,100,133,0.14)", border: "rgba(150,100,133,0.22)", text: "#f1c7d8" },
                     ],
                   },
                 }
@@ -1192,13 +1236,13 @@ export default function Login() {
                     position: activeTab === i ? 'relative' : 'absolute',
                     top: 0, left: 0, width: '100%',
                     background: '#0d0d1a',
-                    border: '1px solid rgba(120, 80, 255, 0.3)',
+                    border: '1px solid rgba(255,159,252,0.25)',
                     borderRadius: 24,
                     padding: '60px 80px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 40,
-                    boxShadow: '0 0 40px rgba(120, 80, 255, 0.1)',
+                    boxShadow: '0 0 40px rgba(255,159,252,0.14)',
                     overflow: 'hidden'
                   }}
                 >
@@ -1261,8 +1305,8 @@ export default function Login() {
                       const p = feature.preview
                       const skeleton = p?.skeleton?.length ? p.skeleton : ["78%", "92%", "64%", "84%", "56%"]
                       const chips = p?.chips?.length ? p.chips : [
-                        { label: 'Metric', value: '—', accent: 'rgba(124,58,237,0.20)', border: 'rgba(124,58,237,0.28)', text: '#c4b5fd' },
-                        { label: 'Speed', value: 'Fast', accent: 'rgba(59,130,246,0.14)', border: 'rgba(59,130,246,0.22)', text: '#93c5fd' },
+                        { label: 'Metric', value: '—', accent: 'rgba(255,159,252,0.20)', border: 'rgba(255,159,252,0.28)', text: '#ffd1f4' },
+                        { label: 'Speed', value: 'Fast', accent: 'rgba(150,100,133,0.14)', border: 'rgba(150,100,133,0.22)', text: '#f1c7d8' },
                       ]
                       return (
                         <>
@@ -1271,9 +1315,9 @@ export default function Login() {
                       position: 'absolute',
                       inset: -40,
                       background: p?.ambient ||
-                        'radial-gradient(circle at 30% 20%, rgba(124,58,237,0.35), transparent 55%),' +
-                          'radial-gradient(circle at 75% 70%, rgba(96,165,250,0.22), transparent 60%),' +
-                          'radial-gradient(circle at 30% 85%, rgba(167,139,250,0.18), transparent 60%)',
+                        'radial-gradient(circle at 30% 20%, rgba(255,159,252,0.35), transparent 55%),' +
+                          'radial-gradient(circle at 75% 70%, rgba(150,100,133,0.22), transparent 60%),' +
+                          'radial-gradient(circle at 30% 85%, rgba(255,159,252,0.18), transparent 60%)',
                       filter: 'blur(18px)',
                       pointerEvents: 'none',
                     }} />
@@ -1287,7 +1331,7 @@ export default function Login() {
                       padding: '14px 14px 12px',
                       borderRadius: 18,
                       background: 'rgba(13,13,26,0.72)',
-                      border: '1px solid rgba(167,139,250,0.24)',
+                      border: '1px solid rgba(255,159,252,0.24)',
                       backdropFilter: 'blur(14px)',
                       WebkitBackdropFilter: 'blur(14px)',
                       boxShadow: '0 14px 40px rgba(0,0,0,0.45)',
@@ -1295,8 +1339,8 @@ export default function Login() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                         <div style={{
                           width: 36, height: 36, borderRadius: 12,
-                          background: p?.iconGradient || 'linear-gradient(135deg, rgba(124,58,237,0.95), rgba(59,130,246,0.9))',
-                          boxShadow: p?.iconGlow || '0 0 26px rgba(124,58,237,0.35)',
+                          background: p?.iconGradient || 'linear-gradient(135deg, rgba(255,159,252,0.95), rgba(150,100,133,0.9))',
+                          boxShadow: p?.iconGlow || '0 0 26px rgba(255,159,252,0.35)',
                         }} />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontFamily: 'Sora,sans-serif', fontWeight: 700, fontSize: 14, color: '#fff', lineHeight: 1.15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -1310,8 +1354,9 @@ export default function Login() {
                           fontSize: 10,
                           fontWeight: 800,
                           letterSpacing: '0.12em',
-                          color: '#a78bfa',
+                          color: '#FF9FFC',
                           textTransform: 'uppercase',
+                          textShadow: '0 0 24px rgba(255,159,252,0.35)',
                         }}>
                           {p?.pill || 'LIVE'}
                         </div>
@@ -1386,8 +1431,10 @@ export default function Login() {
             }}>
               Get hired in <br />
               <span style={{
-                color: '#a855f7',
-                textShadow: '0 0 60px rgba(168,85,247,0.5)',
+                background: 'linear-gradient(90deg, #FF9FFC 0%, #966485 45%, #FF9FFC 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                textShadow: '0 0 60px rgba(255,159,252,0.35)',
               }}>4 simple steps</span>
             </h2>
           </div>
@@ -1401,11 +1448,11 @@ export default function Login() {
               left: '50%',
               transform: 'translateX(-50%)',
               width: '2px',
-              background: 'linear-gradient(180deg, rgba(168,85,247,0) 0%, rgba(168,85,247,0.8) 15%, rgba(168,85,247,0.8) 85%, rgba(168,85,247,0) 100%)',
+              background: 'linear-gradient(180deg, rgba(150,100,133,0) 0%, rgba(150,100,133,0.8) 15%, rgba(150,100,133,0.8) 85%, rgba(150,100,133,0) 100%)',
               zIndex: 0,
             }} className="hidden md:block">
               {/* Optional ambient core glow */}
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 200, height: 400, background: 'radial-gradient(ellipse, rgba(168,85,247,0.15) 0%, transparent 70%)', filter: 'blur(30px)', pointerEvents: 'none' }}></div>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 200, height: 400, background: 'radial-gradient(ellipse, rgba(150,100,133,0.15) 0%, transparent 70%)', filter: 'blur(30px)', pointerEvents: 'none' }}></div>
             </div>
 
             {[
@@ -1433,7 +1480,12 @@ export default function Login() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="w-full md:w-[45%] text-left md:pr-12 md:justify-between justify-start gap-8 md:gap-0">
                   <div>
                     <div style={{ fontFamily: 'Sora, sans-serif', fontSize: '26px', fontWeight: 600, color: '#e6edf3', marginBottom: '8px' }}>{step.title}</div>
-                    <div style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', fontWeight: 600, letterSpacing: '0.12em', color: '#a855f7', textTransform: 'uppercase' }}>{step.subtitle}</div>
+                    <div style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase',
+                      background: 'linear-gradient(90deg, #FF9FFC 0%, #966485 50%, #FF9FFC 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      textShadow: '0 0 18px rgba(255,159,252,0.22)'
+                    }}>{step.subtitle}</div>
                   </div>
                   <div style={{ fontFamily: 'Sora, sans-serif', fontSize: '48px', fontWeight: 700, color: 'rgba(255,255,255,0.5)' }} className="hidden md:block">
                     {step.num}
@@ -1444,8 +1496,8 @@ export default function Login() {
                 <div style={{ width: '10%', display: 'flex', justifyContent: 'center' }} className="hidden md:flex relative">
                   <div style={{
                     width: 10, height: 10, borderRadius: '50%',
-                    background: '#d8b4fe',
-                    boxShadow: '0 0 20px 6px rgba(168,85,247,0.8), 0 0 40px 10px rgba(168,85,247,0.4)',
+                    background: '#966485',
+                    boxShadow: '0 0 20px 6px rgba(150,100,133,0.8), 0 0 40px 10px rgba(150,100,133,0.4)',
                     border: '1px solid #fff'
                   }} />
                 </div>
@@ -1616,8 +1668,8 @@ export default function Login() {
             flexDirection: 'column',
             alignItems: 'center',
             textAlign: 'center',
-            background: 'linear-gradient(135deg, #3730a3 0%, #5b21b6 40%, #7c3aed 100%)',
-            boxShadow: '0 32px 80px rgba(124,58,237,0.35)'
+            background: 'linear-gradient(135deg, #966485 0%, #966485 40%, #966485 100%)',
+            boxShadow: '0 32px 80px rgba(150,100,133,0.35)'
           }}
         >
           {/* Top-right circle */}
@@ -1644,7 +1696,7 @@ export default function Login() {
           {/* Subtle background GradientBlinds for CTA */}
           <div style={{ position: 'absolute', inset: 0, opacity: 0.2, mixBlendMode: 'screen', pointerEvents: 'none', zIndex: 0 }}>
             <GradientBlinds
-              gradientColors={["#1e3a8a", "#7c3aed"]}
+              gradientColors={["#966485", "#966485"]}
               angle={45}
               noise={0.8}
               blindCount={12}
@@ -1661,7 +1713,7 @@ export default function Login() {
               marginBottom: 20
             }}>
               {/* 3 avatar circles */}
-              {['#818cf8', '#34d399', '#f472b6'].map((c, i) => (
+              {['#966485', '#34d399', '#f472b6'].map((c, i) => (
                 <div key={i} style={{
                   width: 28, height: 28, borderRadius: '50%',
                   background: c, border: '2px solid rgba(255,255,255,0.3)',
@@ -1758,7 +1810,12 @@ export default function Login() {
               letterSpacing: '-1px',
               color: '#fff'
             }}>
-              Smart<span style={{ color: '#a855f7' }}>Placement</span>
+              Smart<span style={{
+                background: 'linear-gradient(90deg, #FF9FFC 0%, #966485 45%, #FF9FFC 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                textShadow: '0 0 28px rgba(255,159,252,0.22)'
+              }}>Placement</span>
             </div>
             
             {/* Social Icons */}
@@ -1822,7 +1879,16 @@ export default function Login() {
                   {link}
                 </a>
               ))}
-              <a href="#" className="text-[#a855f7] text-[14px] font-semibold no-underline hover:text-[#c084fc] transition-colors duration-200 mt-2">
+              <a
+                href="#"
+                className="text-[14px] font-semibold no-underline transition-colors duration-200 mt-2"
+                style={{
+                  background: 'linear-gradient(90deg, #FF9FFC 0%, #966485 45%, #FF9FFC 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  textShadow: '0 0 28px rgba(255,159,252,0.22)'
+                }}
+              >
                 Join for Free
               </a>
             </div>
