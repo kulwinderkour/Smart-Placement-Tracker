@@ -61,8 +61,8 @@ interface SidebarProps {
   onToggle: () => void
 }
 
-const EXPANDED_W = 220
-const COLLAPSED_W = 62
+const EXPANDED_W = 248
+const COLLAPSED_W = 72
 
 export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
   const location = useLocation()
@@ -101,8 +101,8 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
       <div style={{
         width: sidebarWidth,
         height: '100vh',
-        background: '#0d1117',
-        borderRight: '1px solid #21262d',
+        background: '#ffffff',
+        borderRight: '1px solid #e9e8f3',
         display: 'flex',
         flexDirection: 'column',
         position: 'fixed',
@@ -114,7 +114,7 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
       }}>
         {/* Header/Logo */}
         <div style={{
-          padding: isOpen ? '24px 18px 16px' : '24px 0 16px',
+          padding: isOpen ? '28px 18px 18px' : '24px 0 16px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: isOpen ? 'space-between' : 'center',
@@ -124,18 +124,18 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
           {isOpen ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{
-                width: 28, height: 28, borderRadius: 6,
-                background: '#20c997', display: 'flex',
+                width: 30, height: 30, borderRadius: 8,
+                background: 'linear-gradient(145deg, #20c997, #11967a)', display: 'flex',
                 alignItems: 'center', justifyContent: 'center'
               }}>
                 <Icon d="M22 10v6M2 10l10-5 10 5-10 5" color="white" size={16} />
               </div>
-              <span style={{ color: '#e6edf3', fontSize: 14, fontWeight: 600 }}>SmartPlacement</span>
+              <span style={{ color: '#171826', fontSize: 15, fontWeight: 700, lineHeight: 1 }}>SmartPlacement</span>
             </div>
           ) : (
             <div onClick={onToggle} style={{
-              width: 28, height: 28, borderRadius: 6,
-              background: '#20c997', cursor: 'pointer',
+              width: 30, height: 30, borderRadius: 8,
+              background: 'linear-gradient(145deg, #20c997, #11967a)', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
               <Icon d="M22 10v6M2 10l10-5 10 5-10 5" color="white" size={16} />
@@ -147,7 +147,7 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
               onClick={onToggle}
               title="Toggle sidebar"
               aria-label="Toggle sidebar"
-              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#484f58' }}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#9b9cab' }}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
@@ -155,13 +155,13 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <div className="sidebar-scroll" style={{ flex: 1, padding: '12px 0', overflowY: 'auto' }}>
+        <div className="sidebar-scroll" style={{ flex: 1, padding: '18px 0', overflowY: 'auto' }}>
           {NAV_GROUPS.map(group => (
-            <div key={group.title} style={{ marginBottom: 16 }}>
+            <div key={group.title} style={{ marginBottom: 14 }}>
               {isOpen && (
                 <p style={{
                   fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em',
-                  color: '#484f58', padding: '12px 18px 6px', margin: 0
+                  color: '#c5c6d3', padding: '8px 18px 10px', margin: 0
                 }}>{group.title}</p>
               )}
               {group.items.map(item => (
@@ -172,7 +172,7 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
         </div>
 
         {/* User Card */}
-        <div style={{ padding: '16px', borderTop: '1px solid #21262d' }}>
+        <div style={{ padding: '16px', borderTop: '1px solid #eeedf6', background: '#ffffff' }}>
           <div style={{
             display: 'flex', alignItems: 'center', gap: 10,
             justifyContent: isOpen ? 'flex-start' : 'center',
@@ -188,8 +188,8 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
             </div>
             {isOpen && (
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: '#e6edf3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
-                <p style={{ margin: 0, fontSize: 12, color: '#7d8590', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</p>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#2a2c3a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
+                <p style={{ margin: 0, fontSize: 12, color: '#9c9dac', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</p>
               </div>
             )}
 
@@ -202,26 +202,37 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
 
 function NavItemLink({ item, isActive, collapsed }: { item: NavItem; isActive: boolean; collapsed: boolean }) {
   const [hovered, setHovered] = useState(false)
+  const activeOrHovered = isActive || hovered
   return (
     <Link to={item.path}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
         display: 'flex', alignItems: 'center', gap: 12,
-        padding: collapsed ? '10px 0' : '8px 14px',
-        margin: '2px 10px',
+        padding: collapsed ? '12px 0' : '12px 12px',
+        margin: '4px 14px',
         justifyContent: collapsed ? 'center' : 'flex-start',
-        borderRadius: 6,
-        fontSize: 13,
+        borderRadius: 12,
+        fontSize: 14,
+        fontWeight: 500,
         textDecoration: 'none',
-        transition: 'all 0.15s ease',
-        color: isActive || hovered ? '#e6edf3' : '#7d8590',
-        background: isActive || hovered ? '#161b22' : 'transparent',
-        borderLeft: !collapsed && isActive ? '2px solid #20c997' : '2px solid transparent'
+        transition: 'all 0.2s ease',
+        color: activeOrHovered ? '#ffffff' : '#8f90a3',
+        background: activeOrHovered
+          ? 'linear-gradient(145deg, #20c997, #11967a)'
+          : 'transparent',
+        boxShadow: isActive ? '0 8px 16px rgba(32, 201, 151, 0.25)' : 'none'
       }}
     >
-      <span style={{ fontSize: 18, color: isActive ? '#20c997' : 'inherit' }}>{item.icon}</span>
-      {!collapsed && <span>{item.label}</span>}
+      <span style={{ fontSize: 18, color: activeOrHovered ? '#ffffff' : '#9e9fb0' }}>{item.icon}</span>
+      {!collapsed && (
+        <>
+          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={activeOrHovered ? '#ffffff' : '#a8a9b9'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </>
+      )}
     </Link>
   )
 }
