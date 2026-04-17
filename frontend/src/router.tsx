@@ -123,11 +123,21 @@ export const router = createBrowserRouter([
   {
     path: "/jobs",
     element: (
-      <Layout>
-        <OnboardingGuard>
+      <OnboardingGuard>
+        <DashboardLayout>
           <StudentJobBoard />
-        </OnboardingGuard>
-      </Layout>
+        </DashboardLayout>
+      </OnboardingGuard>
+    ),
+  },
+  {
+    path: "/resume",
+    element: (
+      <OnboardingGuard>
+        <DashboardLayout>
+          <ResumeAnalyser />
+        </DashboardLayout>
+      </OnboardingGuard>
     ),
   },
   {
@@ -206,16 +216,6 @@ export const router = createBrowserRouter([
       <Layout>
         <OnboardingGuard>
           <Profile />
-        </OnboardingGuard>
-      </Layout>
-    ),
-  },
-  {
-    path: "/resume",
-    element: (
-      <Layout>
-        <OnboardingGuard>
-          <ResumeAnalyser />
         </OnboardingGuard>
       </Layout>
     ),

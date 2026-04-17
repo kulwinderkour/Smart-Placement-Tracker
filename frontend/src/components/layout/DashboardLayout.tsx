@@ -6,8 +6,8 @@ interface DashboardLayoutProps {
   children: React.ReactNode
 }
 
-const EXPANDED_W = 240
-const COLLAPSED_W = 62
+const EXPANDED_W = 248
+const COLLAPSED_W = 72
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
