@@ -31,7 +31,7 @@ const CONFIG: Record<Status, { label: string; bg: string; text: string }> = {
   shortlisted: {
     label: "Shortlisted",
     bg: "rgba(16,185,129,0.15)",
-    text: "#34d399",
+    text: "",
   },
   active: { label: "Active", bg: "rgba(34,197,94,0.15)", text: "#4ade80" },
   closed: { label: "Closed", bg: "rgba(100,116,139,0.15)", text: "#94a3b8" },

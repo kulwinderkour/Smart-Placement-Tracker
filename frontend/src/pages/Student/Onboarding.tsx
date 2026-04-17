@@ -161,7 +161,7 @@ export default function Onboarding() {
         .then(resData => {
           setDynamicSkills(resData.suggestions || [])
         })
-        .catch(() => setDynamicSkills(['React', 'Python', 'Java', 'Node.js', 'SQL', 'DSA']))
+        .catch(() => setDynamicSkills([]))
         .finally(() => setLoadingSkills(false))
     }
   }, [data.branch])

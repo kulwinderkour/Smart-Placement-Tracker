@@ -108,9 +108,9 @@ function ActionCard({ icon, title, subtitle, to }: { icon: string; title: string
       }}
     >
       <div style={{
-        color: '#20c997', flexShrink: 0, width: 30, height: 30, borderRadius: 8,
+        color: '#6b7280', flexShrink: 0, width: 30, height: 30, borderRadius: 8,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'rgba(32, 201, 151, 0.14)', border: '1px solid rgba(32, 201, 151, 0.26)'
+        background: 'rgba(107, 114, 128, 0.14)', border: '1px solid rgba(107, 114, 128, 0.26)'
       }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <path d={icon} />
@@ -343,7 +343,7 @@ export default function Dashboard() {
           {/* Avatar */}
           <div style={{
             width: 34, height: 34, borderRadius: '50%',
-            background: '#20c99722', color: '#20c997',
+            background: '#6b728022', color: '#6b7280',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 13, fontWeight: 600, flexShrink: 0
           }}>
@@ -386,7 +386,7 @@ export default function Dashboard() {
           
           {/* Stats Row */}
           <div style={{ display: 'flex', gap: 16 }}>
-            <StatCard value={`${readiness}%`} label="Readiness" icon="M22 12h-4l-3 9L9 3l-3 9H2" accent="#20c997" />
+            <StatCard value={`${readiness}%`} label="Readiness" icon="M22 12h-4l-3 9L9 3l-3 9H2" accent="#6b7280" />
             <StatCard value={skills.length} label="Skills" icon="M13 2L3 14h9l-1 8 10-12h-9l1-8z" accent="#7c3aed" />
             <StatCard value={appsLoading ? '…' : applications.length} label="Apps" icon="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" accent="#1f6feb" />
             <StatCard value={`${diffDays}d`} label="To Season" icon="M12 6v6l4 2" accent="#da3633" />
@@ -396,10 +396,10 @@ export default function Dashboard() {
           <div style={{ background: '#15181d', border: '1px solid #252b33', borderRadius: 14, padding: '18px 20px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: '#e6edf3' }}>Placement Readiness</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#20c997' }}>{readiness}%</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#6b7280' }}>{readiness}%</span>
             </div>
             <div style={{ height: 8, background: '#222830', borderRadius: 99, overflow: 'hidden', border: '1px solid #2c333d' }}>
-              <div style={{ width: `${readiness}%`, height: '100%', background: '#20c997', transition: 'width 0.8s ease', boxShadow: '0 0 12px rgba(32,201,151,0.35)' }} />
+              <div style={{ width: `${readiness}%`, height: '100%', background: '#6b7280', transition: 'width 0.8s ease', boxShadow: '0 0 12px rgba(107,114,128,0.35)' }} />
             </div>
             <p style={{ margin: '10px 0 0', fontSize: 11, color: '#8b949e' }}>
               💡 Profile completion status. Upload your latest resume to reach 100%.
@@ -410,14 +410,13 @@ export default function Dashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <ActionCard title="Browse Jobs" subtitle="Roles for you" to="/jobs" icon="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             <ActionCard title="Resume Analyser" subtitle="Check ATS Score" to="/resume" icon="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <ActionCard title="Application Tracker" subtitle="Manage pipeline" to="/tracker" icon="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6" />
           </div>
 
           {/* Recent Apps */}
           <div style={{ background: '#15181d', border: '1px solid #252b33', borderRadius: 14, padding: '20px 22px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h2 style={{ margin: 0, fontSize: 14, fontWeight: 650, color: '#e6edf3' }}>Recent Applications</h2>
-              <Link to="/jobs" style={{ fontSize: 12, color: '#20c997', textDecoration: 'none', fontWeight: 500 }}>Browse Jobs →</Link>
+              <Link to="/jobs" style={{ fontSize: 12, color: '#6b7280', textDecoration: 'none', fontWeight: 500 }}>Browse Jobs →</Link>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {appsLoading ? (
@@ -541,7 +540,7 @@ export default function Dashboard() {
                   </button>
                   <button onClick={handleManualApply} disabled={isApplying}
                     style={{
-                      flex: 1, background: '#20c997', border: 'none',
+                      flex: 1, background: '#6b7280', border: 'none',
                       color: '#121212', borderRadius: '8px', padding: '10px', fontSize: '14px',
                       fontWeight: 600, cursor: isApplying ? 'not-allowed' : 'pointer',
                       opacity: isApplying ? 0.7 : 1
@@ -562,7 +561,7 @@ export default function Dashboard() {
                     Opportunities from SmartPlacement
                   </h2>
                   <span style={{
-                    background: '#20c997', color: '#121212', fontSize: '10px', fontWeight: 700,
+                    background: '#6b7280', color: '#121212', fontSize: '10px', fontWeight: 700,
                     padding: '2px 8px', borderRadius: '20px', letterSpacing: '0.05em'
                   }}>VERIFIED</span>
                 </div>
@@ -660,10 +659,10 @@ export default function Dashboard() {
                         onClick={() => setSelectedJob(job)}
                         style={{
                           background: isSelected ? '#1e2a26' : '#1c1c1c',
-                          border: `1px solid ${isSelected ? '#20c99760' : '#2d2d2d'}`,
-                          borderLeft: `3px solid ${isSelected ? '#20c997' : 'transparent'}`,
+                          border: `1px solid ${isSelected ? '#6b728060' : '#2d2d2d'}`,
+                          borderLeft: `3px solid ${isSelected ? '#6b7280' : 'transparent'}`,
                           borderRadius: '10px',
-                          boxShadow: isSelected ? '0 0 0 1px #20c99720, 0 8px 24px rgba(0,0,0,0.3)' : 'none',
+                          boxShadow: isSelected ? '0 0 0 1px #6b728020, 0 8px 24px rgba(0,0,0,0.3)' : 'none',
                           padding: '16px', transition: 'all 0.2s ease', cursor: 'pointer',
                         }}
                         onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.background = '#222'; e.currentTarget.style.borderColor = '#383838'; } }}
@@ -686,7 +685,7 @@ export default function Dashboard() {
                         </div>
 
                         <div style={{ marginTop: '10px', marginBottom: '8px' }}>
-                          <span style={{ background: 'rgba(32,201,151,0.1)', color: '#20c997', border: '1px solid rgba(32,201,151,0.25)', borderRadius: '5px', padding: '3px 9px', fontSize: '11px', fontWeight: 600 }}>
+                          <span style={{ background: 'rgba(107,114,128,0.1)', color: '#6b7280', border: '1px solid rgba(107,114,128,0.25)', borderRadius: '5px', padding: '3px 9px', fontSize: '11px', fontWeight: 600 }}>
                             {formatPackage(job.package_lpa || job.salary_min)}
                           </span>
                         </div>
@@ -721,7 +720,7 @@ export default function Dashboard() {
                               {ms.loading ? '⏳ Scoring...' : ms.score === undefined || ms.score === null ? '🎯 N/A' : `🎯 ${ms.score}% match`}
                             </span>
                           ) : <div />}
-                          <span style={{ color: '#20c997', fontSize: '11px', fontWeight: 500 }}>View →</span>
+                          <span style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500 }}>View →</span>
                         </div>
                       </div>
                     );
@@ -766,7 +765,7 @@ export default function Dashboard() {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px', padding: '14px', background: '#161616', borderRadius: '8px', border: '1px solid #2d2d2d' }}>
                         <div>
                           <p style={{ color: '#555', fontSize: '10px', textTransform: 'uppercase', margin: '0 0 3px', fontWeight: 600, letterSpacing: '0.05em' }}>Salary</p>
-                          <p style={{ color: '#20c997', fontSize: '13px', margin: 0, fontWeight: 600 }}>{formatPackage(selectedJob.package_lpa || selectedJob.salary_min)}</p>
+                          <p style={{ color: '#6b7280', fontSize: '13px', margin: 0, fontWeight: 600 }}>{formatPackage(selectedJob.package_lpa || selectedJob.salary_min)}</p>
                         </div>
                         {selectedJob.location && (
                           <div>
@@ -790,8 +789,8 @@ export default function Dashboard() {
 
                       {selectedJob.description && (
                         <>
-                          <div style={{ borderLeft: '3px solid #20c997', paddingLeft: '10px', marginBottom: '10px', marginTop: '18px' }}>
-                            <span style={{ color: '#20c997', fontSize: '13px', fontWeight: 600 }}>Job description</span>
+                          <div style={{ borderLeft: '3px solid #6b7280', paddingLeft: '10px', marginBottom: '10px', marginTop: '18px' }}>
+                            <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: 600 }}>Job description</span>
                           </div>
                           <p style={{ color: '#b0b0b0', fontSize: '13px', lineHeight: 1.65, margin: 0, whiteSpace: 'pre-wrap' }}>
                             {selectedJob.description}
@@ -801,8 +800,8 @@ export default function Dashboard() {
 
                       {selectedJob.required_skills && selectedJob.required_skills.length > 0 && (
                         <>
-                          <div style={{ borderLeft: '3px solid #20c997', paddingLeft: '10px', marginBottom: '10px', marginTop: '18px' }}>
-                            <span style={{ color: '#20c997', fontSize: '13px', fontWeight: 600 }}>Required skills</span>
+                          <div style={{ borderLeft: '3px solid #6b7280', paddingLeft: '10px', marginBottom: '10px', marginTop: '18px' }}>
+                            <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: 600 }}>Required skills</span>
                           </div>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                             {selectedJob.required_skills.map((skill: string, idx: number) => {
@@ -824,8 +823,8 @@ export default function Dashboard() {
 
                       {selectedJob.min_cgpa > 0 && (
                         <>
-                          <div style={{ borderLeft: '3px solid #20c997', paddingLeft: '10px', marginBottom: '10px', marginTop: '18px' }}>
-                            <span style={{ color: '#20c997', fontSize: '13px', fontWeight: 600 }}>Eligibility</span>
+                          <div style={{ borderLeft: '3px solid #6b7280', paddingLeft: '10px', marginBottom: '10px', marginTop: '18px' }}>
+                            <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: 600 }}>Eligibility</span>
                           </div>
                           <p style={{ color: '#b0b0b0', fontSize: '13px', margin: 0 }}>Minimum CGPA: {selectedJob.min_cgpa}</p>
                         </>
@@ -833,8 +832,8 @@ export default function Dashboard() {
 
                       {selectedJob.application_deadline && (
                         <>
-                          <div style={{ borderLeft: '3px solid #20c997', paddingLeft: '10px', marginBottom: '10px', marginTop: '18px' }}>
-                            <span style={{ color: '#20c997', fontSize: '13px', fontWeight: 600 }}>Deadline</span>
+                          <div style={{ borderLeft: '3px solid #6b7280', paddingLeft: '10px', marginBottom: '10px', marginTop: '18px' }}>
+                            <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: 600 }}>Deadline</span>
                           </div>
                           <p style={{ color: '#b0b0b0', fontSize: '13px', margin: 0 }}>
                             {new Date(selectedJob.application_deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -887,7 +886,7 @@ export default function Dashboard() {
                             if (selectedJob.apply_link) {
                                 return (
                                   <a href={selectedJob.apply_link} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-                                    <button style={{ width: '100%', background: '#20c997', color: '#0d1117', border: 'none', borderRadius: '8px', padding: '11px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'opacity 0.2s' }}
+                                    <button style={{ width: '100%', background: '#6b7280', color: '#0d1117', border: 'none', borderRadius: '8px', padding: '11px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'opacity 0.2s' }}
                                       onMouseEnter={e => e.currentTarget.style.opacity = '0.88'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
                                       Apply Externally ↗
                                     </button>
@@ -896,7 +895,7 @@ export default function Dashboard() {
                             } else {
                                 return (
                                   <button onClick={() => { setActiveJobForApply(selectedJob); setShowApplyModal(true); }}
-                                    style={{ width: '100%', background: '#20c997', color: '#0d1117', border: 'none', borderRadius: '8px', padding: '11px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'opacity 0.2s' }}
+                                    style={{ width: '100%', background: '#6b7280', color: '#0d1117', border: 'none', borderRadius: '8px', padding: '11px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'opacity 0.2s' }}
                                     onMouseEnter={e => e.currentTarget.style.opacity = '0.88'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
                                     Apply Now
                                   </button>
@@ -922,7 +921,7 @@ export default function Dashboard() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
             <div style={{
-              width: 48, height: 48, borderRadius: '50%', background: '#20c99718', color: '#20c997',
+              width: 48, height: 48, borderRadius: '50%', background: '#6b728018', color: '#6b7280',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 600
             }}>{firstName[0].toUpperCase()}</div>
             <div>
@@ -940,7 +939,7 @@ export default function Dashboard() {
               <span style={{ fontSize: 12, fontWeight: 600, color: '#e6edf3' }}>{profile.cgpa || profile.cgpa} / 10</span>
             </div>
             <div style={{ height: 6, background: '#222830', borderRadius: 99, border: '1px solid #2c333d' }}>
-              <div style={{ width: `${(cgpaNum / 10) * 100}%`, height: '100%', background: '#20c997', borderRadius: 2 }} />
+              <div style={{ width: `${(cgpaNum / 10) * 100}%`, height: '100%', background: '#6b7280', borderRadius: 2 }} />
             </div>
           </div>
 
@@ -981,7 +980,7 @@ export default function Dashboard() {
 
           <Link to="/profile" style={{
             display: 'block', marginTop: 24, textAlign: 'center', fontSize: 13, fontWeight: 500,
-            color: '#20c997', textDecoration: 'none', padding: '10px', borderRadius: 6,
+            color: '#6b7280', textDecoration: 'none', padding: '10px', borderRadius: 6,
             border: '1px solid #2a323d', background: '#11161b'
           }}>Edit Profile</Link>
         </aside>

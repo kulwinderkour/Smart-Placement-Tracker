@@ -47,9 +47,9 @@ const ACTIONS = [
 ]
 
 const MOODS: { id: Mood; label: string; icon: string; color: string }[] = [
-  { id: 'locked',     label: 'Locked In',  icon: '🔥', color: C.primary },
-  { id: 'average',    label: 'Average',    icon: '😐', color: C.warn    },
-  { id: 'distracted', label: 'Distracted', icon: '😵', color: C.danger  },
+  { id: 'locked',     label: 'Locked In',  icon: '🔥', color: '#000000' },
+  { id: 'average',    label: 'Average',    icon: '😐', color: '#000000'    },
+  { id: 'distracted', label: 'Distracted', icon: '😵', color: '#000000'  },
 ]
 
 // ─── State helpers ────────────────────────────────────────────────────────────
@@ -95,10 +95,10 @@ function calcScore(cats: Record<string, number>): number {
 }
 
 function readinessMsg(s: number): { msg: string; color: string } {
-  if (s >= 80) return { msg: 'Interview-ready this week 🚀', color: C.primary }
-  if (s >= 60) return { msg: "You're building strong momentum ⚡", color: C.primary }
-  if (s >= 40) return { msg: "Keep pushing — you're getting there 💪", color: C.warn }
-  return { msg: 'Your prep needs attention. Start today!', color: C.danger }
+  if (s >= 80) return { msg: 'Interview-ready this week 🚀', color: '#000000' }
+  if (s >= 60) return { msg: "You're building strong momentum ⚡", color: '#000000' }
+  if (s >= 40) return { msg: "Keep pushing — you're getting there 💪", color: '#000000' }
+  return { msg: 'Your prep needs attention. Start today!', color: '#000000' }
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -124,11 +124,11 @@ function MomentumRing({ score }: { score: number }) {
           />
         </svg>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: 44, fontWeight: 800, color: C.text, lineHeight: 1 }}>{score}</span>
-          <span style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>/ 100</span>
+          <span style={{ fontSize: 44, fontWeight: 800, color: '#000000', lineHeight: 1 }}>{score}</span>
+          <span style={{ fontSize: 12, color: '#000000', marginTop: 2 }}>/ 100</span>
         </div>
       </div>
-      <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color, textAlign: 'center', maxWidth: 190 }}>{msg}</p>
+      <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#000000', textAlign: 'center', maxWidth: 190 }}>{msg}</p>
     </div>
   )
 }
@@ -139,10 +139,10 @@ function ZoneRow({ title, emoji, cat, color }: ZProps) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: 'rgba(13,17,23,0.7)', borderRadius: 9, border: `1px solid ${C.border}` }}>
       <span style={{ fontSize: 16 }}>{emoji}</span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ margin: 0, fontSize: 10, color: C.muted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{title}</p>
-        <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cat.icon} {cat.label}</p>
+        <p style={{ margin: 0, fontSize: 10, color: '#000000', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{title}</p>
+        <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#000000', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cat.icon} {cat.label}</p>
       </div>
-      <span style={{ fontSize: 14, fontWeight: 800, color, background: `${color}18`, padding: '2px 8px', borderRadius: 20 }}>{cat.score}</span>
+      <span style={{ fontSize: 14, fontWeight: 800, color: '#000000', background: `${color}18`, padding: '2px 8px', borderRadius: 20 }}>{cat.score}</span>
     </div>
   )
 }
@@ -175,7 +175,7 @@ export default function PlacementPulse() {
   const activeDays = st.weekDots.filter(Boolean).length
 
   return (
-    <div style={{ background: C.bg, minHeight: '100vh', color: C.text }}>
+    <div style={{ background: C.bg, minHeight: '100vh', color: '#000000' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px 60px' }}>
 
         {/* ── Page Header ── */}
@@ -185,10 +185,10 @@ export default function PlacementPulse() {
             background: `linear-gradient(135deg, ${C.primary} 0%, ${C.blue} 100%)`,
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
           }}>
-            ⚡ Placement Pulse
+            📊 Student Progress
           </h1>
-          <p style={{ color: C.muted, fontSize: 14, margin: 0 }}>
-            Track your real placement momentum, not just tasks.
+          <p style={{ color: '#000000', fontSize: 14, margin: 0 }}>
+            Track your placement readiness and application progress.
           </p>
         </div>
 
@@ -209,7 +209,7 @@ export default function PlacementPulse() {
             {[
               { label: 'Current Streak',  val: `${st.streak}d`,   icon: '🔥', col: '#f97316' },
               { label: 'Best Streak',     val: `${st.best}d`,     icon: '🏆', col: C.primary },
-              { label: "Today's Actions", val: `${st.doneToday.length}/${ACTIONS.length}`, icon: '⚡', col: C.blue },
+              { label: "Today's Actions", val: `${st.doneToday.length}/${ACTIONS.length}`, icon: '⚡', col: '#000000' },
               { label: 'Days This Week',  val: `${activeDays}/7`, icon: '📅', col: '#4ade80' },
             ].map(s => (
               <div key={s.label} style={{
@@ -218,8 +218,8 @@ export default function PlacementPulse() {
               }}>
                 <span style={{ fontSize: 24 }}>{s.icon}</span>
                 <div>
-                  <p style={{ margin: 0, fontSize: 10, color: C.muted, fontWeight: 600 }}>{s.label}</p>
-                  <p style={{ margin: 0, fontSize: 20, fontWeight: 800, color: s.col }}>{s.val}</p>
+                  <p style={{ margin: 0, fontSize: 10, color: '#000000', fontWeight: 600 }}>{s.label}</p>
+                  <p style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#000000' }}>{s.val}</p>
                 </div>
               </div>
             ))}
@@ -227,7 +227,7 @@ export default function PlacementPulse() {
 
           {/* Focus Zones */}
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 18, padding: '20px 18px' }}>
-            <p style={{ margin: '0 0 14px', fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+            <p style={{ margin: '0 0 14px', fontSize: 11, fontWeight: 700, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
               Focus Zones
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -244,7 +244,7 @@ export default function PlacementPulse() {
           padding: '13px 20px', marginBottom: 20,
           display: 'flex', alignItems: 'center', gap: 16,
         }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: C.muted, whiteSpace: 'nowrap' }}>7-Day Activity</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: '#000000', whiteSpace: 'nowrap' }}>7-Day Activity</span>
           <div style={{ display: 'flex', gap: 6, flex: 1 }}>
             {st.weekDots.map((active, i) => (
               <div key={i} style={{
@@ -256,8 +256,8 @@ export default function PlacementPulse() {
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
-            <div style={{ width: 28, height: 28, borderRadius: 50, background: `${C.primary}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: C.primary }}>{todayPct}%</div>
-            <span style={{ fontSize: 12, color: C.muted }}>{st.doneToday.length > 0 ? `${st.doneToday.length} done today` : 'No actions yet'}</span>
+            <div style={{ width: 28, height: 28, borderRadius: 50, background: `${C.primary}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#000000' }}>{todayPct}%</div>
+            <span style={{ fontSize: 12, color: '#000000' }}>{st.doneToday.length > 0 ? `${st.doneToday.length} done today` : 'No actions yet'}</span>
           </div>
         </div>
 
@@ -268,7 +268,7 @@ export default function PlacementPulse() {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
             <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Today's Prep Actions</h2>
-            <span style={{ fontSize: 12, color: C.muted }}>
+            <span style={{ fontSize: 12, color: '#000000' }}>
               {st.doneToday.length} / {ACTIONS.length} completed
             </span>
           </div>
@@ -311,10 +311,10 @@ export default function PlacementPulse() {
                   <div style={{ fontSize: 28, marginBottom: 8 }}>{done ? '✅' : a.icon}</div>
                   <div style={{
                     fontSize: 12, fontWeight: 500, lineHeight: 1.4,
-                    color: done ? C.primary : C.text,
+                    color: done ? C.primary : '#000000',
                   }}>{a.label}</div>
                   {done && (
-                    <div style={{ fontSize: 10, color: C.primary, marginTop: 6, fontWeight: 700 }}>
+                    <div style={{ fontSize: 10, color: '#000000', marginTop: 6, fontWeight: 700 }}>
                       +{a.pts} pts
                     </div>
                   )}
@@ -341,7 +341,7 @@ export default function PlacementPulse() {
                       background: `${lc}18`, padding: '2px 7px', borderRadius: 20,
                     }}>{lbl}</span>
                   </div>
-                  <p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 600, color: C.text }}>{cat.label}</p>
+                  <p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 600, color: '#000000' }}>{cat.label}</p>
                   <div style={{ background: C.border, borderRadius: 4, height: 5, marginBottom: 5 }}>
                     <div style={{
                       width: `${s}%`, height: '100%', background: cat.color, borderRadius: 4,
@@ -349,7 +349,7 @@ export default function PlacementPulse() {
                       boxShadow: s > 0 ? `0 0 8px ${cat.color}55` : 'none',
                     }} />
                   </div>
-                  <span style={{ fontSize: 10, color: C.muted }}>{s} / 100</span>
+                  <span style={{ fontSize: 10, color: '#000000' }}>{s} / 100</span>
                 </div>
               )
             })}
@@ -368,7 +368,7 @@ export default function PlacementPulse() {
                   background: st.mood === m.id ? `${m.color}20` : 'transparent',
                   border: `1px solid ${st.mood === m.id ? m.color : C.border}`,
                   borderRadius: 11, cursor: 'pointer',
-                  color: st.mood === m.id ? m.color : C.muted,
+                  color: st.mood === m.id ? m.color : '#000000',
                   fontSize: 13, fontWeight: st.mood === m.id ? 700 : 400,
                   transition: 'all 0.2s ease',
                 }}
@@ -384,7 +384,7 @@ export default function PlacementPulse() {
             rows={3}
             style={{
               width: '100%', background: C.bg, border: `1px solid ${C.border}`,
-              borderRadius: 11, padding: '11px 14px', color: C.text,
+              borderRadius: 11, padding: '11px 14px', color: '#000000',
               fontSize: 13, resize: 'vertical', boxSizing: 'border-box',
               fontFamily: 'inherit', outline: 'none', lineHeight: 1.6,
             }}
@@ -392,7 +392,7 @@ export default function PlacementPulse() {
             onBlur={e => { e.currentTarget.style.borderColor = C.border }}
           />
           {st.note && (
-            <p style={{ margin: '8px 0 0', fontSize: 11, color: C.muted }}>
+            <p style={{ margin: '8px 0 0', fontSize: 11, color: '#333333' }}>
               💾 Saved locally — only visible to you.
             </p>
           )}

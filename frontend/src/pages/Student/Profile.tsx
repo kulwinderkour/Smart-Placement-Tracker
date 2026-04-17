@@ -193,7 +193,7 @@ export default function Profile() {
             ) : (
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={() => setEditingSkills(false)} style={{ height: 30, padding: '0 12px', borderRadius: 8, background: 'transparent', border: '1px solid #30363d', color: '#7d8590', fontSize: 12, cursor: 'pointer' }}>Cancel</button>
-                <button onClick={saveSkills} disabled={savingSkills} style={{ height: 30, padding: '0 14px', borderRadius: 8, background: '#20c997', border: 'none', color: '#0d1117', fontSize: 12, fontWeight: 600, cursor: savingSkills ? 'not-allowed' : 'pointer', opacity: savingSkills ? 0.7 : 1 }}>
+                <button onClick={saveSkills} disabled={savingSkills} style={{ height: 30, padding: '0 14px', borderRadius: 8, background: '#6b7280', border: 'none', color: '#0d1117', fontSize: 12, fontWeight: 600, cursor: savingSkills ? 'not-allowed' : 'pointer', opacity: savingSkills ? 0.7 : 1 }}>
                   {savingSkills ? 'Saving…' : 'Save'}
                 </button>
               </div>
@@ -274,7 +274,7 @@ export default function Profile() {
                 </button>
                 <button 
                   onClick={handleViewResume} 
-                  style={{ height: 34, padding: '0 16px', borderRadius: 8, background: '#20c997', border: 'none', color: '#0d1117', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                  style={{ height: 34, padding: '0 16px', borderRadius: 8, background: '#6b7280', border: 'none', color: '#0d1117', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                 >
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                   View
@@ -286,7 +286,7 @@ export default function Profile() {
               <p style={{ color: '#7d8590', fontSize: 13, margin: 0 }}>Upload and analyse your resume to get your ATS score</p>
               <Link 
                 to="/resume" 
-                style={{ height: 34, padding: '0 16px', borderRadius: 8, background: '#20c997', border: 'none', color: '#0d1117', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', textDecoration: 'none' }}
+                style={{ height: 34, padding: '0 16px', borderRadius: 8, background: '#6b7280', border: 'none', color: '#0d1117', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', textDecoration: 'none' }}
               >
                 Open Resume Analyser
               </Link>

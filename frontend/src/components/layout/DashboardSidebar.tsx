@@ -101,7 +101,7 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
       <div style={{
         width: sidebarWidth,
         height: '100vh',
-        background: '#ffffff',
+        background: '#1c1c1c',
         borderRight: '1px solid #e9e8f3',
         display: 'flex',
         flexDirection: 'column',
