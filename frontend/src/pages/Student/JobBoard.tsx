@@ -407,9 +407,9 @@ export default function JobBoard() {
               fetchJobsByField(val);
             }}
             style={{
-              background: filters.field === field.toLowerCase() ? '#20c99718' : '#1c1c1c',
-              border: `1px solid ${filters.field === field.toLowerCase() ? '#20c997' : '#2d2d2d'}`,
-              color: filters.field === field.toLowerCase() ? '#20c997' : '#888888',
+              background: filters.field === field.toLowerCase() ? '#6b728018' : '#1c1c1c',
+              border: `1px solid ${filters.field === field.toLowerCase() ? '#6b7280' : '#2d2d2d'}`,
+              color: filters.field === field.toLowerCase() ? '#6b7280' : '#888888',
               borderRadius: '20px',
               padding: '5px 12px',
               fontSize: '12px',
@@ -440,7 +440,7 @@ export default function JobBoard() {
           aria-label="Job field"
           style={{
             background: '#1c1c1c',
-            border: `1px solid ${filters.field ? '#20c997' : '#2d2d2d'}`,
+            border: `1px solid ${filters.field ? '#6b7280' : '#2d2d2d'}`,
             borderRadius: '6px',
             color: filters.field ? '#e0e0e0' : '#888888',
             padding: '7px 12px',
@@ -465,9 +465,9 @@ export default function JobBoard() {
             key={type}
             onClick={() => setFilters(f => ({ ...f, type: type === 'All' ? '' : type }))}
             style={{
-              background: filters.type === (type === 'All' ? '' : type) ? '#20c997' : '#1c1c1c',
+              background: filters.type === (type === 'All' ? '' : type) ? '#6b7280' : '#1c1c1c',
               color: filters.type === (type === 'All' ? '' : type) ? '#121212' : '#888888',
-              border: `1px solid ${filters.type === (type === 'All' ? '' : type) ? '#20c997' : '#2d2d2d'}`,
+              border: `1px solid ${filters.type === (type === 'All' ? '' : type) ? '#6b7280' : '#2d2d2d'}`,
               borderRadius: '6px',
               padding: '7px 14px',
               fontSize: '13px',
