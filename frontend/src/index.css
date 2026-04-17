@@ -79,7 +79,7 @@
 /* ─── Dark theme tokens ──────────────────────────── */
 
 .dark {
-    --color-bg-base: #121212;
+    --color-bg-base: #e5e5e7;
     --color-bg-surface: #1c1c1c;
     --color-bg-elevated: #161616;
     --color-border: #2d2d2d;
@@ -87,12 +87,12 @@
     --color-text: #e0e0e0;
     --color-text-secondary: #b0b0b0;
     --color-text-muted: #787878;
-    --color-accent: #4ade80;
-    --color-accent-light: #86efac;
-    --color-accent-bg: rgba(74, 222, 128, 0.12);
-    --color-accent-bg-hover: rgba(74, 222, 128, 0.06);
-    --color-accent-border: rgba(74, 222, 128, 0.30);
-    --color-accent-glow: rgba(74, 222, 128, 0.15);
+    --color-accent: #6b7280;
+    --color-accent-light: #9ca3af;
+    --color-accent-bg: rgba(107, 114, 128, 0.12);
+    --color-accent-bg-hover: rgba(107, 114, 128, 0.06);
+    --color-accent-border: rgba(107, 114, 128, 0.30);
+    --color-accent-glow: rgba(107, 114, 128, 0.15);
     --color-danger: #f87171;
     --color-danger-bg: rgba(239, 68, 68, 0.1);
     --color-skeleton-from: #1c1c1c;
