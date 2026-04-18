@@ -16,9 +16,11 @@ class Settings(BaseSettings):
     GEMMA_MODEL: str = "gemma-3-27b-it"
     GOOGLE_AI_API_KEY: str = ""
     USE_GEMMA: bool = True
+    EXPRESS_BACKEND_URL: str = "http://localhost:8081"
 
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 
 settings = Settings()

@@ -43,6 +43,65 @@ from app.schemas.student import StudentUpdate, StudentResponse
 
 router = APIRouter(prefix="/student", tags=["student-api"])
 
+from app.models.interview import Interview as InterviewModel
+
+
+# ─── My Interviews (admin-scheduled, student-visible) ─────────────────────────
+
+@router.get("/my-interviews", response_model=dict)
+async def get_my_interviews(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return all interviews scheduled by the admin for the logged-in student."""
+    from sqlalchemy.orm import selectinload as _sl
+    from app.models.job import Job as _Job
+
+    # Resolve student record from user
+    student_result = await db.execute(
+        select(Student).where(Student.user_id == current_user.id)
+    )
+    student = student_result.scalar_one_or_none()
+    if not student:
+        return {"success": True, "data": []}
+
+    result = await db.execute(
+        select(
+            InterviewModel.id,
+            InterviewModel.job_id,
+            InterviewModel.scheduled_at,
+            InterviewModel.mode,
+            InterviewModel.meeting_link,
+            InterviewModel.status,
+            InterviewModel.notes,
+            InterviewModel.created_at,
+            _Job.role_title,
+            _Job.company_name,
+        )
+        .join(_Job, _Job.id == InterviewModel.job_id)
+        .where(InterviewModel.student_id == student.id)
+        .order_by(InterviewModel.scheduled_at.asc())
+    )
+    rows = result.mappings().all()
+    data = [
+        {
+            "id": str(r["id"]),
+            "job_id": str(r["job_id"]),
+            "company_name": r["company_name"],
+            "role_title": r["role_title"],
+            "scheduled_at": r["scheduled_at"].isoformat(),
+            "mode": r["mode"].value if hasattr(r["mode"], "value") else r["mode"],
+            "meeting_link": r["meeting_link"],
+            "status": r["status"].value if hasattr(r["status"], "value") else r["status"],
+            "notes": r["notes"],
+            "created_at": r["created_at"].isoformat(),
+        }
+        for r in rows
+    ]
+    return {"success": True, "data": data}
+
+
+
 
 # ─── Profile Management ────────────────────────────────────────────────────────
 

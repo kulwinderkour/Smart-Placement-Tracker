@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+// PlacementPulse component removed – replaced by StreakTracker
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type Mood = 'locked' | 'average' | 'distracted'
