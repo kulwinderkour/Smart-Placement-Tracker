@@ -99,7 +99,7 @@ export default function MockInterviewSetup() {
   }
 
   return (
-    <div style={{ background: '#0C0C0F', minHeight: '100vh', color: '#E8E8F0', padding: '48px 24px 80px' }}>
+    <div style={{ background: 'var(--student-bg)', minHeight: '100vh', color: 'var(--student-text)', padding: '48px 24px 80px' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&display=swap');
 
@@ -108,60 +108,60 @@ export default function MockInterviewSetup() {
         /* Select */
         .si-select-wrap { position: relative; }
         .si-select {
-          width: 100%; background: #111118; color: #E8E8F0;
-          border: 1px solid #1E1E28; border-left: 3px solid transparent;
+          width: 100%; background: var(--student-surface); color: var(--student-text);
+          border: 1px solid var(--student-border); border-left: 3px solid transparent;
           border-radius: 10px; padding: 12px 40px 12px 14px;
           font-size: 14px; appearance: none; cursor: pointer;
           transition: border-color 0.2s, border-left-color 0.2s; outline: none;
           font-family: inherit;
         }
-        .si-select:focus { border-color: #2A2A3A; border-left-color: #00E5A0; }
-        .si-select option { background: #111118; }
+        .si-select:focus { border-color: var(--student-border-strong); border-left-color: var(--student-accent); }
+        .si-select option { background: var(--student-surface); color: var(--student-text); }
         .si-arrow {
           position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-          pointer-events: none; color: #404050;
+          pointer-events: none; color: var(--student-text-muted);
         }
         .si-select-arrow {
           position: absolute; right: 13px; top: 50%; transform: translateY(-50%) rotate(90deg);
-          pointer-events: none; color: #404050;
+          pointer-events: none; color: var(--student-text-muted);
         }
         .si-custom-input {
-          width: 100%; background: #111118; color: #E8E8F0;
-          border: 1px solid #1E1E28; border-left: 3px solid #00E5A0;
+          width: 100%; background: var(--student-surface); color: var(--student-text);
+          border: 1px solid var(--student-border); border-left: 3px solid var(--student-accent);
           border-radius: 10px; padding: 12px 14px;
           font-size: 14px; font-family: inherit; outline: none;
           transition: border-color 0.2s;
         }
-        .si-custom-input:focus { border-color: #2A2A3A; border-left-color: #00E5A0; }
-        .si-custom-input::placeholder { color: #404050; }
+        .si-custom-input:focus { border-color: var(--student-border-strong); border-left-color: var(--student-accent); }
+        .si-custom-input::placeholder { color: var(--student-text-dim); }
 
         /* Company cards */
         .co-card {
-          border: 1px solid #1E1E28; border-radius: 12px; cursor: pointer;
+          border: 1px solid var(--student-border); border-radius: 12px; cursor: pointer;
           padding: 18px 18px 18px 20px; position: relative; overflow: hidden;
           transition: border-color 0.18s, background 0.18s;
           background: transparent;
         }
         .co-card::before {
           content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-          background: #00E5A0; transform: scaleY(0); transition: transform 0.18s;
+          background: var(--student-accent); transform: scaleY(0); transition: transform 0.18s;
           transform-origin: center;
         }
-        .co-card:hover { border-color: #2A2A3A; }
+        .co-card:hover { border-color: var(--student-border-strong); background: var(--student-surface-hover); }
         .co-card:hover::before { transform: scaleY(1); }
-        .co-card.co-active { background: rgba(0,229,160,0.04); border-color: #253028; }
+        .co-card.co-active { background: var(--student-accent-bg); border-color: var(--student-accent-border); }
         .co-card.co-active::before { transform: scaleY(1); }
-        .co-card.co-active .co-label { color: #00E5A0; }
+        .co-card.co-active .co-label { color: var(--student-accent); }
 
         /* Persona chips */
         .persona-chip {
           display: inline-flex; align-items: center; gap: 8px;
           padding: 9px 18px; border-radius: 100px; cursor: pointer; white-space: nowrap;
-          border: 1px solid #2A2A36; background: #1A1A22; color: #8A8A9A;
+          border: 1px solid var(--student-border); background: var(--student-surface); color: var(--student-text-muted);
           font-size: 13px; font-family: inherit; transition: all 0.15s;
         }
-        .persona-chip:hover { border-color: #3A3A48; color: #C8C8D8; }
-        .persona-chip.p-active { background: #00E5A0; border-color: #00E5A0; color: #080C0A; font-weight: 600; }
+        .persona-chip:hover { border-color: var(--student-border-strong); color: var(--student-text); background: var(--student-surface-hover); }
+        .persona-chip.p-active { background: var(--student-accent); border-color: var(--student-accent); color: #ffffff; font-weight: 600; }
         .persona-char {
           width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center;
           justify-content: center; font-size: 10px; font-weight: 700;
@@ -170,26 +170,26 @@ export default function MockInterviewSetup() {
         .p-active .persona-char { background: rgba(0,0,0,0.15); }
 
         /* Segmented control */
-        .seg-wrap { display: flex; border: 1px solid #2A2A36; border-radius: 10px; overflow: hidden; }
+        .seg-wrap { display: flex; border: 1px solid var(--student-border); border-radius: 10px; overflow: hidden; }
         .seg-btn {
           flex: 1; padding: 10px 8px; background: transparent; border: none;
-          border-right: 1px solid #2A2A36; color: #606070; font-size: 13px;
+          border-right: 1px solid var(--student-border); color: var(--student-text-muted); font-size: 13px;
           cursor: pointer; font-family: inherit; transition: all 0.15s;
         }
         .seg-btn:last-child { border-right: none; }
-        .seg-btn:hover { color: #A8A8B8; background: rgba(255,255,255,0.02); }
-        .seg-btn.seg-active { background: #1E2D2A; color: #00E5A0; font-weight: 600; }
+        .seg-btn:hover { color: var(--student-text-secondary); background: var(--student-surface-hover); }
+        .seg-btn.seg-active { background: var(--student-accent-bg); color: var(--student-accent); font-weight: 600; }
 
         /* Section label */
         .sec-label {
           font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
-          color: #606070; margin: 0 0 12px;
+          color: var(--student-text-muted); margin: 0 0 12px;
         }
 
         /* CTA btn */
         .cta-btn {
           padding: 14px 36px; border: none; border-radius: 10px;
-          background: #00E5A0; color: #080C0A; font-size: 14px; font-weight: 700;
+          background: var(--student-accent); color: #ffffff; font-size: 14px; font-weight: 700;
           cursor: pointer; font-family: 'Sora', inherit; display: inline-flex; align-items: center; gap: 8px;
           box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
           transition: opacity 0.15s, transform 0.15s;
@@ -203,7 +203,7 @@ export default function MockInterviewSetup() {
         /* Scrollbar for chip row */
         .chip-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
         .chip-row::-webkit-scrollbar { height: 3px; }
-        .chip-row::-webkit-scrollbar-thumb { background: #2A2A36; border-radius: 3px; }
+        .chip-row::-webkit-scrollbar-thumb { background: var(--student-border); border-radius: 3px; }
       `}</style>
 
       <div className="si-root" style={{ maxWidth: 640, margin: '0 auto' }}>
@@ -212,20 +212,20 @@ export default function MockInterviewSetup() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 48 }}>
           <div style={{
             width: 48, height: 48, borderRadius: 14, flexShrink: 0,
-            background: 'linear-gradient(135deg, #1E2D2A, #0F1A17)',
-            border: '1px solid #1E3028',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00E5A0',
+            background: 'var(--student-accent-bg)',
+            border: '1px solid var(--student-accent-border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--student-accent)',
           }}>
             <IconMic />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-              <h1 style={{ margin: 0, fontFamily: 'Sora, sans-serif', fontSize: 26, fontWeight: 700, letterSpacing: '-0.8px', color: '#F0F0F8', lineHeight: 1 }}>
+              <h1 style={{ margin: 0, fontFamily: 'Sora, sans-serif', fontSize: 26, fontWeight: 700, letterSpacing: '-0.8px', color: 'var(--student-text)', lineHeight: 1 }}>
                 Mock Interview
               </h1>
-              <span style={{ fontFamily: 'monospace', fontSize: 10, background: '#1E1E2A', color: '#505060', border: '1px solid #2A2A36', borderRadius: 5, padding: '2px 7px', letterSpacing: '0.05em' }}>v2.1</span>
+              <span style={{ fontFamily: 'monospace', fontSize: 10, background: 'var(--student-surface)', color: 'var(--student-text-muted)', border: '1px solid var(--student-border)', borderRadius: 5, padding: '2px 7px', letterSpacing: '0.05em' }}>v2.1</span>
             </div>
-            <p style={{ margin: 0, fontSize: 13, color: '#606070', fontWeight: 300, letterSpacing: '0.01em' }}>
+            <p style={{ margin: 0, fontSize: 13, color: 'var(--student-border)', fontWeight: 300, letterSpacing: '0.01em' }}>
               AI-powered interview simulator — tuned to your role
             </p>
           </div>
@@ -238,11 +238,11 @@ export default function MockInterviewSetup() {
             <button
               onClick={() => { setUseCustom(!useCustom); setRole(''); setCustomRole('') }}
               style={{
-                fontSize: 12, color: '#00E5A0', background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: 12, color: 'var(--student-accent)', background: 'none', border: 'none', cursor: 'pointer',
                 padding: 0, textDecoration: useCustom ? 'none' : 'none', fontFamily: 'inherit',
                 borderBottom: '1px solid transparent', transition: 'border-color 0.15s',
               }}
-              onMouseEnter={e => (e.currentTarget.style.borderBottomColor = '#00E5A0')}
+              onMouseEnter={e => (e.currentTarget.style.borderBottomColor = 'var(--student-accent)')}
               onMouseLeave={e => (e.currentTarget.style.borderBottomColor = 'transparent')}
             >
               {useCustom ? '← Choose from list' : '+ Custom role'}
@@ -290,13 +290,13 @@ export default function MockInterviewSetup() {
                 style={{ minHeight: c.premium ? 108 : 90 }}
                 onClick={() => setCompanyType(c.id)}
               >
-                <div style={{ color: companyType === c.id ? '#00E5A0' : '#404050', marginBottom: 10, transition: 'color 0.15s' }}>
+                <div style={{ color: companyType === c.id ? 'var(--student-accent)' : 'var(--student-border)', marginBottom: 10, transition: 'color 0.15s' }}>
                   <c.Icon />
                 </div>
-                <div className="co-label" style={{ fontSize: 13, fontWeight: 600, color: '#C8C8D8', marginBottom: 4, transition: 'color 0.15s' }}>
+                <div className="co-label" style={{ fontSize: 13, fontWeight: 600, color: 'var(--student-text)', marginBottom: 4, transition: 'color 0.15s' }}>
                   {c.label}
                 </div>
-                <div style={{ fontSize: 11, color: '#505060', lineHeight: 1.4 }}>{c.sub}</div>
+                <div style={{ fontSize: 11, color: 'var(--student-border)', lineHeight: 1.4 }}>{c.sub}</div>
               </div>
             ))}
           </div>
@@ -334,7 +334,7 @@ export default function MockInterviewSetup() {
 
         {/* ── CTA ── */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-          <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#505060', letterSpacing: '0.02em', flexShrink: 0 }}>
+          <span style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--student-border)', letterSpacing: '0.02em', flexShrink: 0 }}>
             ~{duration} min session
           </span>
           <button className="cta-btn" onClick={handleStart}>

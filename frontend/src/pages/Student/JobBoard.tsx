@@ -298,7 +298,7 @@ export default function JobBoard() {
   const userSkills = profile.skills || [];
 
   return (
-    <div style={{ padding: "2rem", background: "#121212", minHeight: "100vh", color: "#e0e0e0" }}>
+    <div style={{ padding: "2rem", background: "var(--student-bg)", minHeight: "100vh", color: "var(--student-text)" }}>
       {/* Back to Dashboard Button */}
       <button
         onClick={() => navigate('/dashboard')}
@@ -306,10 +306,10 @@ export default function JobBoard() {
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
-          background: '#1c1c1c',
+          background: 'var(--student-surface)',
           border: '1px solid #2d2d2d',
           borderRadius: '8px',
-          color: '#888888',
+          color: 'var(--student-text-muted)',
           padding: '8px 12px',
           fontSize: '14px',
           cursor: 'pointer',
@@ -317,14 +317,14 @@ export default function JobBoard() {
           marginBottom: '1rem'
         }}
         onMouseOver={(e) => {
-          e.currentTarget.style.background = '#2d2d2d';
-          e.currentTarget.style.color = '#e0e0e0';
-          e.currentTarget.style.borderColor = '#20c997';
+          e.currentTarget.style.background = 'var(--student-border)';
+          e.currentTarget.style.color = 'var(--student-text)';
+          e.currentTarget.style.borderColor = '#a78bfa';
         }}
         onMouseOut={(e) => {
-          e.currentTarget.style.background = '#1c1c1c';
-          e.currentTarget.style.color = '#888888';
-          e.currentTarget.style.borderColor = '#2d2d2d';
+          e.currentTarget.style.background = 'var(--student-surface)';
+          e.currentTarget.style.color = 'var(--student-text-muted)';
+          e.currentTarget.style.borderColor = 'var(--student-border)';
         }}
       >
         <ArrowLeft size={16} />
@@ -333,8 +333,8 @@ export default function JobBoard() {
 
       {/* Compact Header */}
       <div style={{
-        background: "linear-gradient(135deg, #121212 0%, #1c1c1c 100%)",
-        border: "1px solid #2d2d2d",
+        background: "var(--student-surface)",
+        border: "1px solid var(--student-border)",
         borderRadius: "12px",
         padding: "1rem 1.5rem",
         marginBottom: "1.5rem",
@@ -347,9 +347,9 @@ export default function JobBoard() {
             Job Board
             {activeFilterCount > 0 && (
               <span style={{
-                background: '#20c99718',
-                color: '#20c997',
-                border: '1px solid #20c99740',
+                background: '#a78bfa18',
+                color: '#a78bfa',
+                border: '1px solid #a78bfa40',
                 borderRadius: '4px',
                 padding: '2px 8px',
                 fontSize: '11px',
@@ -359,15 +359,15 @@ export default function JobBoard() {
               </span>
             )}
           </h1>
-          <p style={{ color: "#888888", fontSize: "12px", margin: 0 }}>Live job opportunities curated for your profile</p>
+          <p style={{ color: "var(--student-text-muted)", fontSize: "12px", margin: 0 }}>Live job opportunities curated for your profile</p>
         </div>
         <button
           onClick={() => fetchJobs()}
           style={{
-            background: '#1c1c1c',
+            background: 'var(--student-surface)',
             border: '1px solid #2d2d2d',
             borderRadius: '6px',
-            color: '#888888',
+            color: 'var(--student-text-muted)',
             padding: '6px 12px',
             fontSize: '13px',
             cursor: 'pointer'
@@ -386,10 +386,10 @@ export default function JobBoard() {
         style={{
           width: "100%",
           padding: "10px 16px",
-          background: "#1c1c1c",
+          background: "var(--student-surface)",
           border: "1px solid #2d2d2d",
           borderRadius: "8px",
-          color: "#e0e0e0",
+          color: "var(--student-text)",
           fontSize: "14px",
           marginBottom: "1.5rem",
           outline: "none",
@@ -407,9 +407,9 @@ export default function JobBoard() {
               fetchJobsByField(val);
             }}
             style={{
-              background: filters.field === field.toLowerCase() ? '#6b728018' : '#1c1c1c',
-              border: `1px solid ${filters.field === field.toLowerCase() ? '#6b7280' : '#2d2d2d'}`,
-              color: filters.field === field.toLowerCase() ? '#6b7280' : '#888888',
+              background: filters.field === field.toLowerCase() ? '#6b728018' : 'var(--student-surface)',
+              border: `1px solid ${filters.field === field.toLowerCase() ? 'var(--student-text-dim)' : 'var(--student-border)'}`,
+              color: filters.field === field.toLowerCase() ? 'var(--student-text-dim)' : 'var(--student-text-muted)',
               borderRadius: '20px',
               padding: '5px 12px',
               fontSize: '12px',
@@ -439,10 +439,10 @@ export default function JobBoard() {
           }}
           aria-label="Job field"
           style={{
-            background: '#1c1c1c',
-            border: `1px solid ${filters.field ? '#6b7280' : '#2d2d2d'}`,
+            background: 'var(--student-surface)',
+            border: `1px solid ${filters.field ? 'var(--student-text-dim)' : 'var(--student-border)'}`,
             borderRadius: '6px',
-            color: filters.field ? '#e0e0e0' : '#888888',
+            color: filters.field ? 'var(--student-text)' : 'var(--student-text-muted)',
             padding: '7px 12px',
             fontSize: '13px',
             cursor: 'pointer',
@@ -465,9 +465,9 @@ export default function JobBoard() {
             key={type}
             onClick={() => setFilters(f => ({ ...f, type: type === 'All' ? '' : type }))}
             style={{
-              background: filters.type === (type === 'All' ? '' : type) ? '#6b7280' : '#1c1c1c',
-              color: filters.type === (type === 'All' ? '' : type) ? '#121212' : '#888888',
-              border: `1px solid ${filters.type === (type === 'All' ? '' : type) ? '#6b7280' : '#2d2d2d'}`,
+              background: filters.type === (type === 'All' ? '' : type) ? 'var(--student-text-dim)' : 'var(--student-surface)',
+              color: filters.type === (type === 'All' ? '' : type) ? 'var(--student-bg)' : 'var(--student-text-muted)',
+              border: `1px solid ${filters.type === (type === 'All' ? '' : type) ? 'var(--student-text-dim)' : 'var(--student-border)'}`,
               borderRadius: '6px',
               padding: '7px 14px',
               fontSize: '13px',
@@ -524,22 +524,22 @@ export default function JobBoard() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <div style={{
-            background: '#1c1c1c', border: '1px solid #333333',
+            background: 'var(--student-surface)', border: '1px solid var(--student-text-dim)',
             borderRadius: '14px', padding: '28px 32px',
             maxWidth: '420px', width: '90%', boxShadow: '0 24px 48px rgba(0,0,0,0.5)',
           }}>
-            <p style={{ margin: '0 0 6px', fontSize: '11px', color: '#888888', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <p style={{ margin: '0 0 6px', fontSize: '11px', color: 'var(--student-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               Application check
             </p>
-            <h2 style={{ margin: '0 0 8px', fontSize: '17px', fontWeight: 600, color: '#e0e0e0', lineHeight: 1.4 }}>
+            <h2 style={{ margin: '0 0 8px', fontSize: '17px', fontWeight: 600, color: 'var(--student-text)', lineHeight: 1.4 }}>
               Did you apply to this job?
             </h2>
             <div style={{
-              background: '#121212', border: '1px solid #2d2d2d',
+              background: 'var(--student-bg)', border: '1px solid #2d2d2d',
               borderRadius: '8px', padding: '12px 14px', margin: '16px 0 24px',
             }}>
-              <p style={{ margin: 0, fontSize: '14px', fontWeight: 500, color: '#e0e0e0' }}>{confirmJob.title}</p>
-              <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#888888' }}>{confirmJob.company} · {confirmJob.location}</p>
+              <p style={{ margin: 0, fontSize: '14px', fontWeight: 500, color: 'var(--student-text)' }}>{confirmJob.title}</p>
+              <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--student-text-muted)' }}>{confirmJob.company} · {confirmJob.location}</p>
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
@@ -580,8 +580,8 @@ export default function JobBoard() {
                 }}
                 style={{
                   flex: 1, padding: '10px', borderRadius: '8px',
-                  background: 'transparent', color: '#888888',
-                  border: '1px solid #333333', fontSize: '14px', fontWeight: 500,
+                  background: 'transparent', color: 'var(--student-text-muted)',
+                  border: '1px solid var(--student-text-dim)', fontSize: '14px', fontWeight: 500,
                   cursor: 'pointer', transition: 'all 0.15s',
                 }}
               >
@@ -593,11 +593,11 @@ export default function JobBoard() {
       )}
 
       {loading ? (
-        <p style={{ color: "#8b949e" }}>Loading jobs...</p>
+        <p style={{ color: "var(--student-text-muted)" }}>Loading jobs...</p>
       ) : (
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <p style={{ color: '#888888', fontSize: '13px', margin: 0 }}>
+            <p style={{ color: 'var(--student-text-muted)', fontSize: '13px', margin: 0 }}>
               {filters.field || searchQuery
                 ? `Showing results for "${filters.field || searchQuery}"`
                 : `Skills: ${userSkills.join(', ') || 'Not set — add skills for better matches'}`
@@ -607,8 +607,8 @@ export default function JobBoard() {
             <button
               onClick={() => navigate('/skills')}
               style={{
-                background: '#20c99718', color: '#20c997',
-                border: '1px solid #20c99740', borderRadius: '6px',
+                background: '#a78bfa18', color: '#a78bfa',
+                border: '1px solid #a78bfa40', borderRadius: '6px',
                 padding: '5px 12px', fontSize: '12px', fontWeight: 600,
                 cursor: 'pointer', whiteSpace: 'nowrap'
               }}
@@ -619,7 +619,7 @@ export default function JobBoard() {
 
           {filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-              <p style={{ color: '#888888', fontSize: '14px', marginBottom: '12px' }}>
+              <p style={{ color: 'var(--student-text-muted)', fontSize: '14px', marginBottom: '12px' }}>
                 {userSkills.length === 0
                   ? 'No skills set on your profile — add skills to see matched jobs, or use the search bar above.'
                   : 'No jobs found. Try clearing filters or searching a different role.'}
@@ -628,7 +628,7 @@ export default function JobBoard() {
                 <button
                   onClick={() => navigate('/skills')}
                   style={{
-                    background: '#20c997', color: '#121212',
+                    background: '#a78bfa', color: 'var(--student-bg)',
                     border: 'none', borderRadius: '8px',
                     padding: '8px 20px', fontSize: '13px',
                     fontWeight: 600, cursor: 'pointer'
@@ -644,7 +644,7 @@ export default function JobBoard() {
                 <div
                   key={job.id}
                   style={{
-                    background: "#1c1c1c",
+                    background: "var(--student-surface)",
                     border: "1px solid #2d2d2d",
                     borderRadius: "10px",
                     padding: "1.2rem",
@@ -653,8 +653,8 @@ export default function JobBoard() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
                     <div>
                       <h3 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "4px" }}>{job.title}</h3>
-                      <p style={{ color: "#8b949e", fontSize: "14px" }}>{job.company} · {job.location}</p>
-                      <p style={{ color: "#8b949e", fontSize: "13px", marginTop: "6px" }}>{job.description}</p>
+                      <p style={{ color: "var(--student-text-muted)", fontSize: "14px" }}>{job.company} · {job.location}</p>
+                      <p style={{ color: "var(--student-text-muted)", fontSize: "13px", marginTop: "6px" }}>{job.description}</p>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', marginLeft: '1rem', flexShrink: 0 }}>
                       {appliedIds.has(job.applyUrl) ? (
@@ -675,8 +675,8 @@ export default function JobBoard() {
                             }}
                             style={{
                               background: pendingJobs.some(j => j.applyUrl === job.applyUrl) ? '#1f1f1f' : '#238636',
-                              color: pendingJobs.some(j => j.applyUrl === job.applyUrl) ? '#888888' : '#fff',
-                              border: pendingJobs.some(j => j.applyUrl === job.applyUrl) ? '1px solid #333333' : 'none',
+                              color: pendingJobs.some(j => j.applyUrl === job.applyUrl) ? 'var(--student-text-muted)' : '#fff',
+                              border: pendingJobs.some(j => j.applyUrl === job.applyUrl) ? '1px solid var(--student-text-dim)' : 'none',
                               padding: '6px 16px', borderRadius: '6px', fontSize: '13px',
                               cursor: 'pointer', whiteSpace: 'nowrap', minWidth: '90px',
                               transition: 'all 0.2s ease',
@@ -701,8 +701,8 @@ export default function JobBoard() {
                   </div>
                   <div style={{ marginTop: "8px" }}>
                     <span style={{
-                      background: "#2d2d2d",
-                      color: "#8b949e",
+                      background: "var(--student-border)",
+                      color: "var(--student-text-muted)",
                       fontSize: "11px",
                       padding: "2px 8px",
                       borderRadius: "20px",

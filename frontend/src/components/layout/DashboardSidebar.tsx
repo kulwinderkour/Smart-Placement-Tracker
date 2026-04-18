@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Sun, Moon } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
+import { useTheme } from '../../hooks/use-theme'
 import ConfirmActionModal from '../common/ConfirmActionModal'
 
 interface NavItem {
@@ -14,7 +16,7 @@ interface NavGroup {
   items: NavItem[]
 }
 
-function Icon({ d, color = "#7d8590", size = 18 }: { d: string; color?: string; size?: number }) {
+function Icon({ d, color = "currentColor", size = 18 }: { d: string; color?: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d={d} />
@@ -68,6 +70,7 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
+  const { theme, toggleTheme } = useTheme()
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const profile = JSON.parse(localStorage.getItem('userProfile') || '{}')
@@ -101,8 +104,9 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
       <div style={{
         width: sidebarWidth,
         height: '100vh',
-        background: '#1c1c1c',
-        borderRight: '1px solid #e9e8f3',
+        background: 'var(--student-bg)',
+        borderRight: '1px solid var(--student-border)',
+        color: 'var(--student-text)',
         display: 'flex',
         flexDirection: 'column',
         position: 'fixed',
@@ -125,17 +129,17 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{
                 width: 30, height: 30, borderRadius: 8,
-                background: 'linear-gradient(145deg, #20c997, #11967a)', display: 'flex',
+                background: 'linear-gradient(145deg, var(--student-accent), var(--student-accent-hover))', display: 'flex',
                 alignItems: 'center', justifyContent: 'center'
               }}>
                 <Icon d="M22 10v6M2 10l10-5 10 5-10 5" color="white" size={16} />
               </div>
-              <span style={{ color: '#171826', fontSize: 15, fontWeight: 700, lineHeight: 1 }}>SmartPlacement</span>
+              <span style={{ color: 'var(--student-text)', fontSize: 15, fontWeight: 700, lineHeight: 1 }}>SmartPlacement</span>
             </div>
           ) : (
             <div onClick={onToggle} style={{
               width: 30, height: 30, borderRadius: 8,
-              background: 'linear-gradient(145deg, #20c997, #11967a)', cursor: 'pointer',
+              background: 'linear-gradient(145deg, var(--student-accent), var(--student-accent-hover))', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
               <Icon d="M22 10v6M2 10l10-5 10 5-10 5" color="white" size={16} />
@@ -143,16 +147,67 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
           )}
 
           {isOpen && (
-            <button
-              onClick={onToggle}
-              title="Toggle sidebar"
-              aria-label="Toggle sidebar"
-              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#9b9cab' }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              {/* Theme toggle (Sun / Moon) */}
+              <button
+                onClick={toggleTheme}
+                title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                aria-label="Toggle theme"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 30, height: 30, borderRadius: 8,
+                  background: 'var(--student-surface-hover)',
+                  border: '1px solid var(--student-border)',
+                  cursor: 'pointer',
+                  color: 'var(--student-text-muted)',
+                  transition: 'background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'var(--student-accent)'
+                  e.currentTarget.style.borderColor = 'var(--student-accent-border)'
+                  e.currentTarget.style.background = 'var(--student-accent-bg)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'var(--student-text-muted)'
+                  e.currentTarget.style.borderColor = 'var(--student-border)'
+                  e.currentTarget.style.background = 'var(--student-surface-hover)'
+                }}
+              >
+                {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+              </button>
+              <button
+                onClick={onToggle}
+                title="Toggle sidebar"
+                aria-label="Toggle sidebar"
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--student-text-muted)', padding: 6 }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              </button>
+            </div>
           )}
         </div>
+
+        {/* Theme toggle — visible when sidebar is collapsed */}
+        {!isOpen && (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '0 0 8px' }}>
+            <button
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-label="Toggle theme"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: 34, height: 34, borderRadius: 8,
+                background: 'var(--student-surface-hover)',
+                border: '1px solid var(--student-border)',
+                cursor: 'pointer',
+                color: 'var(--student-text-muted)',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+            </button>
+          </div>
+        )}
 
         {/* Navigation */}
         <div className="sidebar-scroll" style={{ flex: 1, padding: '18px 0', overflowY: 'auto' }}>
@@ -161,7 +216,7 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
               {isOpen && (
                 <p style={{
                   fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em',
-                  color: '#c5c6d3', padding: '8px 18px 10px', margin: 0
+                  color: 'var(--student-text-dim)', padding: '8px 18px 10px', margin: 0
                 }}>{group.title}</p>
               )}
               {group.items.map(item => (
@@ -172,7 +227,7 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
         </div>
 
         {/* User Card */}
-        <div style={{ padding: '16px', borderTop: '1px solid #eeedf6', background: '#ffffff' }}>
+        <div style={{ padding: '16px', borderTop: '1px solid var(--student-border)', background: 'var(--student-bg)' }}>
           <div style={{
             display: 'flex', alignItems: 'center', gap: 10,
             justifyContent: isOpen ? 'flex-start' : 'center',
@@ -180,7 +235,7 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
           }}>
             <div style={{
               width: 34, height: 34, borderRadius: '50%',
-              background: '#20c99718', color: '#20c997',
+              background: 'var(--student-accent-bg)', color: 'var(--student-accent)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 13, fontWeight: 600, flexShrink: 0
             }}>
@@ -188,8 +243,8 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
             </div>
             {isOpen && (
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#2a2c3a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
-                <p style={{ margin: 0, fontSize: 12, color: '#9c9dac', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</p>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--student-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
+                <p style={{ margin: 0, fontSize: 12, color: 'var(--student-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</p>
               </div>
             )}
 
@@ -202,7 +257,6 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
 
 function NavItemLink({ item, isActive, collapsed }: { item: NavItem; isActive: boolean; collapsed: boolean }) {
   const [hovered, setHovered] = useState(false)
-  const activeOrHovered = isActive || hovered
   return (
     <Link to={item.path}
       onMouseEnter={() => setHovered(true)}
@@ -217,18 +271,24 @@ function NavItemLink({ item, isActive, collapsed }: { item: NavItem; isActive: b
         fontWeight: 500,
         textDecoration: 'none',
         transition: 'all 0.2s ease',
-        color: activeOrHovered ? '#ffffff' : '#8f90a3',
-        background: activeOrHovered
-          ? 'linear-gradient(145deg, #20c997, #11967a)'
+        color: isActive
+          ? '#ffffff'
+          : hovered
+          ? 'var(--student-text)'
+          : 'var(--student-text-muted)',
+        background: isActive
+          ? 'linear-gradient(145deg, var(--student-accent), var(--student-accent-hover))'
+          : hovered
+          ? 'var(--student-surface-hover)'
           : 'transparent',
-        boxShadow: isActive ? '0 8px 16px rgba(32, 201, 151, 0.25)' : 'none'
+        boxShadow: isActive ? '0 8px 16px var(--student-accent-glow)' : 'none'
       }}
     >
-      <span style={{ fontSize: 18, color: activeOrHovered ? '#ffffff' : '#9e9fb0' }}>{item.icon}</span>
+      <span style={{ fontSize: 18, display: 'flex', color: 'inherit' }}>{item.icon}</span>
       {!collapsed && (
         <>
           <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={activeOrHovered ? '#ffffff' : '#a8a9b9'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="9 18 15 12 9 6" />
           </svg>
         </>

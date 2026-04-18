@@ -65,7 +65,7 @@ function plainExplain(ms: MatchData): string {
 function MatchBadge({ ms }: { ms: MatchData | 'loading' | undefined | null }) {
   if (!ms) return null
   if (ms === 'loading') return (
-    <span style={{ fontSize: 9, color: '#9ca3af', whiteSpace: 'nowrap' }}>scoring…</span>
+    <span style={{ fontSize: 9, color: 'var(--student-text-muted)', whiteSpace: 'nowrap' }}>scoring…</span>
   )
   const m = scoreMeta(ms.score)
   return (
@@ -95,8 +95,8 @@ function MatchBreakdown({ ms }: { ms: MatchData | 'loading' | undefined | null }
           fontSize: 11, fontWeight: 800, color: m.color,
         }}>{ms.score}%</div>
         <div>
-          <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#111827' }}>{ms.label}</p>
-          <p style={{ margin: 0, fontSize: 10, color: '#6b7280', lineHeight: 1.4 }}>{plainExplain(ms)}</p>
+          <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--student-surface)' }}>{ms.label}</p>
+          <p style={{ margin: 0, fontSize: 10, color: 'var(--student-text-dim)', lineHeight: 1.4 }}>{plainExplain(ms)}</p>
         </div>
       </div>
 
@@ -131,8 +131,8 @@ function MatchBreakdown({ ms }: { ms: MatchData | 'loading' | undefined | null }
               return (
                 <div key={key}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
-                    <span style={{ fontSize: 9, color: '#6b7280' }}>{label}</span>
-                    <span style={{ fontSize: 9, color: '#374151', fontWeight: 600 }}>{pct}%</span>
+                    <span style={{ fontSize: 9, color: 'var(--student-text-dim)' }}>{label}</span>
+                    <span style={{ fontSize: 9, color: 'var(--student-border)', fontWeight: 600 }}>{pct}%</span>
                   </div>
                   <div style={{ height: 3, background: '#f3f4f6', borderRadius: 2 }}>
                     <div style={{
@@ -270,7 +270,7 @@ export default function Tracker() {
               background: '#f3f4f6',
               border: '1px solid #d1d5db',
               borderRadius: '8px',
-              color: '#6b7280',
+              color: 'var(--student-text-dim)',
               padding: '8px 12px',
               fontSize: '14px',
               cursor: 'pointer',
@@ -278,12 +278,12 @@ export default function Tracker() {
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.background = '#e5e7eb';
-              e.currentTarget.style.color = '#374151';
-              e.currentTarget.style.borderColor = '#9ca3af';
+              e.currentTarget.style.color = 'var(--student-border)';
+              e.currentTarget.style.borderColor = 'var(--student-text-muted)';
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.background = '#f3f4f6';
-              e.currentTarget.style.color = '#6b7280';
+              e.currentTarget.style.color = 'var(--student-text-dim)';
               e.currentTarget.style.borderColor = '#d1d5db';
             }}
           >

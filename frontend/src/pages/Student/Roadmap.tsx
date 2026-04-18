@@ -102,10 +102,10 @@ export default function Roadmap() {
 
   const getLevelColor = (level: string) => {
     switch (level) {
-      case 'beginner': return '#20c997';
+      case 'beginner': return '#a78bfa';
       case 'intermediate': return '#f1a732';
       case 'advanced': return '#f85149';
-      default: return '#888888';
+      default: return 'var(--student-text-muted)';
     }
   };
 
@@ -113,21 +113,21 @@ export default function Roadmap() {
     <div style={{ 
       display: 'flex', 
       minHeight: 'calc(100vh - 64px)', 
-      background: '#121212', 
-      color: '#e0e0e0',
+      background: 'var(--student-bg)', 
+      color: 'var(--student-text)',
       fontFamily: 'Inter, system-ui, sans-serif'
     }}>
       {/* Sidebar - Recent Roadmaps */}
       <aside style={{
         width: '280px',
-        background: '#121212',
+        background: 'var(--student-bg)',
         borderRight: '1px solid #2d2d2d',
         padding: '24px',
         display: 'flex',
         flexDirection: 'column',
         gap: '20px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#888888' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--student-text-muted)' }}>
           <History size={16} />
           <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Recent Roadmaps
@@ -136,7 +136,7 @@ export default function Roadmap() {
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {recentRoadmaps.length === 0 ? (
-            <p style={{ fontSize: '13px', color: '#555555', fontStyle: 'italic', margin: '20px 0' }}>
+            <p style={{ fontSize: '13px', color: 'var(--student-text-dim)', fontStyle: 'italic', margin: '20px 0' }}>
               No roadmaps yet.
             </p>
           ) : (
@@ -154,7 +154,7 @@ export default function Roadmap() {
                   borderRadius: '6px',
                   padding: '8px 12px',
                   fontSize: '14px',
-                  color: '#888888',
+                  color: 'var(--student-text-muted)',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
                   whiteSpace: 'nowrap',
@@ -162,12 +162,12 @@ export default function Roadmap() {
                   textOverflow: 'ellipsis'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#1c1c1c';
-                  e.currentTarget.style.color = '#e0e0e0';
+                  e.currentTarget.style.background = 'var(--student-surface)';
+                  e.currentTarget.style.color = 'var(--student-text)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = '#888888';
+                  e.currentTarget.style.color = 'var(--student-text-muted)';
                 }}
               >
                 {name}
@@ -185,7 +185,7 @@ export default function Roadmap() {
           <div style={{
             width: '100%',
             textAlign: 'center',
-            background: '#1c1c1c',
+            background: 'var(--student-surface)',
             border: '1px solid #2d2d2d',
             borderRadius: '12px',
             padding: '18px 20px',
@@ -213,7 +213,7 @@ export default function Roadmap() {
               display: 'flex',
               alignItems: 'center'
             }}>
-              <Search size={18} style={{ position: 'absolute', left: '16px', color: '#888888' }} />
+              <Search size={18} style={{ position: 'absolute', left: '16px', color: 'var(--student-text-muted)' }} />
               <input 
                 type="text"
                 placeholder="Full Stack Developer"
@@ -222,17 +222,17 @@ export default function Roadmap() {
                 onKeyDown={(e) => e.key === 'Enter' && generateRoadmap()}
                 style={{
                   width: '100%',
-                  background: '#1c1c1c',
-                  border: '1px solid #333333',
+                  background: 'var(--student-surface)',
+                  border: '1px solid var(--student-text-dim)',
                   borderRadius: '10px',
                   padding: '12px 16px 12px 48px',
-                  color: '#e0e0e0',
+                  color: 'var(--student-text)',
                   fontSize: '15px',
                   outline: 'none',
                   transition: 'border-color 0.2s'
                 }}
-                onFocus={(e) => e.currentTarget.style.borderColor = '#20c997'}
-                onBlur={(e) => e.currentTarget.style.borderColor = '#333333'}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#a78bfa'}
+                onBlur={(e) => e.currentTarget.style.borderColor = 'var(--student-text-dim)'}
               />
             </div>
             <button
@@ -242,8 +242,8 @@ export default function Roadmap() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: '#20c997',
-                color: '#121212',
+                background: '#a78bfa',
+                color: 'var(--student-bg)',
                 border: 'none',
                 borderRadius: '10px',
                 padding: '0 24px',
@@ -287,9 +287,9 @@ export default function Roadmap() {
           {/* Loading State */}
           {loading && (
             <div style={{ textAlign: 'center', marginTop: '60px' }}>
-              <Loader2 size={48} className="animate-spin" style={{ color: '#20c997', margin: '0 auto 24px' }} />
+              <Loader2 size={48} className="animate-spin" style={{ color: '#a78bfa', margin: '0 auto 24px' }} />
               <h2 style={{ fontSize: '20px', fontWeight: 600 }}>Building your roadmap...</h2>
-              <p style={{ color: '#888888', marginTop: '8px' }}>Gemini is curating the best resources for you.</p>
+              <p style={{ color: 'var(--student-text-muted)', marginTop: '8px' }}>Gemini is curating the best resources for you.</p>
             </div>
           )}
 
@@ -297,14 +297,14 @@ export default function Roadmap() {
           {roadmap && !loading && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div style={{ 
-                background: '#1c1c1c', 
-                border: '1px solid #333333', 
+                background: 'var(--student-surface)', 
+                border: '1px solid var(--student-text-dim)', 
                 borderRadius: '16px', 
                 padding: '32px',
                 marginBottom: '40px'
               }}>
                 <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>{roadmap.title}</h1>
-                <p style={{ color: '#888888', fontSize: '15px', lineHeight: 1.5 }}>{roadmap.description}</p>
+                <p style={{ color: 'var(--student-text-muted)', fontSize: '15px', lineHeight: 1.5 }}>{roadmap.description}</p>
               </div>
 
               {/* Sections */}
@@ -320,8 +320,8 @@ export default function Roadmap() {
                       <div style={{ 
                         width: '32px', 
                         height: '32px', 
-                        background: '#20c99720', 
-                        color: '#20c997',
+                        background: '#a78bfa20', 
+                        color: '#a78bfa',
                         borderRadius: '8px',
                         display: 'flex',
                         alignItems: 'center',
@@ -355,17 +355,17 @@ export default function Roadmap() {
                         <div 
                           key={topic.id}
                           style={{
-                            background: '#1c1c1c',
+                            background: 'var(--student-surface)',
                             border: '1px solid #2d2d2d',
                             borderRadius: '12px',
                             padding: '20px',
                             transition: 'border-color 0.2s'
                           }}
-                          onMouseEnter={(e) => e.currentTarget.style.borderColor = '#333333'}
-                          onMouseLeave={(e) => e.currentTarget.style.borderColor = '#2d2d2d'}
+                          onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--student-text-dim)'}
+                          onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--student-border)'}
                         >
                           <h4 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '8px' }}>{topic.title}</h4>
-                          <p style={{ fontSize: '13px', color: '#888888', lineHeight: 1.5, marginBottom: '16px' }}>
+                          <p style={{ fontSize: '13px', color: 'var(--student-text-muted)', lineHeight: 1.5, marginBottom: '16px' }}>
                             {topic.description}
                           </p>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
