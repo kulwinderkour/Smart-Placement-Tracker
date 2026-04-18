@@ -54,7 +54,7 @@ const Card = ({
 }) => (
   <div
     style={{
-      background: "#161b22",
+      background: "var(--student-surface)",
       border: "1px solid #21262d",
       borderRadius: 12,
       padding: "24px",
@@ -87,7 +87,7 @@ const TYPE_STYLES: Record<
     color: "#fb923c",
     border: "#fb923c",
   },
-  mixed: { bg: "rgba(107,114,128,0.15)", color: "#6b7280", border: "#6b7280" },
+  mixed: { bg: "rgba(107,114,128,0.15)", color: "var(--student-text-dim)", border: "var(--student-text-dim)" },
 };
 
 export default function Questions() {
@@ -319,8 +319,8 @@ export default function Questions() {
     <div
       style={{
         minHeight: "100vh",
-        background: "#0d1117",
-        color: "#e6edf3",
+        background: "var(--student-bg)",
+        color: "var(--student-text)",
         fontFamily:
           '-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif',
       }}
@@ -328,7 +328,7 @@ export default function Questions() {
       {/* Header */}
       <header
         style={{
-          background: "#161b22",
+          background: "var(--student-surface)",
           borderBottom: "1px solid #21262d",
           padding: "16px 20px",
         }}
@@ -347,7 +347,7 @@ export default function Questions() {
               style={{
                 width: "40px",
                 height: "40px",
-                background: "linear-gradient(135deg, #20c997 0%, #099268 100%)",
+                background: "linear-gradient(135deg, #a78bfa 0%, #099268 100%)",
                 borderRadius: "10px",
                 display: "flex",
                 alignItems: "center",
@@ -362,12 +362,12 @@ export default function Questions() {
                   fontSize: "24px",
                   fontWeight: 600,
                   margin: 0,
-                  color: "#e6edf3",
+                  color: "var(--student-text)",
                 }}
               >
                 AI Question Generator
               </h1>
-              <p style={{ fontSize: "14px", color: "#7d8590", margin: 0 }}>
+              <p style={{ fontSize: "14px", color: "var(--student-text-muted)", margin: 0 }}>
                 Practice interview questions with AI-powered generation
               </p>
             </div>
@@ -376,10 +376,10 @@ export default function Questions() {
             <div
               style={{
                 padding: "6px 12px",
-                background: "#21262d",
+                background: "var(--student-border)",
                 borderRadius: "6px",
                 fontSize: "12px",
-                color: "#7d8590",
+                color: "var(--student-text-muted)",
               }}
             >
               {questions
@@ -390,7 +390,7 @@ export default function Questions() {
               <div
                 style={{
                   padding: "6px 12px",
-                  background: "#20c997",
+                  background: "#a78bfa",
                   borderRadius: "6px",
                   fontSize: "12px",
                   color: "#ffffff",
@@ -413,7 +413,7 @@ export default function Questions() {
                   width: "80px",
                   height: "80px",
                   background:
-                    "linear-gradient(135deg, #20c997 0%, #099268 100%)",
+                    "linear-gradient(135deg, #a78bfa 0%, #099268 100%)",
                   borderRadius: "20px",
                   display: "flex",
                   alignItems: "center",
@@ -429,7 +429,7 @@ export default function Questions() {
                   fontSize: "28px",
                   fontWeight: 600,
                   margin: "0 0 16px",
-                  color: "#e6edf3",
+                  color: "var(--student-text)",
                 }}
               >
                 Generate Practice Questions
@@ -438,7 +438,7 @@ export default function Questions() {
               <p
                 style={{
                   fontSize: "16px",
-                  color: "#7d8590",
+                  color: "var(--student-text-muted)",
                   margin: "0 0 48px",
                   lineHeight: "1.6",
                 }}
@@ -466,7 +466,7 @@ export default function Questions() {
                       setShowModal(true);
                     }}
                     style={{
-                      background: "#161b22",
+                      background: "var(--student-surface)",
                       border: "1px solid #21262d",
                       borderRadius: "12px",
                       padding: "24px 20px",
@@ -478,13 +478,13 @@ export default function Questions() {
                       gap: "12px",
                     }}
                     onMouseOver={(e) => {
-                      e.currentTarget.style.background = "#21262d";
-                      e.currentTarget.style.borderColor = "#20c997";
+                      e.currentTarget.style.background = "var(--student-border)";
+                      e.currentTarget.style.borderColor = "#a78bfa";
                       e.currentTarget.style.transform = "translateY(-2px)";
                     }}
                     onMouseOut={(e) => {
-                      e.currentTarget.style.background = "#161b22";
-                      e.currentTarget.style.borderColor = "#21262d";
+                      e.currentTarget.style.background = "var(--student-surface)";
+                      e.currentTarget.style.borderColor = "var(--student-border)";
                       e.currentTarget.style.transform = "translateY(0)";
                     }}
                   >
@@ -493,7 +493,7 @@ export default function Questions() {
                         width: "40px",
                         height: "40px",
                         background:
-                          "linear-gradient(135deg, #20c997 0%, #099268 100%)",
+                          "linear-gradient(135deg, #a78bfa 0%, #099268 100%)",
                         borderRadius: "8px",
                         display: "flex",
                         alignItems: "center",
@@ -508,7 +508,7 @@ export default function Questions() {
                           fontSize: "16px",
                           fontWeight: 600,
                           margin: "0 0 4px",
-                          color: "#e6edf3",
+                          color: "var(--student-text)",
                         }}
                       >
                         {topic}
@@ -516,7 +516,7 @@ export default function Questions() {
                       <p
                         style={{
                           fontSize: "14px",
-                          color: "#7d8590",
+                          color: "var(--student-text-muted)",
                           margin: 0,
                           lineHeight: "1.4",
                         }}
@@ -539,8 +539,8 @@ export default function Questions() {
                   alignItems: "center",
                   gap: "12px",
                   background: "transparent",
-                  color: "#20c997",
-                  border: "1px solid #20c997",
+                  color: "#a78bfa",
+                  border: "1px solid #a78bfa",
                   borderRadius: "8px",
                   padding: "12px 24px",
                   fontSize: "14px",
@@ -549,12 +549,12 @@ export default function Questions() {
                   transition: "all 0.3s ease",
                 }}
                 onMouseOver={(e) => {
-                  e.currentTarget.style.background = "#20c997";
+                  e.currentTarget.style.background = "#a78bfa";
                   e.currentTarget.style.color = "#ffffff";
                 }}
                 onMouseOut={(e) => {
                   e.currentTarget.style.background = "transparent";
-                  e.currentTarget.style.color = "#20c997";
+                  e.currentTarget.style.color = "#a78bfa";
                 }}
               >
                 <Brain size={16} />
@@ -576,11 +576,11 @@ export default function Questions() {
                     marginBottom: "12px",
                   }}
                 >
-                  <span style={{ fontSize: "14px", color: "#7d8590" }}>
+                  <span style={{ fontSize: "14px", color: "var(--student-text-muted)" }}>
                     Question {currentQuestionIndex + 1} of{" "}
                     {questions.questions.length}
                   </span>
-                  <span style={{ fontSize: "14px", color: "#7d8590" }}>
+                  <span style={{ fontSize: "14px", color: "var(--student-text-muted)" }}>
                     {Math.round(
                       ((currentQuestionIndex + 1) /
                         questions.questions.length) *
@@ -593,7 +593,7 @@ export default function Questions() {
                   style={{
                     width: "100%",
                     height: "8px",
-                    background: "#21262d",
+                    background: "var(--student-border)",
                     borderRadius: "4px",
                     overflow: "hidden",
                   }}
@@ -603,7 +603,7 @@ export default function Questions() {
                       width: `${((currentQuestionIndex + 1) / questions.questions.length) * 100}%`,
                       height: "100%",
                       background:
-                        "linear-gradient(90deg, #20c997 0%, #099268 100%)",
+                        "linear-gradient(90deg, #a78bfa 0%, #099268 100%)",
                       transition: "width 0.3s ease",
                     }}
                   />
@@ -635,7 +635,7 @@ export default function Questions() {
                           fontSize: "18px",
                           fontWeight: 600,
                           margin: "0 0 4px",
-                          color: "#e6edf3",
+                          color: "var(--student-text)",
                         }}
                       >
                         {currentQuestion.topic}
@@ -687,7 +687,7 @@ export default function Questions() {
                     fontSize: "16px",
                     lineHeight: 1.6,
                     marginBottom: "24px",
-                    color: "#e6edf3",
+                    color: "var(--student-text)",
                   }}
                 >
                   {currentQuestion.question}
@@ -705,11 +705,11 @@ export default function Questions() {
                           marginBottom: "8px",
                           background:
                             userAnswers[currentQuestion.id] === option
-                              ? "rgba(32, 201, 151, 0.15)"
-                              : "#0d1117",
+                              ? "rgba(167, 139, 250, 0.15)"
+                              : "var(--student-bg)",
                           border:
                             userAnswers[currentQuestion.id] === option
-                              ? "2px solid #20c997"
+                              ? "2px solid #a78bfa"
                               : "1px solid #21262d",
                           borderRadius: "8px",
                           cursor: "pointer",
@@ -748,10 +748,10 @@ export default function Questions() {
                         width: "100%",
                         minHeight: "120px",
                         padding: "12px 16px",
-                        background: "#0d1117",
+                        background: "var(--student-bg)",
                         border: "1px solid #21262d",
                         borderRadius: "8px",
-                        color: "#e6edf3",
+                        color: "var(--student-text)",
                         fontSize: "14px",
                         fontFamily: "inherit",
                         resize: "vertical",
@@ -769,7 +769,7 @@ export default function Questions() {
                           fontSize: "14px",
                           fontWeight: 600,
                           margin: "0 0 12px",
-                          color: "#7d8590",
+                          color: "var(--student-text-muted)",
                         }}
                       >
                         Examples:
@@ -778,7 +778,7 @@ export default function Questions() {
                         <div
                           key={index}
                           style={{
-                            background: "#0d1117",
+                            background: "var(--student-bg)",
                             border: "1px solid #21262d",
                             borderRadius: "6px",
                             padding: "12px",
@@ -788,21 +788,21 @@ export default function Questions() {
                           }}
                         >
                           <div
-                            style={{ color: "#7d8590", marginBottom: "4px" }}
+                            style={{ color: "var(--student-text-muted)", marginBottom: "4px" }}
                           >
                             Input:
                           </div>
                           <div
-                            style={{ color: "#e6edf3", marginBottom: "8px" }}
+                            style={{ color: "var(--student-text)", marginBottom: "8px" }}
                           >
                             {example.input}
                           </div>
                           <div
-                            style={{ color: "#7d8590", marginBottom: "4px" }}
+                            style={{ color: "var(--student-text-muted)", marginBottom: "4px" }}
                           >
                             Output:
                           </div>
-                          <div style={{ color: "#e6edf3" }}>
+                          <div style={{ color: "var(--student-text)" }}>
                             {example.output}
                           </div>
                         </div>
@@ -818,7 +818,7 @@ export default function Questions() {
                         fontSize: "14px",
                         fontWeight: 600,
                         margin: "0 0 12px",
-                        color: "#7d8590",
+                        color: "var(--student-text-muted)",
                       }}
                     >
                       Hints:
@@ -858,8 +858,8 @@ export default function Questions() {
                       alignItems: "center",
                       gap: "8px",
                       background:
-                        currentQuestionIndex === 0 ? "#21262d" : "#30363d",
-                      color: currentQuestionIndex === 0 ? "#7d8590" : "#e6edf3",
+                        currentQuestionIndex === 0 ? "var(--student-border)" : "var(--student-border)",
+                      color: currentQuestionIndex === 0 ? "var(--student-text-muted)" : "var(--student-text)",
                       border: "1px solid #21262d",
                       borderRadius: "8px",
                       padding: "10px 16px",
@@ -878,9 +878,9 @@ export default function Questions() {
                         display: "flex",
                         alignItems: "center",
                         gap: "8px",
-                        background: "#20c997",
+                        background: "#a78bfa",
                         color: "#ffffff",
-                        border: "1px solid #20c997",
+                        border: "1px solid #a78bfa",
                         borderRadius: "8px",
                         padding: "10px 16px",
                         fontSize: "14px",
@@ -897,9 +897,9 @@ export default function Questions() {
                         display: "flex",
                         alignItems: "center",
                         gap: "8px",
-                        background: "#20c997",
+                        background: "#a78bfa",
                         color: "#ffffff",
-                        border: "1px solid #20c997",
+                        border: "1px solid #a78bfa",
                         borderRadius: "8px",
                         padding: "10px 16px",
                         fontSize: "14px",
@@ -923,7 +923,7 @@ export default function Questions() {
                     fontSize: "20px",
                     fontWeight: 600,
                     margin: "0 0 24px",
-                    color: "#e6edf3",
+                    color: "var(--student-text)",
                   }}
                 >
                   Quiz Results
@@ -933,7 +933,7 @@ export default function Questions() {
                   <div
                     key={question.id}
                     style={{
-                      background: "#0d1117",
+                      background: "var(--student-bg)",
                       border: "1px solid #21262d",
                       borderRadius: "8px",
                       padding: "20px",
@@ -955,7 +955,7 @@ export default function Questions() {
                             fontSize: "16px",
                             fontWeight: 500,
                             marginBottom: "8px",
-                            color: "#e6edf3",
+                            color: "var(--student-text)",
                           }}
                         >
                           {index + 1}. {question.question}
@@ -966,13 +966,13 @@ export default function Questions() {
                           <span
                             style={{
                               fontSize: "12px",
-                              color: "#7d8590",
+                              color: "var(--student-text-muted)",
                               marginRight: "8px",
                             }}
                           >
                             Your Answer:
                           </span>
-                          <span style={{ fontSize: "14px", color: "#e6edf3" }}>
+                          <span style={{ fontSize: "14px", color: "var(--student-text)" }}>
                             {userAnswers[question.id] || "Not answered"}
                           </span>
                         </div>
@@ -982,7 +982,7 @@ export default function Questions() {
                           <span
                             style={{
                               fontSize: "12px",
-                              color: "#7d8590",
+                              color: "var(--student-text-muted)",
                               marginRight: "8px",
                             }}
                           >
@@ -991,7 +991,7 @@ export default function Questions() {
                           <span
                             style={{
                               fontSize: "14px",
-                              color: "#20c997",
+                              color: "#a78bfa",
                               fontWeight: 500,
                             }}
                           >
@@ -1004,7 +1004,7 @@ export default function Questions() {
                           <span
                             style={{
                               fontSize: "12px",
-                              color: "#7d8590",
+                              color: "var(--student-text-muted)",
                               marginRight: "8px",
                             }}
                           >
@@ -1013,7 +1013,7 @@ export default function Questions() {
                           <div
                             style={{
                               fontSize: "13px",
-                              color: "#e6edf3",
+                              color: "var(--student-text)",
                               marginTop: "4px",
                             }}
                           >
@@ -1031,8 +1031,8 @@ export default function Questions() {
                                 display: "flex",
                                 alignItems: "center",
                                 gap: "8px",
-                                background: "#21262d",
-                                color: "#e6edf3",
+                                background: "var(--student-border)",
+                                color: "var(--student-text)",
                                 border: "1px solid #21262d",
                                 borderRadius: "6px",
                                 padding: "8px 12px",
@@ -1091,14 +1091,14 @@ export default function Questions() {
                               <div
                                 style={{
                                   fontSize: "12px",
-                                  color: "#7d8590",
+                                  color: "var(--student-text-muted)",
                                   marginBottom: "4px",
                                 }}
                               >
                                 Feedback:
                               </div>
                               <div
-                                style={{ fontSize: "13px", color: "#e6edf3" }}
+                                style={{ fontSize: "13px", color: "var(--student-text)" }}
                               >
                                 {evaluation.feedback}
                               </div>
@@ -1109,7 +1109,7 @@ export default function Questions() {
                                 <div
                                   style={{
                                     fontSize: "12px",
-                                    color: "#7d8590",
+                                    color: "var(--student-text-muted)",
                                     marginBottom: "4px",
                                   }}
                                 >
@@ -1135,7 +1135,7 @@ export default function Questions() {
                                 <div
                                   style={{
                                     fontSize: "12px",
-                                    color: "#7d8590",
+                                    color: "var(--student-text-muted)",
                                     marginBottom: "4px",
                                   }}
                                 >
@@ -1162,7 +1162,7 @@ export default function Questions() {
                               <div
                                 style={{
                                   fontSize: "12px",
-                                  color: "#7d8590",
+                                  color: "var(--student-text-muted)",
                                   marginBottom: "4px",
                                 }}
                               >
@@ -1171,7 +1171,7 @@ export default function Questions() {
                               <div
                                 style={{
                                   fontSize: "13px",
-                                  color: "#e6edf3",
+                                  color: "var(--student-text)",
                                   fontStyle: "italic",
                                 }}
                               >
@@ -1193,9 +1193,9 @@ export default function Questions() {
                       display: "inline-flex",
                       alignItems: "center",
                       gap: "8px",
-                      background: "#20c997",
+                      background: "#a78bfa",
                       color: "#ffffff",
-                      border: "1px solid #20c997",
+                      border: "1px solid #a78bfa",
                       borderRadius: "8px",
                       padding: "12px 24px",
                       fontSize: "14px",
@@ -1232,7 +1232,7 @@ export default function Questions() {
         >
           <div
             style={{
-              background: "#161b22",
+              background: "var(--student-surface)",
               border: "1px solid #21262d",
               borderRadius: 16,
               padding: "32px",
@@ -1260,7 +1260,7 @@ export default function Questions() {
                     width: "40px",
                     height: "40px",
                     background:
-                      "linear-gradient(135deg, #20c997 0%, #099268 100%)",
+                      "linear-gradient(135deg, #a78bfa 0%, #099268 100%)",
                     borderRadius: "10px",
                     display: "flex",
                     alignItems: "center",
@@ -1275,12 +1275,12 @@ export default function Questions() {
                       fontSize: "20px",
                       fontWeight: 600,
                       margin: 0,
-                      color: "#e6edf3",
+                      color: "var(--student-text)",
                     }}
                   >
                     Generate Practice Questions
                   </h2>
-                  <p style={{ fontSize: "14px", color: "#7d8590", margin: 0 }}>
+                  <p style={{ fontSize: "14px", color: "var(--student-text-muted)", margin: 0 }}>
                     Customize your interview preparation
                   </p>
                 </div>
@@ -1290,7 +1290,7 @@ export default function Questions() {
                 style={{
                   background: "transparent",
                   border: "none",
-                  color: "#7d8590",
+                  color: "var(--student-text-muted)",
                   cursor: "pointer",
                   padding: "8px",
                   borderRadius: "6px",
@@ -1322,14 +1322,14 @@ export default function Questions() {
                     style={{
                       width: "20px",
                       height: "20px",
-                      accentColor: "#20c997",
+                      accentColor: "#a78bfa",
                     }}
                   />
                   <span
                     style={{
                       fontSize: "14px",
                       fontWeight: 500,
-                      color: "#e6edf3",
+                      color: "var(--student-text)",
                     }}
                   >
                     Practice with Your Own Questions
@@ -1338,7 +1338,7 @@ export default function Questions() {
                 <p
                   style={{
                     fontSize: "12px",
-                    color: "#7d8590",
+                    color: "var(--student-text-muted)",
                     margin: "8px 0 0",
                     lineHeight: "1.4",
                   }}
@@ -1357,7 +1357,7 @@ export default function Questions() {
                       fontSize: "14px",
                       fontWeight: 500,
                       marginBottom: "8px",
-                      color: "#f0f6fc",
+                      color: "var(--student-text)",
                     }}
                   >
                     Enter Your Practice Questions
@@ -1370,10 +1370,10 @@ export default function Questions() {
                       width: "100%",
                       minHeight: "100px",
                       padding: "10px 12px",
-                      background: "#0d1117",
+                      background: "var(--student-bg)",
                       border: "1px solid #21262d",
                       borderRadius: "8px",
-                      color: "#e6edf3",
+                      color: "var(--student-text)",
                       fontSize: "14px",
                       fontFamily: "inherit",
                       resize: "vertical",
@@ -1382,7 +1382,7 @@ export default function Questions() {
                   <p
                     style={{
                       fontSize: "12px",
-                      color: "#7d8590",
+                      color: "var(--student-text-muted)",
                       margin: "8px 0 0",
                       lineHeight: "1.4",
                     }}
@@ -1401,7 +1401,7 @@ export default function Questions() {
                       fontSize: "14px",
                       fontWeight: 500,
                       marginBottom: "8px",
-                      color: "#f0f6fc",
+                      color: "var(--student-text)",
                     }}
                   >
                     Practice Topic
@@ -1412,10 +1412,10 @@ export default function Questions() {
                     style={{
                       width: "100%",
                       padding: "10px 12px",
-                      background: "#0d1117",
+                      background: "var(--student-bg)",
                       border: "1px solid #21262d",
                       borderRadius: "8px",
-                      color: "#e6edf3",
+                      color: "var(--student-text)",
                       fontSize: "14px",
                     }}
                   >
@@ -1446,7 +1446,7 @@ export default function Questions() {
                       fontSize: "14px",
                       fontWeight: 500,
                       marginBottom: "8px",
-                      color: "#f0f6fc",
+                      color: "var(--student-text)",
                     }}
                   >
                     Difficulty Level
@@ -1461,10 +1461,10 @@ export default function Questions() {
                     style={{
                       width: "100%",
                       padding: "10px 12px",
-                      background: "#0d1117",
+                      background: "var(--student-bg)",
                       border: "1px solid #21262d",
                       borderRadius: "8px",
-                      color: "#e6edf3",
+                      color: "var(--student-text)",
                       fontSize: "14px",
                     }}
                   >
@@ -1482,7 +1482,7 @@ export default function Questions() {
                       fontSize: "14px",
                       fontWeight: 500,
                       marginBottom: "8px",
-                      color: "#f0f6fc",
+                      color: "var(--student-text)",
                     }}
                   >
                     Number of Questions
@@ -1496,10 +1496,10 @@ export default function Questions() {
                     style={{
                       width: "100%",
                       padding: "10px 12px",
-                      background: "#0d1117",
+                      background: "var(--student-bg)",
                       border: "1px solid #21262d",
                       borderRadius: "8px",
-                      color: "#e6edf3",
+                      color: "var(--student-text)",
                       fontSize: "14px",
                     }}
                   />
@@ -1521,7 +1521,7 @@ export default function Questions() {
                 onClick={() => setShowModal(false)}
                 style={{
                   background: "transparent",
-                  color: "#7d8590",
+                  color: "var(--student-text-muted)",
                   border: "1px solid #21262d",
                   borderRadius: "8px",
                   padding: "10px 20px",
@@ -1549,13 +1549,13 @@ export default function Questions() {
                     generating ||
                     (!useCustomQuestion && !selectedTopic) ||
                     (useCustomQuestion && !customQuestion.trim())
-                      ? "#21262d"
-                      : "#20c997",
+                      ? "var(--student-border)"
+                      : "#a78bfa",
                   color:
                     generating ||
                     (!useCustomQuestion && !selectedTopic) ||
                     (useCustomQuestion && !customQuestion.trim())
-                      ? "#7d8590"
+                      ? "var(--student-text-muted)"
                       : "#ffffff",
                   border: "1px solid #21262d",
                   borderRadius: "8px",
@@ -1602,7 +1602,7 @@ export default function Questions() {
         >
           <div
             style={{
-              background: "#161b22",
+              background: "var(--student-surface)",
               border: "1px solid #21262d",
               borderRadius: 16,
               padding: "40px",
@@ -1618,7 +1618,7 @@ export default function Questions() {
                 width: "60px",
                 height: "60px",
                 margin: "0 auto 24px",
-                background: "linear-gradient(135deg, #20c997 0%, #099268 100%)",
+                background: "linear-gradient(135deg, #a78bfa 0%, #099268 100%)",
                 borderRadius: "50%",
                 display: "flex",
                 alignItems: "center",
@@ -1635,7 +1635,7 @@ export default function Questions() {
                 fontSize: "20px",
                 fontWeight: 600,
                 margin: "0 0 12px",
-                color: "#e6edf3",
+                color: "var(--student-text)",
               }}
             >
               Generating Questions
@@ -1644,13 +1644,13 @@ export default function Questions() {
             <p
               style={{
                 fontSize: "14px",
-                color: "#7d8590",
+                color: "var(--student-text-muted)",
                 margin: "0 0 20px",
                 lineHeight: "1.4",
               }}
             >
               Creating AI-powered questions for{" "}
-              <strong style={{ color: "#20c997" }}>{generatingField}</strong>
+              <strong style={{ color: "#a78bfa" }}>{generatingField}</strong>
             </p>
 
             {/* Progress Dots */}
@@ -1661,7 +1661,7 @@ export default function Questions() {
                 style={{
                   width: "8px",
                   height: "8px",
-                  background: "#20c997",
+                  background: "#a78bfa",
                   borderRadius: "50%",
                   animation: "bounce 1.4s infinite ease-in-out both",
                 }}
@@ -1670,7 +1670,7 @@ export default function Questions() {
                 style={{
                   width: "8px",
                   height: "8px",
-                  background: "#20c997",
+                  background: "#a78bfa",
                   borderRadius: "50%",
                   animation: "bounce 1.4s infinite ease-in-out both",
                   animationDelay: "0.16s",
@@ -1680,7 +1680,7 @@ export default function Questions() {
                 style={{
                   width: "8px",
                   height: "8px",
-                  background: "#20c997",
+                  background: "#a78bfa",
                   borderRadius: "50%",
                   animation: "bounce 1.4s infinite ease-in-out both",
                   animationDelay: "0.32s",

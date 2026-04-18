@@ -101,15 +101,15 @@ Score this answer from 0 to 100 based on correctness, depth, and relevance. Retu
 function ScoreRing({ value, label }: { value: number; label: string }) {
   const r = 40, c = 2 * Math.PI * r
   const dash = (value / 100) * c
-  const color = value >= 70 ? '#00e5a0' : value >= 45 ? '#f0b429' : '#f85149'
+  const color = value >= 70 ? 'var(--student-accent)' : value >= 45 ? '#f0b429' : '#f85149'
   return (
     <svg width="100" height="100" viewBox="0 0 100 100">
-      <circle cx="50" cy="50" r={r} fill="none" stroke="#21262d" strokeWidth="7" />
+      <circle cx="50" cy="50" r={r} fill="none" stroke="var(--student-border)" strokeWidth="7" />
       <circle cx="50" cy="50" r={r} fill="none" stroke={color} strokeWidth="7"
         strokeDasharray={`${dash} ${c - dash}`} strokeLinecap="round"
         transform="rotate(-90 50 50)" style={{ transition: 'stroke-dasharray 0.6s ease, stroke 0.3s' }} />
       <text x="50" y="46" textAnchor="middle" dominantBaseline="middle" fill={color} fontSize="16" fontWeight="700">{value}%</text>
-      <text x="50" y="62" textAnchor="middle" fill="#7d8590" fontSize="9">{label}</text>
+      <text x="50" y="62" textAnchor="middle" fill="var(--student-text-muted)" fontSize="9">{label}</text>
     </svg>
   )
 }
@@ -214,7 +214,7 @@ export default function MockInterviewRoom() {
 
   /* ════════════════════ RENDER ════════════════════ */
   return (
-    <div style={{ background: '#0f1117', height: '100vh', color: '#e6edf3', display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: 'inherit' }}>
+    <div style={{ background: 'var(--student-bg)', height: '100vh', color: 'var(--student-text)', display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: 'inherit' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
         .room-scroll::-webkit-scrollbar { width: 4px; }
@@ -223,35 +223,35 @@ export default function MockInterviewRoom() {
         @keyframes spin { to { transform: rotate(360deg); } }
         .pulse-mic { animation: pulse-mic 1.2s ease-in-out infinite; }
         @keyframes pulse-mic { 0%,100% { box-shadow: 0 0 0 0 rgba(248,81,73,0.4); } 50% { box-shadow: 0 0 0 10px rgba(248,81,73,0); } }
-        .tag-green { background: rgba(0,229,160,0.1); border: 1px solid rgba(0,229,160,0.25); color: #00e5a0; border-radius: 20px; padding: 3px 10px; font-size: 11px; }
+        .tag-green { background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.25); color: var(--student-accent); border-radius: 20px; padding: 3px 10px; font-size: 11px; }
         .tag-red   { background: rgba(248,81,73,0.1);  border: 1px solid rgba(248,81,73,0.25);  color: #f85149; border-radius: 20px; padding: 3px 10px; font-size: 11px; }
         .tag-yellow{ background: rgba(240,180,41,0.1); border: 1px solid rgba(240,180,41,0.25); color: #f0b429; border-radius: 20px; padding: 3px 10px; font-size: 11px; }
         .end-btn { transition: background 0.15s !important; }
         .end-btn:hover { background: rgba(220,60,60,0.12) !important; }
         .cam-on-btn { transition: background 0.15s !important; }
-        .cam-on-btn:hover { background: rgba(0,229,160,0.1) !important; }
+        .cam-on-btn:hover { background: rgba(167,139,250,0.1) !important; }
       `}</style>
 
       {/* ── Top bar ── */}
-      <div style={{ height: 56, borderBottom: '1px solid #1E1E28', background: '#0d1117', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 12, flexShrink: 0 }}>
-        <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1A1A22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>🎙</div>
+      <div style={{ height: 56, borderBottom: '1px solid var(--student-surface)', background: 'var(--student-bg)', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 12, flexShrink: 0 }}>
+        <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--student-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>🎙</div>
         <span style={{ fontWeight: 600, fontSize: 14, color: '#E0E0E8' }}>Mock Interview</span>
-        <div style={{ width: 1, height: 16, background: '#2A2A36' }} />
-        <span style={{ fontSize: 12, color: '#F0F0F5', fontWeight: 500 }}>{setup.role}</span>
-        <span style={{ color: '#3A3A4A', fontSize: 12 }}>→</span>
-        <span style={{ fontSize: 12, color: '#00E5A0', fontWeight: 500 }}>{COMPANY_LABELS[setup.companyType]}</span>
+        <div style={{ width: 1, height: 16, background: 'var(--student-border)' }} />
+        <span style={{ fontSize: 12, color: 'var(--student-text)', fontWeight: 500 }}>{setup.role}</span>
+        <span style={{ color: 'var(--student-border)', fontSize: 12 }}>→</span>
+        <span style={{ fontSize: 12, color: 'var(--student-accent)', fontWeight: 500 }}>{COMPANY_LABELS[setup.companyType]}</span>
         {phase !== 'loading' && phase !== 'complete' && (
           <>
-            <span style={{ color: '#3A3A4A', fontSize: 12 }}>·</span>
-            <span style={{ fontSize: 12, color: '#404050' }}>Q {currentIdx + 1} / {questions.length}</span>
+            <span style={{ color: 'var(--student-border)', fontSize: 12 }}>·</span>
+            <span style={{ fontSize: 12, color: 'var(--student-border)' }}>Q {currentIdx + 1} / {questions.length}</span>
           </>
         )}
         <div style={{ flex: 1 }} />
         <div style={{
           fontFamily: "'JetBrains Mono', monospace", fontSize: 20, fontWeight: 500, letterSpacing: '2px',
-          color: timerRed ? '#f85149' : '#e6edf3',
-          background: timerRed ? 'rgba(248,81,73,0.1)' : '#1A1A22',
-          border: `1px solid ${timerRed ? 'rgba(248,81,73,0.4)' : '#2A2A36'}`,
+          color: timerRed ? '#f85149' : 'var(--student-text)',
+          background: timerRed ? 'rgba(248,81,73,0.1)' : 'var(--student-surface)',
+          border: `1px solid ${timerRed ? 'rgba(248,81,73,0.4)' : 'var(--student-border)'}`,
           borderRadius: 8, padding: '6px 14px', transition: 'all 0.4s',
         }}>{fmtTime(timeLeft)}</div>
         <button className="end-btn" onClick={() => setPhase('complete')}
@@ -272,13 +272,13 @@ export default function MockInterviewRoom() {
               {loadErr ? (
                 <>
                   <div style={{ fontSize: 13, color: '#f85149' }}>⚠ {loadErr}</div>
-                  <button onClick={() => window.location.reload()} style={{ padding: '8px 20px', borderRadius: 8, background: '#161b22', border: '1px solid #30363d', color: '#e6edf3', cursor: 'pointer' }}>Retry</button>
+                  <button onClick={() => window.location.reload()} style={{ padding: '8px 20px', borderRadius: 8, background: 'var(--student-surface)', border: '1px solid #30363d', color: 'var(--student-text)', cursor: 'pointer' }}>Retry</button>
                 </>
               ) : (
                 <>
-                  <div className="spin" style={{ width: 36, height: 36, borderRadius: '50%', border: '3px solid #1E1E28', borderTopColor: '#00E5A0' }} />
-                  <p style={{ margin: 0, fontSize: 13, color: '#606070' }}>Generating questions for <strong style={{ color: '#F0F0F5', fontWeight: 700 }}>{setup.role}</strong>…</p>
-                  <p style={{ margin: 0, fontSize: 13, color: '#404050' }}>Gemini AI is tailoring questions based on your role and company type</p>
+                  <div className="spin" style={{ width: 36, height: 36, borderRadius: '50%', border: '3px solid var(--student-surface)', borderTopColor: 'var(--student-accent)' }} />
+                  <p style={{ margin: 0, fontSize: 13, color: 'var(--student-border)' }}>Generating questions for <strong style={{ color: 'var(--student-text)', fontWeight: 700 }}>{setup.role}</strong>…</p>
+                  <p style={{ margin: 0, fontSize: 13, color: 'var(--student-border)' }}>Gemini AI is tailoring questions based on your role and company type</p>
                 </>
               )}
             </div>
@@ -289,29 +289,29 @@ export default function MockInterviewRoom() {
             <div className="room-scroll" style={{ flex: 1, overflowY: 'auto', padding: '28px 32px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
               {/* Question card */}
-              <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 16, padding: '28px 28px 24px' }}>
+              <div style={{ background: 'var(--student-surface)', border: '1px solid #21262d', borderRadius: 16, padding: '28px 28px 24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: '#484f58', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Question {currentIdx + 1} of {questions.length}</span>
-                  <div style={{ flex: 1, height: 1, background: '#21262d' }} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--student-text-dim)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Question {currentIdx + 1} of {questions.length}</span>
+                  <div style={{ flex: 1, height: 1, background: 'var(--student-border)' }} />
                 </div>
-                <p style={{ margin: 0, fontSize: 18, fontWeight: 500, lineHeight: 1.6, color: '#e6edf3' }}>{q}</p>
+                <p style={{ margin: 0, fontSize: 18, fontWeight: 500, lineHeight: 1.6, color: 'var(--student-text)' }}>{q}</p>
               </div>
 
               {/* Caption area — live transcript or final answer */}
               <div style={{
-                background: '#0d1117',
-                border: `1px solid ${phase === 'listening' ? 'rgba(248,81,73,0.4)' : '#21262d'}`,
+                background: 'var(--student-bg)',
+                border: `1px solid ${phase === 'listening' ? 'rgba(248,81,73,0.4)' : 'var(--student-border)'}`,
                 borderRadius: 12, padding: '16px 20px', minHeight: 80, transition: 'border-color 0.3s',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                   {phase === 'listening' && (
                     <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#f85149', display: 'inline-block', animation: 'pulse-mic 1.2s infinite' }} />
                   )}
-                  <span style={{ fontSize: 11, color: phase === 'listening' ? '#f85149' : '#484f58', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <span style={{ fontSize: 11, color: phase === 'listening' ? '#f85149' : 'var(--student-text-dim)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     {phase === 'listening' ? 'Recording…' : caption ? 'Your Answer' : 'Your answer will appear here as you speak'}
                   </span>
                 </div>
-                <p style={{ margin: 0, fontSize: 14, color: caption ? '#e6edf3' : '#30363d', lineHeight: 1.7, minHeight: 42 }}>
+                <p style={{ margin: 0, fontSize: 14, color: caption ? 'var(--student-text)' : 'var(--student-border)', lineHeight: 1.7, minHeight: 42 }}>
                   {caption || 'Click the microphone to start speaking…'}
                 </p>
               </div>
@@ -322,8 +322,8 @@ export default function MockInterviewRoom() {
                   {phase === 'question' && (
                     <button onClick={startListening}
                       style={{
-                        flex: 1, padding: '13px', borderRadius: 12, border: '1px solid rgba(0,229,160,0.3)',
-                        background: 'rgba(0,229,160,0.08)', color: '#00e5a0', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                        flex: 1, padding: '13px', borderRadius: 12, border: '1px solid rgba(167,139,250,0.3)',
+                        background: 'rgba(167,139,250,0.08)', color: 'var(--student-accent)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                       }}>
                       🎤 &nbsp;Start Speaking
@@ -332,14 +332,14 @@ export default function MockInterviewRoom() {
                   {phase === 'listening' && (
                     <>
                       <button onClick={stopListening}
-                        style={{ padding: '12px 20px', borderRadius: 12, border: '1px solid #30363d', background: '#161b22', color: '#e6edf3', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                        style={{ padding: '12px 20px', borderRadius: 12, border: '1px solid #30363d', background: 'var(--student-surface)', color: 'var(--student-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                         ⏸ Pause
                       </button>
                       <button onClick={submitAnswer} disabled={!caption.trim()}
                         style={{
                           flex: 1, padding: '13px', borderRadius: 12, border: 'none',
-                          background: caption.trim() ? 'linear-gradient(135deg,#00e5a0,#00c8c8)' : '#21262d',
-                          color: caption.trim() ? '#0a0f1a' : '#484f58',
+                          background: caption.trim() ? 'linear-gradient(135deg,var(--student-accent),var(--student-accent-hover))' : 'var(--student-border)',
+                          color: caption.trim() ? 'var(--student-bg)' : 'var(--student-text-dim)',
                           fontSize: 14, fontWeight: 700, cursor: caption.trim() ? 'pointer' : 'not-allowed',
                         }}>
                         Submit Answer →
@@ -348,7 +348,7 @@ export default function MockInterviewRoom() {
                   )}
                   {phase === 'question' && caption && (
                     <button onClick={submitAnswer}
-                      style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#00e5a0,#00c8c8)', color: '#0a0f1a', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                      style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,var(--student-accent),var(--student-accent-hover))', color: 'var(--student-bg)', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
                       Submit Answer →
                     </button>
                   )}
@@ -357,38 +357,38 @@ export default function MockInterviewRoom() {
 
               {/* Analyzing spinner */}
               {phase === 'analyzing' && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', background: '#161b22', border: '1px solid #21262d', borderRadius: 12 }}>
-                  <div className="spin" style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid #21262d', borderTopColor: '#00e5a0', flexShrink: 0 }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', background: 'var(--student-surface)', border: '1px solid #21262d', borderRadius: 12 }}>
+                  <div className="spin" style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid #21262d', borderTopColor: 'var(--student-accent)', flexShrink: 0 }} />
                   <div>
-                    <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#e6edf3' }}>Analyzing your answer…</p>
-                    <p style={{ margin: '2px 0 0', fontSize: 11, color: '#7d8590' }}>Gemini is comparing your response against expected key concepts for {setup.role}</p>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--student-text)' }}>Analyzing your answer…</p>
+                    <p style={{ margin: '2px 0 0', fontSize: 11, color: 'var(--student-text-muted)' }}>Gemini is comparing your response against expected key concepts for {setup.role}</p>
                   </div>
                 </div>
               )}
 
               {/* Feedback card */}
               {phase === 'feedback' && currentResult && (
-                <div style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 14, padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ background: 'var(--student-surface)', border: '1px solid #21262d', borderRadius: 14, padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                     <ScoreRing value={currentResult.score}
                       label={currentResult.score >= 70 ? 'Strong' : currentResult.score >= 45 ? 'Decent' : 'Needs Work'} />
                     <div style={{ flex: 1 }}>
-                      <p style={{ margin: '0 0 4px', fontSize: 11, fontWeight: 600, color: '#484f58', textTransform: 'uppercase', letterSpacing: '0.06em' }}>AI Feedback</p>
-                      <p style={{ margin: 0, fontSize: 13, color: '#e6edf3', lineHeight: 1.65 }}>{currentResult.feedback}</p>
+                      <p style={{ margin: '0 0 4px', fontSize: 11, fontWeight: 600, color: 'var(--student-text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>AI Feedback</p>
+                      <p style={{ margin: 0, fontSize: 13, color: 'var(--student-text)', lineHeight: 1.65 }}>{currentResult.feedback}</p>
                     </div>
                   </div>
 
                   {/* How the score works — transparent explanation */}
-                  <div style={{ background: '#0d1117', borderRadius: 10, padding: '12px 14px', border: '1px solid #21262d' }}>
-                    <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 600, color: '#484f58', textTransform: 'uppercase', letterSpacing: '0.06em' }}>How this score is calculated</p>
-                    <p style={{ margin: 0, fontSize: 11, color: '#7d8590', lineHeight: 1.6 }}>
-                      Gemini evaluates your spoken answer against the expected concepts for a <strong style={{ color: '#e6edf3' }}>{setup.role}</strong> role — checking correctness, depth, and relevance. The score is 0–100 based on that semantic match, not word count.
+                  <div style={{ background: 'var(--student-bg)', borderRadius: 10, padding: '12px 14px', border: '1px solid #21262d' }}>
+                    <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 600, color: 'var(--student-text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>How this score is calculated</p>
+                    <p style={{ margin: 0, fontSize: 11, color: 'var(--student-text-muted)', lineHeight: 1.6 }}>
+                      Gemini evaluates your spoken answer against the expected concepts for a <strong style={{ color: 'var(--student-text)' }}>{setup.role}</strong> role — checking correctness, depth, and relevance. The score is 0–100 based on that semantic match, not word count.
                     </p>
                   </div>
 
                   {currentResult.keyPoints.length > 0 && (
                     <div>
-                      <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 600, color: '#00e5a0' }}>✓ Points you covered well</p>
+                      <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 600, color: 'var(--student-accent)' }}>✓ Points you covered well</p>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                         {currentResult.keyPoints.map((k, i) => <span key={i} className="tag-green">{k}</span>)}
                       </div>
@@ -405,7 +405,7 @@ export default function MockInterviewRoom() {
                   )}
 
                   <button onClick={nextQuestion}
-                    style={{ padding: '12px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#00e5a0,#00c8c8)', color: '#0a0f1a', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                    style={{ padding: '12px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,var(--student-accent),var(--student-accent-hover))', color: 'var(--student-bg)', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
                     {currentIdx + 1 >= questions.length ? '🏁  View Final Results' : `Next Question → (${currentIdx + 2}/${questions.length})`}
                   </button>
                 </div>
@@ -420,7 +420,7 @@ export default function MockInterviewRoom() {
                 <div style={{ textAlign: 'center', marginBottom: 28 }}>
                   <div style={{ fontSize: 44, marginBottom: 12 }}>🏁</div>
                   <h2 style={{ margin: '0 0 6px', fontSize: 22, fontWeight: 700 }}>Interview Complete</h2>
-                  <p style={{ margin: 0, fontSize: 13, color: '#7d8590' }}>{setup.role} · {COMPANY_LABELS[setup.companyType]} · {results.length} questions answered</p>
+                  <p style={{ margin: 0, fontSize: 13, color: 'var(--student-text-muted)' }}>{setup.role} · {COMPANY_LABELS[setup.companyType]} · {results.length} questions answered</p>
                 </div>
 
                 {/* Overall score */}
@@ -431,24 +431,24 @@ export default function MockInterviewRoom() {
                 {/* Per-question breakdown */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 24 }}>
                   {results.map((r, i) => (
-                    <div key={i} style={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 12, padding: '16px 20px' }}>
+                    <div key={i} style={{ background: 'var(--student-surface)', border: '1px solid #21262d', borderRadius: 12, padding: '16px 20px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 8 }}>
-                        <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: '#e6edf3', flex: 1 }}>Q{i + 1}: {r.question}</p>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: 'var(--student-text)', flex: 1 }}>Q{i + 1}: {r.question}</p>
                         <span className={r.score >= 70 ? 'tag-green' : r.score >= 45 ? 'tag-yellow' : 'tag-red'}>{r.score}%</span>
                       </div>
-                      {r.answer && <p style={{ margin: '0 0 8px', fontSize: 12, color: '#7d8590', fontStyle: 'italic' }}>"{r.answer.slice(0, 120)}{r.answer.length > 120 ? '…' : ''}"</p>}
-                      <p style={{ margin: 0, fontSize: 12, color: '#7d8590' }}>{r.feedback}</p>
+                      {r.answer && <p style={{ margin: '0 0 8px', fontSize: 12, color: 'var(--student-text-muted)', fontStyle: 'italic' }}>"{r.answer.slice(0, 120)}{r.answer.length > 120 ? '…' : ''}"</p>}
+                      <p style={{ margin: 0, fontSize: 12, color: 'var(--student-text-muted)' }}>{r.feedback}</p>
                     </div>
                   ))}
                 </div>
 
                 <div style={{ display: 'flex', gap: 10 }}>
                   <button onClick={() => navigate('/mock-interview')}
-                    style={{ flex: 1, padding: '13px', borderRadius: 12, border: '1px solid #30363d', background: 'transparent', color: '#e6edf3', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                    style={{ flex: 1, padding: '13px', borderRadius: 12, border: '1px solid #30363d', background: 'transparent', color: 'var(--student-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                     New Interview
                   </button>
                   <button onClick={() => navigate('/dashboard')}
-                    style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#00e5a0,#00c8c8)', color: '#0a0f1a', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                    style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,var(--student-accent),var(--student-accent-hover))', color: 'var(--student-bg)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                     Dashboard
                   </button>
                 </div>
@@ -458,29 +458,29 @@ export default function MockInterviewRoom() {
         </div>
 
         {/* ── Right panel: webcam ── */}
-        <div style={{ width: 260, borderLeft: '1px solid #1E1E28', background: '#0d1117', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-          <div style={{ padding: '22px 16px 14px', borderBottom: '1px solid #1E1E28' }}>
+        <div style={{ width: 260, borderLeft: '1px solid var(--student-surface)', background: 'var(--student-bg)', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+          <div style={{ padding: '22px 16px 14px', borderBottom: '1px solid var(--student-surface)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 500, color: '#404050', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Camera</span>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 500, color: 'var(--student-border)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Camera</span>
               <button onClick={webcamOn ? stopWebcam : startWebcam} className={webcamOn ? '' : 'cam-on-btn'}
                 style={{
                   fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 8, cursor: 'pointer',
-                  border: `1px solid ${webcamOn ? 'rgba(220,60,60,0.5)' : '#00E5A0'}`,
+                  border: `1px solid ${webcamOn ? 'rgba(220,60,60,0.5)' : 'var(--student-accent)'}`,
                   background: webcamOn ? 'rgba(220,60,60,0.08)' : 'transparent',
-                  color: webcamOn ? '#E05555' : '#00E5A0',
+                  color: webcamOn ? '#E05555' : 'var(--student-accent)',
                 }}>
                 {webcamOn ? 'Turn Off' : 'Turn On'}
               </button>
             </div>
-            <div style={{ width: '100%', aspectRatio: '4/3', borderRadius: 12, background: '#0F0F13', border: '1px solid #1E1E28', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '100%', aspectRatio: '4/3', borderRadius: 12, background: '#0F0F13', border: '1px solid var(--student-surface)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <video ref={videoRef} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', display: webcamOn ? 'block' : 'none' }} />
               {!webcamOn && (
                 <div style={{ textAlign: 'center' }}>
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2A2A36" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: '0 auto 6px' }}>
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--student-border)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: '0 auto 6px' }}>
                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                     <circle cx="12" cy="13" r="4"/>
                   </svg>
-                  <div style={{ fontSize: 10, color: '#404050' }}>Camera off</div>
+                  <div style={{ fontSize: 10, color: 'var(--student-border)' }}>Camera off</div>
                 </div>
               )}
             </div>
@@ -488,37 +488,37 @@ export default function MockInterviewRoom() {
 
           {/* Score history */}
           <div style={{ padding: '22px 16px 14px', flex: 1, overflowY: 'auto' }}>
-            <p style={{ margin: '0 0 12px', fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 500, color: '#404050', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Score History</p>
+            <p style={{ margin: '0 0 12px', fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 500, color: 'var(--student-border)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Score History</p>
             {results.length === 0
               ? (
                 <div style={{ textAlign: 'center', paddingTop: 12 }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2A2A36" strokeWidth="1.5" style={{ display: 'block', margin: '0 auto 8px' }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--student-border)" strokeWidth="1.5" style={{ display: 'block', margin: '0 auto 8px' }}>
                     <circle cx="12" cy="12" r="8"/>
                   </svg>
-                  <p style={{ margin: 0, fontSize: 12, color: '#404050' }}>No answers yet</p>
+                  <p style={{ margin: 0, fontSize: 12, color: 'var(--student-border)' }}>No answers yet</p>
                 </div>
               )
               : results.map((r, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, padding: '6px 10px', background: '#0f1117', borderRadius: 8, border: '1px solid #21262d' }}>
-                  <span style={{ fontSize: 12, color: '#7d8590' }}>Q{i + 1}</span>
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, padding: '6px 10px', background: 'var(--student-bg)', borderRadius: 8, border: '1px solid #21262d' }}>
+                  <span style={{ fontSize: 12, color: 'var(--student-text-muted)' }}>Q{i + 1}</span>
                   <span className={r.score >= 70 ? 'tag-green' : r.score >= 45 ? 'tag-yellow' : 'tag-red'} style={{ fontSize: 11, padding: '2px 8px' }}>{r.score}%</span>
                 </div>
               ))
             }
             {results.length > 0 && (
               <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid #21262d', display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                <span style={{ color: '#484f58' }}>Average</span>
-                <span style={{ color: '#e6edf3', fontWeight: 700 }}>{avgScore}%</span>
+                <span style={{ color: 'var(--student-text-dim)' }}>Average</span>
+                <span style={{ color: 'var(--student-text)', fontWeight: 700 }}>{avgScore}%</span>
               </div>
             )}
           </div>
 
           {/* How analysis works — always visible */}
-          <div style={{ padding: '20px 16px 16px', borderTop: '1px solid #1E1E28' }}>
-            <p style={{ margin: '0 0 10px', fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 500, color: '#404050', textTransform: 'uppercase', letterSpacing: '1.5px' }}>How it works</p>
+          <div style={{ padding: '20px 16px 16px', borderTop: '1px solid var(--student-surface)' }}>
+            <p style={{ margin: '0 0 10px', fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 500, color: 'var(--student-border)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>How it works</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
               {[
-                { dot: '#00E5A0', label: 'Voice',     value: "Browser's Speech API" },
+                { dot: 'var(--student-accent)', label: 'Voice',     value: "Browser's Speech API" },
                 { dot: '#A0A0FF', label: 'Score',     value: 'Gemini semantic match' },
                 { dot: '#E0A050', label: 'Camera',    value: 'Local preview only' },
                 { dot: '#6090E0', label: 'No WebRTC', value: 'All local + Gemini API' },

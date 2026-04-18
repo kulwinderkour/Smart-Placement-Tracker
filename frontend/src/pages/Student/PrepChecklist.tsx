@@ -22,22 +22,22 @@ interface Category {
 // --- Constants & Color System (Teal Theme) ---
 
 const COLORS = {
-  bg: '#0d1117', // Match DashboardLayout
-  surface: '#161b22', 
-  border: '#21262d',
-  borderHover: '#30363d',
-  primary: '#e6edf3',
-  secondary: '#8b949e',
-  muted: '#7d8590',
-  accent: '#20c997', // Teal from Dashboard
-  accentHover: '#28a745',
-  accentTint: '#20c99712',
-  completedText: '#484f58',
-  divider: '#21262d',
+  bg: 'var(--student-bg)', // Match DashboardLayout
+  surface: 'var(--student-surface)', 
+  border: 'var(--student-border)',
+  borderHover: 'var(--student-border)',
+  primary: 'var(--student-text)',
+  secondary: 'var(--student-text-muted)',
+  muted: 'var(--student-text-muted)',
+  accent: '#a78bfa', // Brand purple (matches admin)
+  accentHover: '#7c3aed',
+  accentTint: '#a78bfa12',
+  completedText: 'var(--student-text-dim)',
+  divider: 'var(--student-border)',
   rowBorder: '#21262d44',
   categories: {
     DSA: '#58a6ff', // Blue
-    Development: '#20c997', // Teal
+    Development: '#a78bfa', // Teal
     'Core Subjects': '#d29922', // Yellow/Orange
     'Soft Skills': '#bc8cff', // Purple
     'System Design': '#7c3aed', // Violet
@@ -61,7 +61,7 @@ const Checkbox = ({ checked, onToggle }: { checked: boolean; onToggle: () => voi
     onClick={onToggle}
     style={{
       width: 17, height: 17, borderRadius: 4, background: checked ? COLORS.accent : 'transparent',
-      border: `1.5px solid ${checked ? COLORS.accent : '#30363d'}`,
+      border: `1.5px solid ${checked ? COLORS.accent : 'var(--student-border)'}`,
       cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s',
       padding: 0, flexShrink: 0
     }}
@@ -236,7 +236,7 @@ export default function PrepChecklist() {
           </div>
           <p style={{ fontSize: 13, color: COLORS.muted, margin: '0 0 24px' }}>Track everything left before placement season</p>
           
-          <div style={{ height: 6, width: '100%', background: '#21262d', borderRadius: 3, overflow: 'hidden', marginBottom: 24 }}>
+          <div style={{ height: 6, width: '100%', background: 'var(--student-border)', borderRadius: 3, overflow: 'hidden', marginBottom: 24 }}>
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
@@ -275,8 +275,8 @@ export default function PrepChecklist() {
                 onClick={() => setActiveFilter(f)}
                 style={{
                   padding: '5px 12px', borderRadius: 6, fontSize: 13, cursor: 'pointer',
-                  border: `1px solid ${isActive ? COLORS.accent : '#21262d'}`,
-                  background: isActive ? '#20c99712' : '#161b22',
+                  border: `1px solid ${isActive ? COLORS.accent : 'var(--student-border)'}`,
+                  background: isActive ? '#a78bfa12' : 'var(--student-surface)',
                   color: isActive ? COLORS.accent : COLORS.secondary,
                   fontWeight: 500,
                   transition: 'all 0.15s ease', outline: 'none'
@@ -374,7 +374,7 @@ export default function PrepChecklist() {
                                         style={{
                                           padding: '2px 8px', borderRadius: 4, fontSize: 9, fontWeight: 600,
                                           textTransform: 'uppercase', cursor: 'pointer', border: 'none',
-                                          background: newTaskPriority === p ? PRIORITY_STYLES[p].text + '22' : '#21262d',
+                                          background: newTaskPriority === p ? PRIORITY_STYLES[p].text + '22' : 'var(--student-border)',
                                           color: newTaskPriority === p ? PRIORITY_STYLES[p].text : COLORS.muted
                                         }}
                                       >
@@ -384,7 +384,7 @@ export default function PrepChecklist() {
                                   </div>
                                   <div style={{ display: 'flex', gap: 10 }}>
                                     <button onClick={() => setIsAddingTask(null)} style={{ background: 'transparent', border: 'none', color: COLORS.muted, fontSize: 12, cursor: 'pointer' }}>Cancel</button>
-                                    <button onClick={() => addTask(cat.id)} style={{ background: COLORS.accent, color: '#0d1117', border: 'none', borderRadius: 6, padding: '4px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Save</button>
+                                    <button onClick={() => addTask(cat.id)} style={{ background: COLORS.accent, color: 'var(--student-bg)', border: 'none', borderRadius: 6, padding: '4px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Save</button>
                                   </div>
                                 </div>
                               </motion.div>
@@ -453,7 +453,7 @@ export default function PrepChecklist() {
                   
                   <div style={{ display: 'flex', gap: 12 }}>
                     <button onClick={() => setIsAddingCategory(false)} style={{ background: 'transparent', border: 'none', color: COLORS.muted, fontSize: 12, cursor: 'pointer' }}>Cancel</button>
-                    <button onClick={addCategory} style={{ background: COLORS.accent, color: '#0d1117', border: 'none', borderRadius: 6, padding: '6px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Create</button>
+                    <button onClick={addCategory} style={{ background: COLORS.accent, color: 'var(--student-bg)', border: 'none', borderRadius: 6, padding: '6px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Create</button>
                   </div>
                 </div>
               </motion.div>
@@ -466,7 +466,7 @@ export default function PrepChecklist() {
                   cursor: 'pointer', transition: 'all 0.15s ease', height: '100%'
                 }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = COLORS.accent; e.currentTarget.style.color = COLORS.accent; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = '#21262d'; e.currentTarget.style.color = COLORS.muted; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--student-border)'; e.currentTarget.style.color = COLORS.muted; }}
               >
                 + New Category
               </button>

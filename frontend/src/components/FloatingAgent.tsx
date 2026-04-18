@@ -61,7 +61,7 @@ export default function FloatingAgent() {
           right: 24,
           width: 420,
           maxWidth: 'calc(100vw - 48px)',
-          background: '#161b22',
+          background: 'var(--student-surface)',
           border: '1px solid #21262d',
           borderRadius: '14px',
           boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
@@ -79,16 +79,16 @@ export default function FloatingAgent() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{
               width: 30, height: 30, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #20c99730, #58a6ff30)',
-              border: '1px solid #20c99750',
+              background: 'linear-gradient(135deg, #a78bfa30, #58a6ff30)',
+              border: '1px solid #a78bfa50',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 15,
             }}>✦</div>
             <div>
-              <div style={{ color: '#e6edf3', fontSize: 13, fontWeight: 600 }}>
+              <div style={{ color: 'var(--student-text)', fontSize: 13, fontWeight: 600 }}>
                 AI Placement Agent
               </div>
-              <div style={{ color: '#7d8590', fontSize: 11 }}>
+              <div style={{ color: 'var(--student-text-muted)', fontSize: 11 }}>
                 Gemini-powered · Auto-apply to jobs
               </div>
             </div>
@@ -96,7 +96,7 @@ export default function FloatingAgent() {
           <button
             onClick={handleClose}
             style={{
-              background: 'none', border: 'none', color: '#7d8590',
+              background: 'none', border: 'none', color: 'var(--student-text-muted)',
               fontSize: 18, cursor: 'pointer', lineHeight: 1, padding: '2px 6px',
             }}
           >×</button>
@@ -115,17 +115,17 @@ export default function FloatingAgent() {
             style={{
               width: '100%',
               padding: '10px 14px',
-              background: '#0d1117',
-              border: `1px solid ${loading ? '#21262d' : '#30363d'}`,
+              background: 'var(--student-bg)',
+              border: `1px solid ${loading ? 'var(--student-border)' : 'var(--student-border)'}`,
               borderRadius: 8,
-              color: '#e6edf3',
+              color: 'var(--student-text)',
               fontSize: 13,
               outline: 'none',
               boxSizing: 'border-box',
               opacity: loading ? 0.6 : 1,
             }}
-            onFocus={e => { if (!loading) e.target.style.borderColor = '#20c997' }}
-            onBlur={e => { e.target.style.borderColor = loading ? '#21262d' : '#30363d' }}
+            onFocus={e => { if (!loading) e.target.style.borderColor = '#a78bfa' }}
+            onBlur={e => { e.target.style.borderColor = loading ? 'var(--student-border)' : 'var(--student-border)' }}
           />
 
           {/* Resume + Run row */}
@@ -139,8 +139,8 @@ export default function FloatingAgent() {
               title="Resume filename"
               style={{
                 width: 110, padding: '9px 10px',
-                background: '#0d1117', border: '1px solid #21262d',
-                borderRadius: 8, color: '#7d8590', fontSize: 12, outline: 'none',
+                background: 'var(--student-bg)', border: '1px solid #21262d',
+                borderRadius: 8, color: 'var(--student-text-muted)', fontSize: 12, outline: 'none',
                 opacity: loading ? 0.6 : 1,
               }}
             />
@@ -149,8 +149,8 @@ export default function FloatingAgent() {
               disabled={loading || !prompt.trim()}
               style={{
                 flex: 1, padding: '9px 14px',
-                background: loading || !prompt.trim() ? '#21262d' : '#20c997',
-                color: loading || !prompt.trim() ? '#7d8590' : '#0d1117',
+                background: loading || !prompt.trim() ? 'var(--student-border)' : '#a78bfa',
+                color: loading || !prompt.trim() ? 'var(--student-text-muted)' : 'var(--student-bg)',
                 border: 'none', borderRadius: 8,
                 fontSize: 13, fontWeight: 600,
                 cursor: loading || !prompt.trim() ? 'not-allowed' : 'pointer',
@@ -162,7 +162,7 @@ export default function FloatingAgent() {
                 <>
                   <span style={{
                     width: 13, height: 13, border: '2px solid #7d859077',
-                    borderTopColor: '#e6edf3', borderRadius: '50%',
+                    borderTopColor: 'var(--student-text)', borderRadius: '50%',
                     display: 'inline-block',
                     animation: 'fabSpin 0.7s linear infinite',
                   }} />
@@ -172,24 +172,24 @@ export default function FloatingAgent() {
             </button>
           </div>
 
-          <p style={{ margin: '6px 0 12px', fontSize: 11, color: '#484f58' }}>
+          <p style={{ margin: '6px 0 12px', fontSize: 11, color: 'var(--student-text-dim)' }}>
             Ctrl+Enter to run
           </p>
 
           {/* Loading bar */}
           {loading && (
             <div style={{
-              background: '#0d1117', border: '1px solid #21262d',
+              background: 'var(--student-bg)', border: '1px solid #21262d',
               borderRadius: 8, padding: '12px 14px',
               display: 'flex', alignItems: 'center', gap: 10,
             }}>
               <span style={{
                 width: 16, height: 16, border: '2px solid #21262d',
-                borderTopColor: '#20c997', borderRadius: '50%',
+                borderTopColor: '#a78bfa', borderRadius: '50%',
                 display: 'inline-block', flexShrink: 0,
                 animation: 'fabSpin 0.7s linear infinite',
               }} />
-              <span style={{ color: '#7d8590', fontSize: 12 }}>
+              <span style={{ color: 'var(--student-text-muted)', fontSize: 12 }}>
                 Fetching jobs, filtering & submitting applications…
               </span>
             </div>
@@ -209,7 +209,7 @@ export default function FloatingAgent() {
           {/* Result */}
           {result && !loading && (
             <div style={{
-              background: '#0d1117', border: '1px solid #1a2e22',
+              background: 'var(--student-bg)', border: '1px solid #1a2e22',
               borderRadius: 8, padding: '14px',
               maxHeight: 200, overflowY: 'auto',
             }}>
@@ -217,7 +217,7 @@ export default function FloatingAgent() {
                 ✓ Agent finished
               </div>
               <pre style={{
-                margin: 0, color: '#e6edf3', fontSize: 12,
+                margin: 0, color: 'var(--student-text)', fontSize: 12,
                 lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                 fontFamily: 'inherit',
               }}>
@@ -240,12 +240,12 @@ export default function FloatingAgent() {
           height: 54,
           borderRadius: '50%',
           background: open
-            ? '#161b22'
-            : 'linear-gradient(135deg, #20c997 0%, #0ea5e9 100%)',
+            ? 'var(--student-surface)'
+            : 'linear-gradient(135deg, #a78bfa 0%, #0ea5e9 100%)',
           border: open ? '1px solid #30363d' : 'none',
           boxShadow: open
             ? '0 4px 20px rgba(0,0,0,0.4)'
-            : '0 4px 24px rgba(32,201,151,0.45)',
+            : '0 4px 24px rgba(167,139,250,0.45)',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -263,13 +263,13 @@ export default function FloatingAgent() {
       >
         {open ? (
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="#e6edf3" strokeWidth="2.5" strokeLinecap="round">
+            stroke="var(--student-text)" strokeWidth="2.5" strokeLinecap="round">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         ) : (
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-            stroke="#0d1117" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            stroke="var(--student-bg)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.38 5.06L2 22l4.94-1.38A9.94 9.94 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" />
             <path d="M8 10h8M8 14h5" strokeWidth="2" />
           </svg>

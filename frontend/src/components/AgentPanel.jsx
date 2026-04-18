@@ -41,7 +41,7 @@ const AgentPanel = ({ userId }) => {
   return (
     <div
       style={{
-        background: '#161b22',
+        background: 'var(--student-surface)',
         border: '1px solid #21262d',
         borderRadius: '12px',
         padding: '20px 24px',
@@ -55,8 +55,8 @@ const AgentPanel = ({ userId }) => {
             width: '32px',
             height: '32px',
             borderRadius: '8px',
-            background: 'linear-gradient(135deg, #20c99722 0%, #58a6ff22 100%)',
-            border: '1px solid #20c99740',
+            background: 'linear-gradient(135deg, #a78bfa22 0%, #58a6ff22 100%)',
+            border: '1px solid #a78bfa40',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -66,10 +66,10 @@ const AgentPanel = ({ userId }) => {
           ✦
         </div>
         <div>
-          <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#e6edf3' }}>
+          <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'var(--student-text)' }}>
             AI Placement Agent
           </h2>
-          <p style={{ margin: 0, fontSize: '12px', color: '#7d8590' }}>
+          <p style={{ margin: 0, fontSize: '12px', color: 'var(--student-text-muted)' }}>
             Powered by Gemini · Auto-applies to jobs matching your criteria
           </p>
         </div>
@@ -87,17 +87,17 @@ const AgentPanel = ({ userId }) => {
           style={{
             flex: 1,
             padding: '10px 14px',
-            background: '#0d1117',
-            border: `1px solid ${loading ? '#21262d' : '#30363d'}`,
+            background: 'var(--student-bg)',
+            border: `1px solid ${loading ? 'var(--student-border)' : 'var(--student-border)'}`,
             borderRadius: '8px',
-            color: '#e6edf3',
+            color: 'var(--student-text)',
             fontSize: '13px',
             outline: 'none',
             opacity: loading ? 0.6 : 1,
             transition: 'border-color 0.15s',
           }}
-          onFocus={(e) => { if (!loading) e.target.style.borderColor = '#20c997'; }}
-          onBlur={(e) => { e.target.style.borderColor = loading ? '#21262d' : '#30363d'; }}
+          onFocus={(e) => { if (!loading) e.target.style.borderColor = '#a78bfa'; }}
+          onBlur={(e) => { e.target.style.borderColor = loading ? 'var(--student-border)' : 'var(--student-border)'; }}
         />
         <input
           type="text"
@@ -109,10 +109,10 @@ const AgentPanel = ({ userId }) => {
           style={{
             width: '120px',
             padding: '10px 12px',
-            background: '#0d1117',
+            background: 'var(--student-bg)',
             border: '1px solid #21262d',
             borderRadius: '8px',
-            color: '#7d8590',
+            color: 'var(--student-text-muted)',
             fontSize: '12px',
             outline: 'none',
             opacity: loading ? 0.6 : 1,
@@ -123,8 +123,8 @@ const AgentPanel = ({ userId }) => {
           disabled={loading || !prompt.trim()}
           style={{
             padding: '10px 20px',
-            background: loading || !prompt.trim() ? '#21262d' : '#20c997',
-            color: loading || !prompt.trim() ? '#7d8590' : '#0d1117',
+            background: loading || !prompt.trim() ? 'var(--student-border)' : '#a78bfa',
+            color: loading || !prompt.trim() ? 'var(--student-text-muted)' : 'var(--student-bg)',
             border: 'none',
             borderRadius: '8px',
             fontSize: '13px',
@@ -145,7 +145,7 @@ const AgentPanel = ({ userId }) => {
                   width: '14px',
                   height: '14px',
                   border: '2px solid #7d8590',
-                  borderTopColor: '#e6edf3',
+                  borderTopColor: 'var(--student-text)',
                   borderRadius: '50%',
                   animation: 'agentSpin 0.7s linear infinite',
                 }}
@@ -158,7 +158,7 @@ const AgentPanel = ({ userId }) => {
         </button>
       </div>
 
-      <p style={{ margin: '0 0 14px', fontSize: '11px', color: '#484f58' }}>
+      <p style={{ margin: '0 0 14px', fontSize: '11px', color: 'var(--student-text-dim)' }}>
         Tip: Press Ctrl+Enter to run · The agent will fetch jobs, apply, and return a summary.
       </p>
 
@@ -166,7 +166,7 @@ const AgentPanel = ({ userId }) => {
       {loading && (
         <div
           style={{
-            background: '#0d1117',
+            background: 'var(--student-bg)',
             border: '1px solid #21262d',
             borderRadius: '8px',
             padding: '16px',
@@ -181,13 +181,13 @@ const AgentPanel = ({ userId }) => {
               width: '18px',
               height: '18px',
               border: '2px solid #21262d',
-              borderTopColor: '#20c997',
+              borderTopColor: '#a78bfa',
               borderRadius: '50%',
               animation: 'agentSpin 0.7s linear infinite',
               flexShrink: 0,
             }}
           />
-          <span style={{ color: '#7d8590', fontSize: '13px' }}>
+          <span style={{ color: 'var(--student-text-muted)', fontSize: '13px' }}>
             Agent is working — fetching jobs, filtering, and submitting applications…
           </span>
         </div>
@@ -213,7 +213,7 @@ const AgentPanel = ({ userId }) => {
       {result && !loading && (
         <div
           style={{
-            background: '#0d1117',
+            background: 'var(--student-bg)',
             border: '1px solid #1a2e22',
             borderRadius: '8px',
             padding: '16px',
@@ -234,7 +234,7 @@ const AgentPanel = ({ userId }) => {
           <pre
             style={{
               margin: 0,
-              color: '#e6edf3',
+              color: 'var(--student-text)',
               fontSize: '13px',
               lineHeight: '1.7',
               whiteSpace: 'pre-wrap',

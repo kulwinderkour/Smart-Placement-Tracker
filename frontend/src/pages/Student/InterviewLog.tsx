@@ -16,18 +16,18 @@ interface InterviewEntry {
 // --- Constants ---
 
 const COLORS = {
-  bg: '#0d1117',
-  surface: '#161b22', 
-  border: '#21262d',
-  borderHover: '#30363d',
-  primary: '#e6edf3',
-  secondary: '#8b949e',
-  muted: '#7d8590',
-  accent: '#20c997', // Teal from Dashboard
-  accentHover: '#28a745',
-  accentTint: '#20c99712',
+  bg: 'var(--student-bg)',
+  surface: 'var(--student-surface)', 
+  border: 'var(--student-border)',
+  borderHover: 'var(--student-border)',
+  primary: 'var(--student-text)',
+  secondary: 'var(--student-text-muted)',
+  muted: 'var(--student-text-muted)',
+  accent: '#a78bfa', // Brand purple (matches admin)
+  accentHover: '#7c3aed',
+  accentTint: '#a78bfa12',
   stars: '#d29922', // Yellow/Orange
-  divider: '#21262d',
+  divider: 'var(--student-border)',
 };
 
 const ROUND_TYPES = ['Online Assessment', 'Technical Round 1', 'Technical Round 2', 'System Design', 'Managerial', 'HR Round'];
@@ -127,7 +127,7 @@ export default function InterviewLog() {
             whileTap={{ scale: 0.98 }}
             onClick={() => setIsAdding(!isAdding)}
             style={{
-              background: COLORS.accent, color: '#0d1117', border: 'none', borderRadius: 8,
+              background: COLORS.accent, color: 'var(--student-bg)', border: 'none', borderRadius: 8,
               padding: '10px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer'
             }}
           >
@@ -155,7 +155,7 @@ export default function InterviewLog() {
                       value={company} onChange={e => setCompany(e.target.value)}
                       placeholder="e.g. Microsoft"
                       style={{
-                        width: '100%', background: '#0d1117', border: `1px solid ${COLORS.border}`,
+                        width: '100%', background: 'var(--student-bg)', border: `1px solid ${COLORS.border}`,
                         borderRadius: 6, padding: '10px 14px', color: COLORS.primary, fontSize: 13, outline: 'none'
                       }}
                     />
@@ -165,7 +165,7 @@ export default function InterviewLog() {
                     <select
                       value={roundType} onChange={e => setRoundType(e.target.value)}
                       style={{
-                        width: '100%', background: '#0d1117', border: `1px solid ${COLORS.border}`,
+                        width: '100%', background: 'var(--student-bg)', border: `1px solid ${COLORS.border}`,
                         borderRadius: 6, padding: '10px 14px', color: COLORS.primary, fontSize: 13, outline: 'none'
                       }}
                     >
@@ -178,7 +178,7 @@ export default function InterviewLog() {
                       <input
                         type="date" value={date} onChange={e => setDate(e.target.value)}
                         style={{
-                          width: '100%', background: '#0d1117', border: `1px solid ${COLORS.border}`,
+                          width: '100%', background: 'var(--student-bg)', border: `1px solid ${COLORS.border}`,
                           borderRadius: 6, padding: '10px 14px', color: COLORS.primary, fontSize: 13, outline: 'none'
                         }}
                       />
@@ -200,7 +200,7 @@ export default function InterviewLog() {
                       placeholder="List the technical and behavioral questions..."
                       rows={4}
                       style={{
-                        width: '100%', background: '#0d1117', border: `1px solid ${COLORS.border}`,
+                        width: '100%', background: 'var(--student-bg)', border: `1px solid ${COLORS.border}`,
                         borderRadius: 6, padding: '10px 14px', color: COLORS.primary, fontSize: 13, outline: 'none', resize: 'none'
                       }}
                     />
@@ -209,7 +209,7 @@ export default function InterviewLog() {
                     whileHover={{ background: COLORS.accentHover }}
                     onClick={handleAddEntry}
                     style={{
-                      background: COLORS.accent, color: '#0d1117', border: 'none', borderRadius: 8,
+                      background: COLORS.accent, color: 'var(--student-bg)', border: 'none', borderRadius: 8,
                       padding: '12px', fontSize: 14, fontWeight: 700, cursor: 'pointer', marginTop: 'auto'
                     }}
                   >

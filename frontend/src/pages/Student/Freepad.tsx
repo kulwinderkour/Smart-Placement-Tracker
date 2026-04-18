@@ -16,11 +16,11 @@ type FreepadStoreV1 = {
 
 const STORAGE_KEY = 'freepad:v1'
 const ACCENT = '#1D9E75'
-const BG = '#0d1117'
-const SURFACE = '#161b22'
-const BORDER = '#21262d'
-const MUTED = '#7d8590'
-const TEXT = '#e6edf3'
+const BG = 'var(--student-bg)'
+const SURFACE = 'var(--student-surface)'
+const BORDER = 'var(--student-border)'
+const MUTED = 'var(--student-text-muted)'
+const TEXT = 'var(--student-text)'
 
 function uid() {
   return 'p_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(2, 8)
@@ -519,7 +519,7 @@ function ToolBtn({ label, title, onClick }: { label: string; title: string; onCl
         borderRadius: 10,
         background: 'transparent',
         border: '1px solid #21262d',
-        color: '#e6edf3',
+        color: 'var(--student-text)',
         cursor: 'pointer',
         fontSize: 12,
         fontWeight: 800,
@@ -529,10 +529,10 @@ function ToolBtn({ label, title, onClick }: { label: string; title: string; onCl
       }}
       onMouseEnter={(e) => {
         ;(e.currentTarget as HTMLButtonElement).style.borderColor = ACCENT
-        ;(e.currentTarget as HTMLButtonElement).style.background = '#0d1117'
+        ;(e.currentTarget as HTMLButtonElement).style.background = 'var(--student-bg)'
       }}
       onMouseLeave={(e) => {
-        ;(e.currentTarget as HTMLButtonElement).style.borderColor = '#21262d'
+        ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--student-border)'
         ;(e.currentTarget as HTMLButtonElement).style.background = 'transparent'
       }}
     >

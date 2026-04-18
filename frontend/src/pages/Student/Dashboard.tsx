@@ -74,8 +74,8 @@ function StatCard({ value, label, icon, accent }: { value: string | number; labe
     <div 
       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{
-        background: hov ? '#181b20' : '#15181d',
-        border: `1px solid ${hov ? '#2c323b' : '#252b33'}`,
+        background: hov ? 'var(--student-surface-hover)' : 'var(--student-surface)',
+        border: `1px solid ${hov ? '#2c323b' : 'var(--student-border)'}`,
         borderRadius: 14, padding: '16px 18px', flex: 1, minWidth: 200, transition: 'all 0.2s ease',
         boxShadow: hov ? '0 8px 24px rgba(0,0,0,0.28)' : '0 3px 12px rgba(0,0,0,0.2)'
       }}>
@@ -88,8 +88,8 @@ function StatCard({ value, label, icon, accent }: { value: string | number; labe
           <path d={icon} />
         </svg>
       </div>
-      <h3 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#e6edf3', lineHeight: 1.15, letterSpacing: '-0.01em' }}>{value}</h3>
-      <p style={{ margin: '6px 0 0', fontSize: 11, color: '#8b949e', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</p>
+      <h3 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: 'var(--student-text)', lineHeight: 1.15, letterSpacing: '-0.01em' }}>{value}</h3>
+      <p style={{ margin: '6px 0 0', fontSize: 11, color: 'var(--student-text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</p>
     </div>
   )
 }
@@ -100,15 +100,15 @@ function ActionCard({ icon, title, subtitle, to }: { icon: string; title: string
     <Link to={to} 
       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{
-        background: hov ? '#181b20' : '#15181d',
-        border: `1px solid ${hov ? '#2e3540' : '#252b33'}`,
+        background: hov ? 'var(--student-surface-hover)' : 'var(--student-surface)',
+        border: `1px solid ${hov ? 'var(--student-border-strong)' : 'var(--student-border)'}`,
         borderRadius: 12, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12,
         textDecoration: 'none', transition: 'all 0.18s ease', cursor: 'pointer',
         boxShadow: hov ? '0 10px 24px rgba(0,0,0,0.25)' : '0 3px 10px rgba(0,0,0,0.18)'
       }}
     >
       <div style={{
-        color: '#6b7280', flexShrink: 0, width: 30, height: 30, borderRadius: 8,
+        color: 'var(--student-text-dim)', flexShrink: 0, width: 30, height: 30, borderRadius: 8,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: 'rgba(107, 114, 128, 0.14)', border: '1px solid rgba(107, 114, 128, 0.26)'
       }}>
@@ -117,8 +117,8 @@ function ActionCard({ icon, title, subtitle, to }: { icon: string; title: string
         </svg>
       </div>
       <div style={{ flex: 1 }}>
-        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#e6edf3', lineHeight: 1.4 }}>{title}</p>
-        <p style={{ margin: '2px 0 0', fontSize: 11, color: '#8b949e', lineHeight: 1.45 }}>{subtitle}</p>
+        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--student-text)', lineHeight: 1.4 }}>{title}</p>
+        <p style={{ margin: '2px 0 0', fontSize: 11, color: 'var(--student-text-muted)', lineHeight: 1.45 }}>{subtitle}</p>
       </div>
       <span style={{ color: hov ? '#a0a8b3' : '#606a76', fontSize: 16 }}>→</span>
     </Link>
@@ -309,7 +309,7 @@ export default function Dashboard() {
   const resumeBase = profile.resumeBase64 || profile.resume_base64
 
   return (
-    <div style={{ width: '100%', minHeight: '100vh', background: '#0f1216' }}>
+    <div style={{ width: '100%', minHeight: '100vh', background: 'var(--student-bg)' }}>
       <ConfirmActionModal
         isOpen={showLogoutConfirm}
         title="Sign out"
@@ -322,28 +322,28 @@ export default function Dashboard() {
       
       {/* ── Top Bar ── */}
       <header style={{
-        background: '#0f1216', borderBottom: '1px solid #232a33',
+        background: 'var(--student-bg)', borderBottom: '1px solid #232a33',
         padding: '18px 30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         position: 'sticky', top: 0, zIndex: 10
       }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 650, color: '#e6edf3', letterSpacing: '-0.01em' }}>
+          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 650, color: 'var(--student-text)', letterSpacing: '-0.01em' }}>
             {greeting}, {firstName} 👋
           </h1>
-          <p style={{ margin: '4px 0 0', fontSize: 12, color: '#8b949e' }}>
+          <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--student-text-muted)' }}>
             {skills.length > 0 ? `Track your profile and skills efficiently.` : `Complete your profile to boost placement readiness.`}
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {/* Notification Bell */}
-          <div style={{ color: '#888888', cursor: 'pointer', padding: '6px', borderRadius: 8 }}>
+          <div style={{ color: 'var(--student-text-muted)', cursor: 'pointer', padding: '6px', borderRadius: 8 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           </div>
 
           {/* Avatar */}
           <div style={{
             width: 34, height: 34, borderRadius: '50%',
-            background: '#6b728022', color: '#6b7280',
+            background: '#6b728022', color: 'var(--student-text-dim)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 13, fontWeight: 600, flexShrink: 0
           }}>
@@ -366,7 +366,7 @@ export default function Dashboard() {
               border: `1px solid ${logoutHov ? '#da363344' : '#29303a'}`,
               borderRadius: 8,
               padding: '6px 12px',
-              color: logoutHov ? '#f85149' : '#9aa4af',
+              color: logoutHov ? '#f85149' : 'var(--student-text-muted)',
               cursor: 'pointer',
               fontSize: 12,
               fontWeight: 500,
@@ -386,22 +386,22 @@ export default function Dashboard() {
           
           {/* Stats Row */}
           <div style={{ display: 'flex', gap: 16 }}>
-            <StatCard value={`${readiness}%`} label="Readiness" icon="M22 12h-4l-3 9L9 3l-3 9H2" accent="#6b7280" />
+            <StatCard value={`${readiness}%`} label="Readiness" icon="M22 12h-4l-3 9L9 3l-3 9H2" accent="var(--student-text-dim)" />
             <StatCard value={skills.length} label="Skills" icon="M13 2L3 14h9l-1 8 10-12h-9l1-8z" accent="#7c3aed" />
             <StatCard value={appsLoading ? '…' : applications.length} label="Apps" icon="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" accent="#1f6feb" />
             <StatCard value={`${diffDays}d`} label="To Season" icon="M12 6v6l4 2" accent="#da3633" />
           </div>
 
           {/* Readiness Bar */}
-          <div style={{ background: '#15181d', border: '1px solid #252b33', borderRadius: 14, padding: '18px 20px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: 'var(--student-surface)', border: '1px solid #252b33', borderRadius: 14, padding: '18px 20px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#e6edf3' }}>Placement Readiness</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#6b7280' }}>{readiness}%</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--student-text)' }}>Placement Readiness</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--student-text-dim)' }}>{readiness}%</span>
             </div>
-            <div style={{ height: 8, background: '#222830', borderRadius: 99, overflow: 'hidden', border: '1px solid #2c333d' }}>
-              <div style={{ width: `${readiness}%`, height: '100%', background: '#6b7280', transition: 'width 0.8s ease', boxShadow: '0 0 12px rgba(107,114,128,0.35)' }} />
+            <div style={{ height: 8, background: 'var(--student-surface-hover)', borderRadius: 99, overflow: 'hidden', border: '1px solid #2c333d' }}>
+              <div style={{ width: `${readiness}%`, height: '100%', background: 'var(--student-text-dim)', transition: 'width 0.8s ease', boxShadow: '0 0 12px rgba(107,114,128,0.35)' }} />
             </div>
-            <p style={{ margin: '10px 0 0', fontSize: 11, color: '#8b949e' }}>
+            <p style={{ margin: '10px 0 0', fontSize: 11, color: 'var(--student-text-muted)' }}>
               💡 Profile completion status. Upload your latest resume to reach 100%.
             </p>
           </div>
@@ -413,14 +413,14 @@ export default function Dashboard() {
           </div>
 
           {/* Recent Apps */}
-          <div style={{ background: '#15181d', border: '1px solid #252b33', borderRadius: 14, padding: '20px 22px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: 'var(--student-surface)', border: '1px solid #252b33', borderRadius: 14, padding: '20px 22px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h2 style={{ margin: 0, fontSize: 14, fontWeight: 650, color: '#e6edf3' }}>Recent Applications</h2>
-              <Link to="/jobs" style={{ fontSize: 12, color: '#6b7280', textDecoration: 'none', fontWeight: 500 }}>Browse Jobs →</Link>
+              <h2 style={{ margin: 0, fontSize: 14, fontWeight: 650, color: 'var(--student-text)' }}>Recent Applications</h2>
+              <Link to="/jobs" style={{ fontSize: 12, color: 'var(--student-text-dim)', textDecoration: 'none', fontWeight: 500 }}>Browse Jobs →</Link>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {appsLoading ? (
-                <p style={{ fontSize: 13, color: '#888888', margin: 0 }}>Loading…</p>
+                <p style={{ fontSize: 13, color: 'var(--student-text-muted)', margin: 0 }}>Loading…</p>
               ) : applications.length > 0 ? applications.slice(0, 5).map((app, i) => {
                 const statusKey = app.status === 'applied' ? 'Applied'
                   : app.status === 'offer' ? 'Offered'
@@ -437,13 +437,13 @@ export default function Dashboard() {
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{
-                        width: 34, height: 34, borderRadius: 8, background: '#232a33', color: '#9aa4af',
+                        width: 34, height: 34, borderRadius: 8, background: '#232a33', color: 'var(--student-text-muted)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 500,
                         flexShrink: 0
                       }}>{app.company[0]?.toUpperCase() ?? '?'}</div>
                       <div>
-                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#e6edf3' }}>{app.company}</p>
-                        <p style={{ margin: 0, fontSize: 11, color: '#8b949e' }}>{app.role} · {appliedDate}</p>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--student-text)' }}>{app.company}</p>
+                        <p style={{ margin: 0, fontSize: 11, color: 'var(--student-text-muted)' }}>{app.role} · {appliedDate}</p>
                       </div>
                     </div>
                     <span style={{
@@ -453,8 +453,8 @@ export default function Dashboard() {
                   </div>
                 )
               }) : (
-                <p style={{ fontSize: 13, color: '#888888', margin: 0 }}>
-                  No applications yet. <Link to="/jobs" style={{ color: '#20c997', textDecoration: 'none' }}>Browse jobs →</Link>
+                <p style={{ fontSize: 13, color: 'var(--student-text-muted)', margin: 0 }}>
+                  No applications yet. <Link to="/jobs" style={{ color: '#a78bfa', textDecoration: 'none' }}>Browse jobs →</Link>
                 </p>
               )}
             </div>
@@ -469,13 +469,13 @@ export default function Dashboard() {
               zIndex: 100, backdropFilter: 'blur(4px)'
             }}>
               <div style={{
-                background: '#1c1c1c', border: '1px solid #2d2d2d', borderRadius: '12px',
+                background: 'var(--student-surface)', border: '1px solid #2d2d2d', borderRadius: '12px',
                 width: '100%', maxWidth: '450px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
               }}>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#e0e0e0' }}>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: 'var(--student-text)' }}>
                   Apply for {activeJobForApply.title}
                 </h3>
-                <p style={{ fontSize: '13px', color: '#888888', marginTop: '4px', marginBottom: '16px' }}>
+                <p style={{ fontSize: '13px', color: 'var(--student-text-muted)', marginTop: '4px', marginBottom: '16px' }}>
                   {activeJobForApply.company} · {activeJobForApply.location}
                 </p>
 
@@ -495,10 +495,10 @@ export default function Dashboard() {
                   return (
                     <div style={{ background: `${scoreColor}0d`, border: `1px solid ${scoreColor}40`, borderRadius: '10px', padding: '12px 14px', marginBottom: '16px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '13px', color: '#e0e0e0', fontWeight: 500 }}>{msg} — Your profile match</span>
+                        <span style={{ fontSize: '13px', color: 'var(--student-text)', fontWeight: 500 }}>{msg} — Your profile match</span>
                         <span style={{ fontSize: '22px', fontWeight: 800, color: scoreColor }}>{score}%</span>
                       </div>
-                      <div style={{ height: '6px', background: '#2d2d2d', borderRadius: '3px', overflow: 'hidden', marginBottom: '10px' }}>
+                      <div style={{ height: '6px', background: 'var(--student-border)', borderRadius: '3px', overflow: 'hidden', marginBottom: '10px' }}>
                         <div style={{ width: `${score}%`, height: '100%', background: scoreColor, borderRadius: '3px', transition: 'width 0.6s ease' }} />
                       </div>
                       <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
@@ -514,7 +514,7 @@ export default function Dashboard() {
                 })()}
 
                 <div style={{ marginBottom: '16px' }}>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#555555', marginBottom: '8px', textTransform: 'uppercase' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--student-text-dim)', marginBottom: '8px', textTransform: 'uppercase' }}>
                     Notes for the Placement Cell / Company
                   </label>
                   <textarea 
@@ -522,8 +522,8 @@ export default function Dashboard() {
                     onChange={(e) => setApplyNotes(e.target.value)}
                     placeholder="Briefly state your interest or mention any relevant details..."
                     style={{
-                      width: '100%', height: '120px', background: '#121212', border: '1px solid #2d2d2d',
-                      borderRadius: '8px', padding: '12px', color: '#e0e0e0', fontSize: '14px',
+                      width: '100%', height: '120px', background: 'var(--student-bg)', border: '1px solid #2d2d2d',
+                      borderRadius: '8px', padding: '12px', color: 'var(--student-text)', fontSize: '14px',
                       resize: 'none', outline: 'none'
                     }}
                   />
@@ -533,15 +533,15 @@ export default function Dashboard() {
                   <button onClick={() => { setShowApplyModal(false); setApplyNotes(''); }}
                     style={{
                       flex: 1, background: 'transparent', border: '1px solid #2d2d2d',
-                      color: '#e0e0e0', borderRadius: '8px', padding: '10px', fontSize: '14px',
+                      color: 'var(--student-text)', borderRadius: '8px', padding: '10px', fontSize: '14px',
                       fontWeight: 600, cursor: 'pointer'
                     }}>
                     Cancel
                   </button>
                   <button onClick={handleManualApply} disabled={isApplying}
                     style={{
-                      flex: 1, background: '#6b7280', border: 'none',
-                      color: '#121212', borderRadius: '8px', padding: '10px', fontSize: '14px',
+                      flex: 1, background: 'var(--student-text-dim)', border: 'none',
+                      color: 'var(--student-bg)', borderRadius: '8px', padding: '10px', fontSize: '14px',
                       fontWeight: 600, cursor: isApplying ? 'not-allowed' : 'pointer',
                       opacity: isApplying ? 0.7 : 1
                     }}>
@@ -557,46 +557,46 @@ export default function Dashboard() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <h2 style={{ color: '#e0e0e0', fontSize: '16px', fontWeight: 600, margin: 0 }}>
+                  <h2 style={{ color: 'var(--student-text)', fontSize: '16px', fontWeight: 600, margin: 0 }}>
                     Opportunities from SmartPlacement
                   </h2>
                   <span style={{
-                    background: '#6b7280', color: '#121212', fontSize: '10px', fontWeight: 700,
+                    background: 'var(--student-text-dim)', color: 'var(--student-bg)', fontSize: '10px', fontWeight: 700,
                     padding: '2px 8px', borderRadius: '20px', letterSpacing: '0.05em'
                   }}>VERIFIED</span>
                 </div>
-                <p style={{ color: '#888888', fontSize: '12px', marginTop: '3px' }}>
+                <p style={{ color: 'var(--student-text-muted)', fontSize: '12px', marginTop: '3px' }}>
                   Handpicked opportunities posted directly by our placement team
                 </p>
               </div>
-              <span style={{ color: '#888888', fontSize: '12px' }}>
+              <span style={{ color: 'var(--student-text-muted)', fontSize: '12px' }}>
                 {adminJobs.length} active opening{adminJobs.length !== 1 ? 's' : ''}
               </span>
             </div>
 
-            <div style={{ height: '1px', background: '#242b34', marginBottom: '16px' }} />
+            <div style={{ height: '1px', background: 'var(--student-border)', marginBottom: '16px' }} />
 
             {/* Auto apply bar */}
             <div style={{
-              background: '#15181d', border: '1px solid #252b33',
+              background: 'var(--student-surface)', border: '1px solid #252b33',
               borderRadius: '14px', padding: '15px 18px',
               display: 'flex', alignItems: 'center', gap: '12px',
               marginBottom: '16px', flexWrap: 'wrap'
             }}>
-              <span style={{ color: '#e0e0e0', fontSize: '13px', fontWeight: 500 }}>
+              <span style={{ color: 'var(--student-text)', fontSize: '13px', fontWeight: 500 }}>
                 Auto Apply Agent
               </span>
-              <span style={{ color: '#888888', fontSize: '12px' }}>
+              <span style={{ color: 'var(--student-text-muted)', fontSize: '12px' }}>
                 Apply to all eligible jobs above
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
-                <span style={{ color: '#888888', fontSize: '12px' }}>Min package:</span>
+                <span style={{ color: 'var(--student-text-muted)', fontSize: '12px' }}>Min package:</span>
                 <select
                   value={minPackage}
                   onChange={e => setMinPackage(Number(e.target.value))}
                   aria-label="Minimum package filter"
                   title="Minimum package filter"
-                  style={{ background: '#121212', border: '1px solid #2d2d2d', borderRadius: '6px', color: '#e0e0e0', padding: '6px 10px', fontSize: '12px' }}
+                  style={{ background: 'var(--student-bg)', border: '1px solid #2d2d2d', borderRadius: '6px', color: 'var(--student-text)', padding: '6px 10px', fontSize: '12px' }}
                 >
                   {[5, 8, 10, 12, 15, 20, 25, 30].map(p => (
                     <option key={p} value={p}>₹{p} LPA+</option>
@@ -606,8 +606,8 @@ export default function Dashboard() {
                   onClick={() => setAutoApplyOpen(true)}
                   disabled={jobsLoading}
                   style={{
-                    background: jobsLoading ? '#2d2d2d' : '#7c3aed',
-                    color: jobsLoading ? '#888888' : 'white',
+                    background: jobsLoading ? 'var(--student-border)' : '#7c3aed',
+                    color: jobsLoading ? 'var(--student-text-muted)' : 'white',
                     border: 'none', borderRadius: '6px',
                     padding: '7px 16px', fontSize: '12px',
                     fontWeight: 600, cursor: jobsLoading ? 'not-allowed' : 'pointer',
@@ -632,14 +632,14 @@ export default function Dashboard() {
             {jobsLoading && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
                 {[1, 2].map(i => (
-                  <div key={i} style={{ background: '#1c1c1c', border: '1px solid #2d2d2d', borderRadius: '10px', padding: '18px', height: '100px' }} />
+                  <div key={i} style={{ background: 'var(--student-surface)', border: '1px solid #2d2d2d', borderRadius: '10px', padding: '18px', height: '100px' }} />
                 ))}
               </div>
             )}
 
             {!jobsLoading && adminJobs.length === 0 && (
-              <div style={{ background: '#1c1c1c', border: '1px solid #2d2d2d', borderRadius: '10px', padding: '32px', textAlign: 'center' }}>
-                <p style={{ color: '#555555', fontSize: '13px' }}>No opportunities posted yet. Check back soon.</p>
+              <div style={{ background: 'var(--student-surface)', border: '1px solid #2d2d2d', borderRadius: '10px', padding: '32px', textAlign: 'center' }}>
+                <p style={{ color: 'var(--student-text-dim)', fontSize: '13px' }}>No opportunities posted yet. Check back soon.</p>
               </div>
             )}
 
@@ -649,7 +649,7 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', height: '100%', overflowY: 'auto', paddingRight: '6px', paddingBottom: '16px' }}>
                   {adminJobs.map(job => {
                     const ms = matchScores[job.id];
-                    const scoreColor = !ms || ms.loading || ms.score === undefined ? '#555555'
+                    const scoreColor = !ms || ms.loading || ms.score === undefined ? 'var(--student-text-dim)'
                       : ms.score >= 70 ? '#3fb950'
                       : ms.score >= 40 ? '#d29922'
                       : '#f85149';
@@ -658,26 +658,26 @@ export default function Dashboard() {
                       <div key={job.id}
                         onClick={() => setSelectedJob(job)}
                         style={{
-                          background: isSelected ? '#1e2a26' : '#1c1c1c',
-                          border: `1px solid ${isSelected ? '#6b728060' : '#2d2d2d'}`,
-                          borderLeft: `3px solid ${isSelected ? '#6b7280' : 'transparent'}`,
+                          background: isSelected ? '#1e2a26' : 'var(--student-surface)',
+                          border: `1px solid ${isSelected ? '#6b728060' : 'var(--student-border)'}`,
+                          borderLeft: `3px solid ${isSelected ? 'var(--student-text-dim)' : 'transparent'}`,
                           borderRadius: '10px',
                           boxShadow: isSelected ? '0 0 0 1px #6b728020, 0 8px 24px rgba(0,0,0,0.3)' : 'none',
                           padding: '16px', transition: 'all 0.2s ease', cursor: 'pointer',
                         }}
-                        onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.background = '#222'; e.currentTarget.style.borderColor = '#383838'; } }}
-                        onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.background = '#1c1c1c'; e.currentTarget.style.borderColor = '#2d2d2d'; } }}>
+                        onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.background = '#222'; e.currentTarget.style.borderColor = 'var(--student-border)'; } }}
+                        onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.background = 'var(--student-surface)'; e.currentTarget.style.borderColor = 'var(--student-border)'; } }}>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                           <div style={{ flex: 1 }}>
-                            <div style={{ color: '#e0e0e0', fontSize: '14px', fontWeight: 600, lineHeight: 1.3 }}>{job.title}</div>
-                            <div style={{ color: '#888888', fontSize: '12px', marginTop: '2px' }}>{job.company || job.company_name}</div>
+                            <div style={{ color: 'var(--student-text)', fontSize: '14px', fontWeight: 600, lineHeight: 1.3 }}>{job.title}</div>
+                            <div style={{ color: 'var(--student-text-muted)', fontSize: '12px', marginTop: '2px' }}>{job.company || job.company_name}</div>
                           </div>
                           <div style={{
                             width: '36px', height: '36px', borderRadius: '8px',
-                            background: '#2d2d2d', border: '1px solid #383838',
+                            background: 'var(--student-border)', border: '1px solid #383838',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: '#e0e0e0', fontWeight: 700, fontSize: '15px',
+                            color: 'var(--student-text)', fontWeight: 700, fontSize: '15px',
                             flexShrink: 0, overflow: 'hidden', marginLeft: '10px',
                           }}>
                             {job.company_logo ? <img src={job.company_logo} alt={job.company || job.company_name || 'Company'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (job.company || job.company_name)?.charAt(0).toUpperCase()}
@@ -685,7 +685,7 @@ export default function Dashboard() {
                         </div>
 
                         <div style={{ marginTop: '10px', marginBottom: '8px' }}>
-                          <span style={{ background: 'rgba(107,114,128,0.1)', color: '#6b7280', border: '1px solid rgba(107,114,128,0.25)', borderRadius: '5px', padding: '3px 9px', fontSize: '11px', fontWeight: 600 }}>
+                          <span style={{ background: 'rgba(107,114,128,0.1)', color: 'var(--student-text-dim)', border: '1px solid rgba(107,114,128,0.25)', borderRadius: '5px', padding: '3px 9px', fontSize: '11px', fontWeight: 600 }}>
                             {formatPackage(job.package_lpa || job.salary_min)}
                           </span>
                         </div>
@@ -720,7 +720,7 @@ export default function Dashboard() {
                               {ms.loading ? '⏳ Scoring...' : ms.score === undefined || ms.score === null ? '🎯 N/A' : `🎯 ${ms.score}% match`}
                             </span>
                           ) : <div />}
-                          <span style={{ color: '#6b7280', fontSize: '11px', fontWeight: 500 }}>View →</span>
+                          <span style={{ color: 'var(--student-text-dim)', fontSize: '11px', fontWeight: 500 }}>View →</span>
                         </div>
                       </div>
                     );
@@ -729,7 +729,7 @@ export default function Dashboard() {
 
                 {/* Right Column: Job Detail Panel */}
                 <div style={{
-                  background: '#1c1c1c',
+                  background: 'var(--student-surface)',
                   border: '1px solid #2d2d2d',
                   borderRadius: '12px',
                   padding: '24px',
@@ -749,13 +749,13 @@ export default function Dashboard() {
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '18px' }}>
                         <div style={{ flex: 1 }}>
-                          <h2 style={{ color: '#e0e0e0', fontSize: '18px', fontWeight: 700, margin: '0 0 3px', lineHeight: 1.3 }}>{selectedJob.title}</h2>
+                          <h2 style={{ color: 'var(--student-text)', fontSize: '18px', fontWeight: 700, margin: '0 0 3px', lineHeight: 1.3 }}>{selectedJob.title}</h2>
                           <p style={{ color: '#888', fontSize: '13px', margin: 0 }}>{selectedJob.company || selectedJob.company_name}</p>
                         </div>
                         <div style={{
                           width: '48px', height: '48px', borderRadius: '10px',
-                          background: '#2d2d2d', border: '1px solid #383838',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e0e0e0', fontWeight: 700,
+                          background: 'var(--student-border)', border: '1px solid #383838',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--student-text)', fontWeight: 700,
                           fontSize: '20px', flexShrink: 0, overflow: 'hidden', marginLeft: '14px',
                         }}>
                           {selectedJob.company_logo ? <img src={selectedJob.company_logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (selectedJob.company || selectedJob.company_name)?.charAt(0).toUpperCase()}
@@ -765,24 +765,24 @@ export default function Dashboard() {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px', padding: '14px', background: '#161616', borderRadius: '8px', border: '1px solid #2d2d2d' }}>
                         <div>
                           <p style={{ color: '#555', fontSize: '10px', textTransform: 'uppercase', margin: '0 0 3px', fontWeight: 600, letterSpacing: '0.05em' }}>Salary</p>
-                          <p style={{ color: '#6b7280', fontSize: '13px', margin: 0, fontWeight: 600 }}>{formatPackage(selectedJob.package_lpa || selectedJob.salary_min)}</p>
+                          <p style={{ color: 'var(--student-text-dim)', fontSize: '13px', margin: 0, fontWeight: 600 }}>{formatPackage(selectedJob.package_lpa || selectedJob.salary_min)}</p>
                         </div>
                         {selectedJob.location && (
                           <div>
                             <p style={{ color: '#555', fontSize: '10px', textTransform: 'uppercase', margin: '0 0 3px', fontWeight: 600, letterSpacing: '0.05em' }}>Location</p>
-                            <p style={{ color: '#e0e0e0', fontSize: '13px', margin: 0, fontWeight: 500 }}>{selectedJob.location}</p>
+                            <p style={{ color: 'var(--student-text)', fontSize: '13px', margin: 0, fontWeight: 500 }}>{selectedJob.location}</p>
                           </div>
                         )}
                         {selectedJob.job_type && (
                           <div>
                             <p style={{ color: '#555', fontSize: '10px', textTransform: 'uppercase', margin: '0 0 3px', fontWeight: 600, letterSpacing: '0.05em' }}>Job Type</p>
-                            <p style={{ color: '#e0e0e0', fontSize: '13px', margin: 0, fontWeight: 500 }}>{selectedJob.job_type}</p>
+                            <p style={{ color: 'var(--student-text)', fontSize: '13px', margin: 0, fontWeight: 500 }}>{selectedJob.job_type}</p>
                           </div>
                         )}
                         {selectedJob.openings && (
                           <div>
                             <p style={{ color: '#555', fontSize: '10px', textTransform: 'uppercase', margin: '0 0 3px', fontWeight: 600, letterSpacing: '0.05em' }}>Openings</p>
-                            <p style={{ color: '#e0e0e0', fontSize: '13px', margin: 0, fontWeight: 500 }}>{selectedJob.openings}</p>
+                            <p style={{ color: 'var(--student-text)', fontSize: '13px', margin: 0, fontWeight: 500 }}>{selectedJob.openings}</p>
                           </div>
                         )}
                       </div>
@@ -790,9 +790,9 @@ export default function Dashboard() {
                       {selectedJob.description && (
                         <>
                           <div style={{ borderLeft: '3px solid #6b7280', paddingLeft: '10px', marginBottom: '10px', marginTop: '18px' }}>
-                            <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: 600 }}>Job description</span>
+                            <span style={{ color: 'var(--student-text-dim)', fontSize: '13px', fontWeight: 600 }}>Job description</span>
                           </div>
-                          <p style={{ color: '#b0b0b0', fontSize: '13px', lineHeight: 1.65, margin: 0, whiteSpace: 'pre-wrap' }}>
+                          <p style={{ color: 'var(--student-text-muted)', fontSize: '13px', lineHeight: 1.65, margin: 0, whiteSpace: 'pre-wrap' }}>
                             {selectedJob.description}
                           </p>
                         </>
@@ -801,7 +801,7 @@ export default function Dashboard() {
                       {selectedJob.required_skills && selectedJob.required_skills.length > 0 && (
                         <>
                           <div style={{ borderLeft: '3px solid #6b7280', paddingLeft: '10px', marginBottom: '10px', marginTop: '18px' }}>
-                            <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: 600 }}>Required skills</span>
+                            <span style={{ color: 'var(--student-text-dim)', fontSize: '13px', fontWeight: 600 }}>Required skills</span>
                           </div>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                             {selectedJob.required_skills.map((skill: string, idx: number) => {
@@ -824,18 +824,18 @@ export default function Dashboard() {
                       {selectedJob.min_cgpa > 0 && (
                         <>
                           <div style={{ borderLeft: '3px solid #6b7280', paddingLeft: '10px', marginBottom: '10px', marginTop: '18px' }}>
-                            <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: 600 }}>Eligibility</span>
+                            <span style={{ color: 'var(--student-text-dim)', fontSize: '13px', fontWeight: 600 }}>Eligibility</span>
                           </div>
-                          <p style={{ color: '#b0b0b0', fontSize: '13px', margin: 0 }}>Minimum CGPA: {selectedJob.min_cgpa}</p>
+                          <p style={{ color: 'var(--student-text-muted)', fontSize: '13px', margin: 0 }}>Minimum CGPA: {selectedJob.min_cgpa}</p>
                         </>
                       )}
 
                       {selectedJob.application_deadline && (
                         <>
                           <div style={{ borderLeft: '3px solid #6b7280', paddingLeft: '10px', marginBottom: '10px', marginTop: '18px' }}>
-                            <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: 600 }}>Deadline</span>
+                            <span style={{ color: 'var(--student-text-dim)', fontSize: '13px', fontWeight: 600 }}>Deadline</span>
                           </div>
-                          <p style={{ color: '#b0b0b0', fontSize: '13px', margin: 0 }}>
+                          <p style={{ color: 'var(--student-text-muted)', fontSize: '13px', margin: 0 }}>
                             {new Date(selectedJob.application_deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                             {(() => {
                               const diff = new Date(selectedJob.application_deadline).getTime() - new Date().getTime();
@@ -886,7 +886,7 @@ export default function Dashboard() {
                             if (selectedJob.apply_link) {
                                 return (
                                   <a href={selectedJob.apply_link} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-                                    <button style={{ width: '100%', background: '#6b7280', color: '#0d1117', border: 'none', borderRadius: '8px', padding: '11px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'opacity 0.2s' }}
+                                    <button style={{ width: '100%', background: 'var(--student-text-dim)', color: 'var(--student-bg)', border: 'none', borderRadius: '8px', padding: '11px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'opacity 0.2s' }}
                                       onMouseEnter={e => e.currentTarget.style.opacity = '0.88'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
                                       Apply Externally ↗
                                     </button>
@@ -895,7 +895,7 @@ export default function Dashboard() {
                             } else {
                                 return (
                                   <button onClick={() => { setActiveJobForApply(selectedJob); setShowApplyModal(true); }}
-                                    style={{ width: '100%', background: '#6b7280', color: '#0d1117', border: 'none', borderRadius: '8px', padding: '11px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'opacity 0.2s' }}
+                                    style={{ width: '100%', background: 'var(--student-text-dim)', color: 'var(--student-bg)', border: 'none', borderRadius: '8px', padding: '11px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'opacity 0.2s' }}
                                     onMouseEnter={e => e.currentTarget.style.opacity = '0.88'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
                                     Apply Now
                                   </button>
@@ -916,46 +916,46 @@ export default function Dashboard() {
 
         {/* Right Panel - Profile Summary */}
         <aside style={{
-          background: '#15181d', border: '1px solid #252b33', borderRadius: 14,
+          background: 'var(--student-surface)', border: '1px solid #252b33', borderRadius: 14,
           padding: '20px', position: 'sticky', top: 16, height: 'fit-content'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
             <div style={{
-              width: 48, height: 48, borderRadius: '50%', background: '#6b728018', color: '#6b7280',
+              width: 48, height: 48, borderRadius: '50%', background: '#6b728018', color: 'var(--student-text-dim)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 600
             }}>{firstName[0].toUpperCase()}</div>
             <div>
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 650, color: '#e6edf3' }}>{profile.fullName || 'User'}</h3>
-              <p style={{ margin: 0, fontSize: 11, color: '#8b949e' }}>Batch of {profile.graduationYear}</p>
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 650, color: 'var(--student-text)' }}>{profile.fullName || 'User'}</h3>
+              <p style={{ margin: 0, fontSize: 11, color: 'var(--student-text-muted)' }}>Batch of {profile.graduationYear}</p>
             </div>
           </div>
 
-          <div style={{ height: 1, background: '#242b34', margin: '16px 0' }} />
+          <div style={{ height: 1, background: 'var(--student-border)', margin: '16px 0' }} />
 
           {/* CGPA Section */}
           <div style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 11, color: '#8b949e' }}>Academic CGPA</span>
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#e6edf3' }}>{profile.cgpa || profile.cgpa} / 10</span>
+              <span style={{ fontSize: 11, color: 'var(--student-text-muted)' }}>Academic CGPA</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--student-text)' }}>{profile.cgpa || profile.cgpa} / 10</span>
             </div>
-            <div style={{ height: 6, background: '#222830', borderRadius: 99, border: '1px solid #2c333d' }}>
-              <div style={{ width: `${(cgpaNum / 10) * 100}%`, height: '100%', background: '#6b7280', borderRadius: 2 }} />
+            <div style={{ height: 6, background: 'var(--student-surface-hover)', borderRadius: 99, border: '1px solid var(--student-border)' }}>
+              <div style={{ width: `${(cgpaNum / 10) * 100}%`, height: '100%', background: 'var(--student-accent)', borderRadius: 2 }} />
             </div>
           </div>
 
           {/* Skills Section */}
           <div style={{ marginBottom: 20 }}>
-            <p style={{ margin: '0 0 10px', fontSize: 11, fontWeight: 600, color: '#555555', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Skills</p>
+            <p style={{ margin: '0 0 10px', fontSize: 11, fontWeight: 600, color: 'var(--student-text-dim)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Skills</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {skills.map(s => (
                 <span key={s} style={{
-                  background: '#20262f', color: '#a7b0bb', padding: '4px 10px', borderRadius: 999, fontSize: 11, border: '1px solid #2d353f'
+                  background: 'var(--student-surface-hover)', color: 'var(--student-text-secondary)', padding: '4px 10px', borderRadius: 999, fontSize: 11, border: '1px solid var(--student-border)'
                 }}>{s}</span>
               ))}
             </div>
           </div>
 
-          <div style={{ height: 1, background: '#242b34', margin: '16px 0' }} />
+          <div style={{ height: 1, background: 'var(--student-border)', margin: '16px 0' }} />
 
           {/* Resume Section */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -979,9 +979,9 @@ export default function Dashboard() {
           </div>
 
           <Link to="/profile" style={{
-            display: 'block', marginTop: 24, textAlign: 'center', fontSize: 13, fontWeight: 500,
-            color: '#6b7280', textDecoration: 'none', padding: '10px', borderRadius: 6,
-            border: '1px solid #2a323d', background: '#11161b'
+            display: 'block', marginTop: 24, textAlign: 'center', fontSize: 13, fontWeight: 600,
+            color: '#ffffff', textDecoration: 'none', padding: '10px', borderRadius: 8,
+            border: '1px solid var(--student-accent)', background: 'var(--student-accent)'
           }}>Edit Profile</Link>
         </aside>
 

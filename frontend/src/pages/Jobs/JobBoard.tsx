@@ -20,36 +20,36 @@ interface Job {
 
 const JobCard = ({ job }: { job: Job }) => (
   <div style={{
-    background: '#161b22',
+    background: 'var(--student-surface)',
     border: '1px solid #21262d',
     borderRadius: '10px',
     padding: '20px',
     cursor: 'pointer',
     transition: 'border-color 0.15s'
   }}
-  onMouseEnter={e => (e.currentTarget.style.borderColor = '#30363d')}
-  onMouseLeave={e => (e.currentTarget.style.borderColor = '#21262d')}
+  onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--student-border)')}
+  onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--student-border)')}
   >
     {/* Header row */}
     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
       <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
         <div style={{
           width: '40px', height: '40px', borderRadius: '8px',
-          background: '#21262d', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', color: '#7d8590', fontWeight: 600, fontSize: '16px'
+          background: 'var(--student-border)', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', color: 'var(--student-text-muted)', fontWeight: 600, fontSize: '16px'
         }}>
           {job.company?.charAt(0) || 'J'}
         </div>
         <div>
-          <div style={{ color: '#e6edf3', fontSize: '14px', fontWeight: 600 }}>{job.title}</div>
-          <div style={{ color: '#7d8590', fontSize: '12px', marginTop: '2px' }}>{job.company} · {job.location}</div>
+          <div style={{ color: 'var(--student-text)', fontSize: '14px', fontWeight: 600 }}>{job.title}</div>
+          <div style={{ color: 'var(--student-text-muted)', fontSize: '12px', marginTop: '2px' }}>{job.company} · {job.location}</div>
         </div>
       </div>
       {/* Match score badge */}
       <div style={{
-        background: (job.matchScore ?? 0) >= 70 ? '#1a2e22' : (job.matchScore ?? 0) >= 40 ? '#2d2208' : '#21262d',
-        color: (job.matchScore ?? 0) >= 70 ? '#3fb950' : (job.matchScore ?? 0) >= 40 ? '#d29922' : '#7d8590',
-        border: `1px solid ${(job.matchScore ?? 0) >= 70 ? '#23863633' : (job.matchScore ?? 0) >= 40 ? '#9e6a0333' : '#30363d'}`,
+        background: (job.matchScore ?? 0) >= 70 ? '#1a2e22' : (job.matchScore ?? 0) >= 40 ? '#2d2208' : 'var(--student-border)',
+        color: (job.matchScore ?? 0) >= 70 ? '#3fb950' : (job.matchScore ?? 0) >= 40 ? '#d29922' : 'var(--student-text-muted)',
+        border: `1px solid ${(job.matchScore ?? 0) >= 70 ? '#23863633' : (job.matchScore ?? 0) >= 40 ? '#9e6a0333' : 'var(--student-border)'}`,
         borderRadius: '4px', padding: '3px 8px', fontSize: '11px', fontWeight: 600,
         height: 'fit-content'
       }}>
@@ -62,8 +62,8 @@ const JobCard = ({ job }: { job: Job }) => (
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
         {job.matchedSkills.map(skill => (
           <span key={skill} style={{
-            background: '#20c99718', color: '#20c997',
-            border: '1px solid #20c99733', borderRadius: '4px',
+            background: '#a78bfa18', color: '#a78bfa',
+            border: '1px solid #a78bfa33', borderRadius: '4px',
             padding: '2px 8px', fontSize: '11px'
           }}>
             ✓ {skill}
@@ -75,17 +75,17 @@ const JobCard = ({ job }: { job: Job }) => (
     {/* Footer row */}
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <div style={{ display: 'flex', gap: '12px' }}>
-        <span style={{ color: '#7d8590', fontSize: '12px' }}>{job.salary || 'Salary not listed'}</span>
-        <span style={{ color: '#484f58', fontSize: '12px' }}>{job.posted || 'Recently'}</span>
+        <span style={{ color: 'var(--student-text-muted)', fontSize: '12px' }}>{job.salary || 'Salary not listed'}</span>
+        <span style={{ color: 'var(--student-text-dim)', fontSize: '12px' }}>{job.posted || 'Recently'}</span>
         <span style={{
-          background: '#21262d', color: '#7d8590',
+          background: 'var(--student-border)', color: 'var(--student-text-muted)',
           borderRadius: '4px', padding: '2px 8px', fontSize: '11px'
         }}>
           {job.source || 'JSearch'}
         </span>
       </div>
       <a href={job.applyUrl || job.job_apply_link} target="_blank" rel="noopener noreferrer" style={{
-        background: '#20c997', color: '#0d1117',
+        background: '#a78bfa', color: 'var(--student-bg)',
         borderRadius: '6px', padding: '6px 14px',
         fontSize: '12px', fontWeight: 600,
         textDecoration: 'none'
@@ -98,7 +98,7 @@ const JobCard = ({ job }: { job: Job }) => (
 
 const SkeletonJobCard = () => (
   <div className="skeleton" style={{
-    background: '#161b22',
+    background: 'var(--student-surface)',
     border: '1px solid #21262d',
     borderRadius: '10px',
     padding: '20px',
@@ -196,7 +196,7 @@ const JobBoard = () => {
   });
 
   return (
-    <div style={{ width: '100%', minHeight: '100vh', background: '#0d1117' }}>
+    <div style={{ width: '100%', minHeight: '100vh', background: 'var(--student-bg)' }}>
       <style>{`
         .skeleton {
           background: #161b22;
@@ -213,24 +213,24 @@ const JobBoard = () => {
 
       {/* Header */}
       <header style={{
-        background: '#0d1117', borderBottom: '1px solid #21262d',
+        background: 'var(--student-bg)', borderBottom: '1px solid #21262d',
         padding: '14px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         position: 'sticky', top: 0, zIndex: 10
       }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 18, fontWeight: 500, color: '#e6edf3' }}>Job Board</h1>
-          <p style={{ margin: '2px 0 0', fontSize: 13, color: '#7d8590' }}>
+          <h1 style={{ margin: 0, fontSize: 18, fontWeight: 500, color: 'var(--student-text)' }}>Job Board</h1>
+          <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--student-text-muted)' }}>
             Live job opportunities curated for your profile
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <button onClick={loadJobs} style={{
-            background: 'transparent', border: '1px solid #21262d', color: '#e6edf3',
+            background: 'transparent', border: '1px solid #21262d', color: 'var(--student-text)',
             borderRadius: '6px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer'
           }}>
             Refresh
           </button>
-          <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#20c99722', color: '#20c997', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600 }}>
+          <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#a78bfa22', color: '#a78bfa', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600 }}>
             {firstName[0].toUpperCase()}
           </div>
         </div>
@@ -239,15 +239,15 @@ const JobBoard = () => {
       <div style={{ padding: '20px 28px' }}>
         {/* Banner Section */}
         <div style={{ 
-          background: '#161b22', border: '1px solid #21262d', borderRadius: '10px', 
+          background: 'var(--student-surface)', border: '1px solid #21262d', borderRadius: '10px', 
           padding: '16px 20px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
         }}>
           <div>
-            <p style={{ margin: '0 0 8px', fontSize: '13px', color: '#7d8590' }}>Jobs matching your core skills:</p>
+            <p style={{ margin: '0 0 8px', fontSize: '13px', color: 'var(--student-text-muted)' }}>Jobs matching your core skills:</p>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {userSkills.map(s => (
                 <span key={s} style={{ 
-                  background: '#20c99718', color: '#20c997', border: '1px solid #20c99733', 
+                  background: '#a78bfa18', color: '#a78bfa', border: '1px solid #a78bfa33', 
                   borderRadius: '4px', padding: '2px 10px', fontSize: '11px', fontWeight: 600 
                 }}>{s}</span>
               ))}
@@ -261,23 +261,23 @@ const JobBoard = () => {
         {/* Filters Bar */}
         <div style={{ 
           display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap',
-          background: '#161b22', padding: '12px', borderRadius: '10px', border: '1px solid #21262d'
+          background: 'var(--student-surface)', padding: '12px', borderRadius: '10px', border: '1px solid #21262d'
         }}>
-          <div style={{ flex: 1, minWidth: '200px', background: '#0d1117', borderRadius: '6px', border: '1px solid #21262d', padding: '6px 12px', display: 'flex', alignItems: 'center' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7d8590" strokeWidth="2.5" style={{ marginRight: '8px' }}>
+          <div style={{ flex: 1, minWidth: '200px', background: 'var(--student-bg)', borderRadius: '6px', border: '1px solid #21262d', padding: '6px 12px', display: 'flex', alignItems: 'center' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--student-text-muted)" strokeWidth="2.5" style={{ marginRight: '8px' }}>
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
             </svg>
             <input 
               placeholder="Search companies or titles..." 
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              style={{ background: 'none', border: 'none', color: '#e6edf3', fontSize: '13px', outline: 'none', width: '100%' }}
+              style={{ background: 'none', border: 'none', color: 'var(--student-text)', fontSize: '13px', outline: 'none', width: '100%' }}
             />
           </div>
           <select 
             value={filters.location}
             onChange={e => setFilters(prev => ({ ...prev, location: e.target.value }))}
-            style={{ background: '#0d1117', border: '1px solid #21262d', color: '#e6edf3', borderRadius: '6px', padding: '6px 12px', fontSize: '13px' }}
+            style={{ background: 'var(--student-bg)', border: '1px solid #21262d', color: 'var(--student-text)', borderRadius: '6px', padding: '6px 12px', fontSize: '13px' }}
           >
             <option value="all">Anywhere</option>
             <option value="Remote">Remote</option>
@@ -288,13 +288,13 @@ const JobBoard = () => {
           <select 
             value={filters.type}
             onChange={e => setFilters(prev => ({ ...prev, type: e.target.value }))}
-            style={{ background: '#0d1117', border: '1px solid #21262d', color: '#e6edf3', borderRadius: '6px', padding: '6px 12px', fontSize: '13px' }}
+            style={{ background: 'var(--student-bg)', border: '1px solid #21262d', color: 'var(--student-text)', borderRadius: '6px', padding: '6px 12px', fontSize: '13px' }}
           >
             <option value="all">All Sources</option>
             <option value="JSearch">JSearch</option>
             <option value="Internshala">Internshala</option>
           </select>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: '#e6edf3' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: 'var(--student-text)' }}>
             <input 
               type="checkbox" 
               checked={filters.matchOnly} 
@@ -312,7 +312,7 @@ const JobBoard = () => {
             filteredJobs.map((job, idx) => <JobCard key={idx} job={job} />)
           ) : (
             <div style={{ textAlign: 'center', padding: '80px 0' }}>
-              <p style={{ color: '#7d8590', fontSize: '14px' }}>No jobs found matching your current filters.</p>
+              <p style={{ color: 'var(--student-text-muted)', fontSize: '14px' }}>No jobs found matching your current filters.</p>
               <button 
                 onClick={() => { setSearchQuery(''); setFilters({ location: 'all', type: 'all', matchOnly: false }); }}
                 style={{ background: 'none', border: 'none', color: '#58a6ff', marginTop: '12px', cursor: 'pointer', fontSize: '13px' }}
