@@ -35,7 +35,7 @@ import PrepChecklist from "./pages/Student/PrepChecklist";
 import ResourceBookmarks from "./pages/Student/ResourceBookmarks";
 import InterviewLog from "./pages/Student/InterviewLog";
 import AdminPlatformJobs from "./pages/Admin/AdminPlatformJobs";
-import PlacementPulse from "./pages/Student/PlacementPulse";
+import StreakTracker from "./pages/Student/StreakTracker";
 import Settings from "./pages/Student/Settings";
 import Freepad from "./pages/Student/Freepad";
 
@@ -225,7 +225,7 @@ export const router = createBrowserRouter([
     element: (
       <OnboardingGuard>
         <DashboardLayout>
-          <PlacementPulse />
+          <StreakTracker />
         </DashboardLayout>
       </OnboardingGuard>
     ),

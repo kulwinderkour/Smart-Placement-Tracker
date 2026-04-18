@@ -42,7 +42,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Freepad Notebook', path: '/eligibility', icon: <Icon d="M4 4h16v16H4z M8 4v16 M12 8h6 M12 12h6 M12 16h6" /> },
       { label: 'Resource Bookmarks', path: '/bookmarks', icon: <Icon d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" /> },
       { label: 'Interview Replay Log', path: '/interview-log', icon: <Icon d="M12 21a9 9 0 100-18 9 9 0 000 18zm-1-12l5 3-5 3V9z" /> },
-      { label: 'Placement Pulse', path: '/placement-pulse', icon: <Icon d="M22 12h-4l-3 9L9 3l-3 9H2" /> },
+      { label: 'Interview Scheduler', path: '/placement-pulse', icon: <Icon d="M8 2v4M16 2v4M3 10h18M3 6a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6z" /> },
     ],
   },
   {

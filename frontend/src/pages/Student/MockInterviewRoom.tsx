@@ -156,14 +156,16 @@ export default function MockInterviewRoom() {
   }, [])
 
   /* ── Webcam: getUserMedia for local preview only, nothing streamed ── */
-  async function startWebcam() {
+  async function startWebcam(e?: React.MouseEvent) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
     try {
       const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
       if (videoRef.current) videoRef.current.srcObject = s
       streamRef.current = s; setWebcamOn(true)
     } catch { console.warn('Webcam unavailable') }
   }
-  function stopWebcam() {
+  function stopWebcam(e?: React.MouseEvent) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
     streamRef.current?.getTracks().forEach(t => t.stop()); streamRef.current = null
     if (videoRef.current) videoRef.current.srcObject = null; setWebcamOn(false)
   }
@@ -254,7 +256,7 @@ export default function MockInterviewRoom() {
           border: `1px solid ${timerRed ? 'rgba(248,81,73,0.4)' : 'var(--student-border)'}`,
           borderRadius: 8, padding: '6px 14px', transition: 'all 0.4s',
         }}>{fmtTime(timeLeft)}</div>
-        <button className="end-btn" onClick={() => setPhase('complete')}
+        <button type="button" className="end-btn" onClick={() => setPhase('complete')}
           style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(220,60,60,0.5)', background: 'transparent', color: '#E05555', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
           End
         </button>
@@ -272,7 +274,7 @@ export default function MockInterviewRoom() {
               {loadErr ? (
                 <>
                   <div style={{ fontSize: 13, color: '#f85149' }}>⚠ {loadErr}</div>
-                  <button onClick={() => window.location.reload()} style={{ padding: '8px 20px', borderRadius: 8, background: 'var(--student-surface)', border: '1px solid #30363d', color: 'var(--student-text)', cursor: 'pointer' }}>Retry</button>
+                  <button type="button" onClick={() => window.location.reload()} style={{ padding: '8px 20px', borderRadius: 8, background: 'var(--student-surface)', border: '1px solid #30363d', color: 'var(--student-text)', cursor: 'pointer' }}>Retry</button>
                 </>
               ) : (
                 <>
@@ -320,7 +322,7 @@ export default function MockInterviewRoom() {
               {phase !== 'analyzing' && phase !== 'feedback' && (
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                   {phase === 'question' && (
-                    <button onClick={startListening}
+                    <button type="button" onClick={startListening}
                       style={{
                         flex: 1, padding: '13px', borderRadius: 12, border: '1px solid rgba(167,139,250,0.3)',
                         background: 'rgba(167,139,250,0.08)', color: 'var(--student-accent)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
@@ -331,11 +333,11 @@ export default function MockInterviewRoom() {
                   )}
                   {phase === 'listening' && (
                     <>
-                      <button onClick={stopListening}
+                      <button type="button" onClick={stopListening}
                         style={{ padding: '12px 20px', borderRadius: 12, border: '1px solid #30363d', background: 'var(--student-surface)', color: 'var(--student-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                         ⏸ Pause
                       </button>
-                      <button onClick={submitAnswer} disabled={!caption.trim()}
+                      <button type="button" onClick={submitAnswer} disabled={!caption.trim()}
                         style={{
                           flex: 1, padding: '13px', borderRadius: 12, border: 'none',
                           background: caption.trim() ? 'linear-gradient(135deg,var(--student-accent),var(--student-accent-hover))' : 'var(--student-border)',
@@ -347,7 +349,7 @@ export default function MockInterviewRoom() {
                     </>
                   )}
                   {phase === 'question' && caption && (
-                    <button onClick={submitAnswer}
+                    <button type="button" onClick={submitAnswer}
                       style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,var(--student-accent),var(--student-accent-hover))', color: 'var(--student-bg)', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
                       Submit Answer →
                     </button>
@@ -404,7 +406,7 @@ export default function MockInterviewRoom() {
                     </div>
                   )}
 
-                  <button onClick={nextQuestion}
+                  <button type="button" onClick={nextQuestion}
                     style={{ padding: '12px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,var(--student-accent),var(--student-accent-hover))', color: 'var(--student-bg)', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
                     {currentIdx + 1 >= questions.length ? '🏁  View Final Results' : `Next Question → (${currentIdx + 2}/${questions.length})`}
                   </button>
@@ -443,11 +445,11 @@ export default function MockInterviewRoom() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 10 }}>
-                  <button onClick={() => navigate('/mock-interview')}
+                  <button type="button" onClick={() => navigate('/mock-interview')}
                     style={{ flex: 1, padding: '13px', borderRadius: 12, border: '1px solid #30363d', background: 'transparent', color: 'var(--student-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                     New Interview
                   </button>
-                  <button onClick={() => navigate('/dashboard')}
+                  <button type="button" onClick={() => navigate('/dashboard')}
                     style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,var(--student-accent),var(--student-accent-hover))', color: 'var(--student-bg)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                     Dashboard
                   </button>
@@ -462,7 +464,7 @@ export default function MockInterviewRoom() {
           <div style={{ padding: '22px 16px 14px', borderBottom: '1px solid var(--student-surface)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 500, color: 'var(--student-border)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Camera</span>
-              <button onClick={webcamOn ? stopWebcam : startWebcam} className={webcamOn ? '' : 'cam-on-btn'}
+              <button type="button" onClick={webcamOn ? stopWebcam : startWebcam} className={webcamOn ? '' : 'cam-on-btn'}
                 style={{
                   fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 8, cursor: 'pointer',
                   border: `1px solid ${webcamOn ? 'rgba(220,60,60,0.5)' : 'var(--student-accent)'}`,
