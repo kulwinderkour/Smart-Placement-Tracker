@@ -73,18 +73,18 @@ function ThinkingDots({ thinkingText }: { thinkingText: string }) {
       `}</style>
       <div style={{
         height: '2px',
-        background: '#21262d',
+        background: 'var(--student-border)',
         borderRadius: '1px',
         overflow: 'hidden'
       }}>
         <div style={{
           height: '2px',
-          background: '#20c997',
+          background: '#a78bfa',
           borderRadius: '1px',
           animation: 'progressBar 90s linear forwards'
         }} />
       </div>
-      <p style={{ color: '#7d8590', fontSize: '11px', marginTop: '6px', marginBottom: 0 }}>
+      <p style={{ color: 'var(--student-text-muted)', fontSize: '11px', marginTop: '6px', marginBottom: 0 }}>
         {thinkingText}
       </p>
     </div>
@@ -99,7 +99,7 @@ function CollapsibleDescription({ text }: { text: string }) {
         onClick={() => setOpen(o => !o)}
         style={{
           background: 'none', border: 'none', cursor: 'pointer',
-          color: '#20c997', fontSize: 12, fontWeight: 500,
+          color: '#a78bfa', fontSize: 12, fontWeight: 500,
           padding: 0, display: 'flex', alignItems: 'center', gap: 4,
         }}
       >
@@ -120,11 +120,11 @@ function CollapsibleDescription({ text }: { text: string }) {
           style={{
             marginTop: 8,
             padding: '10px 12px',
-            background: 'rgba(32,201,151,0.06)',
-            border: '1px solid rgba(32,201,151,0.18)',
+            background: 'rgba(167,139,250,0.06)',
+            border: '1px solid rgba(167,139,250,0.18)',
             borderRadius: 8,
             fontSize: 12,
-            color: '#c9d1d9',
+            color: 'var(--student-text-secondary)',
             lineHeight: 1.65,
             whiteSpace: 'pre-wrap',
           }}
@@ -155,10 +155,10 @@ function AppliedCard({ job }: { job: JobResult }) {
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>✅</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ margin: 0, color: '#e0e0e0', fontSize: 13, fontWeight: 600 }}>
+          <p style={{ margin: 0, color: 'var(--student-text)', fontSize: 13, fontWeight: 600 }}>
             {job.title ?? 'Unknown role'}
           </p>
-          <p style={{ margin: '2px 0 0', color: '#888888', fontSize: 12 }}>
+          <p style={{ margin: '2px 0 0', color: 'var(--student-text-muted)', fontSize: 12 }}>
             {job.company ?? ''}
             {job.match_score !== undefined && (
               <span style={{ color: scoreColor, marginLeft: 8, fontWeight: 600 }}>
@@ -170,7 +170,7 @@ function AppliedCard({ job }: { job: JobResult }) {
             <p style={{ margin: '6px 0 0', color: '#3fb950', fontSize: 12, lineHeight: 1.5 }}>
               {job.result}
               {job.application_id ? (
-                <span style={{ display: 'block', marginTop: 4, color: '#7d8590', fontSize: 11 }}>
+                <span style={{ display: 'block', marginTop: 4, color: 'var(--student-text-muted)', fontSize: 11 }}>
                   Reference ID: {job.application_id}
                 </span>
               ) : null}
@@ -199,10 +199,10 @@ function SkippedCard({ job }: { job: JobResult }) {
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         <span style={{ fontSize: 15, flexShrink: 0, marginTop: 1 }}>❌</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ margin: 0, color: '#e0e0e0', fontSize: 13, fontWeight: 600 }}>
+          <p style={{ margin: 0, color: 'var(--student-text)', fontSize: 13, fontWeight: 600 }}>
             {job.title ?? 'Unknown role'}
           </p>
-          <p style={{ margin: '2px 0 0', color: '#888888', fontSize: 12 }}>
+          <p style={{ margin: '2px 0 0', color: 'var(--student-text-muted)', fontSize: 12 }}>
             {job.company && <span>{job.company} · </span>}
             <span style={{ color: '#f85149' }}>{job.reason ?? 'Skipped'}</span>
           </p>
@@ -216,14 +216,14 @@ function SummaryCard({ applied, skipped }: { applied: number; skipped: number })
   return (
     <div
       style={{
-        background: '#1c1c1c',
+        background: 'var(--student-surface)',
         border: '1px solid #2d2d2d',
         borderRadius: 12,
         padding: '16px 18px',
         marginTop: 8,
       }}
     >
-      <p style={{ margin: '0 0 10px', color: '#e0e0e0', fontWeight: 700, fontSize: 14 }}>
+      <p style={{ margin: '0 0 10px', color: 'var(--student-text)', fontWeight: 700, fontSize: 14 }}>
         🏁 Run complete
       </p>
       <div
@@ -236,7 +236,7 @@ function SummaryCard({ applied, skipped }: { applied: number; skipped: number })
         }}
       >
         <p style={{ margin: 0, color: '#3fb950', fontSize: 22, fontWeight: 700 }}>{applied}</p>
-        <p style={{ margin: '4px 0 0', color: '#888888', fontSize: 11, fontWeight: 500 }}>
+        <p style={{ margin: '4px 0 0', color: 'var(--student-text-muted)', fontSize: 11, fontWeight: 500 }}>
           Application(s) submitted — visible to admins
         </p>
       </div>
@@ -256,11 +256,11 @@ function MessageBubble({ msg, thinkingText }: { msg: Message, thinkingText?: str
         <div
           style={{
             maxWidth: '78%',
-            background: 'rgba(32,201,151,0.14)',
-            border: '1px solid rgba(32,201,151,0.28)',
+            background: 'rgba(167,139,250,0.14)',
+            border: '1px solid rgba(167,139,250,0.28)',
             borderRadius: '14px 14px 4px 14px',
             padding: '9px 13px',
-            color: '#e0e0e0',
+            color: 'var(--student-text)',
             fontSize: 13,
             lineHeight: 1.5,
           }}
@@ -276,7 +276,7 @@ function MessageBubble({ msg, thinkingText }: { msg: Message, thinkingText?: str
       <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 10 }}>
         <div
           style={{
-            background: '#1c1c1c',
+            background: 'var(--student-surface)',
             border: '1px solid #2d2d2d',
             borderRadius: '14px 14px 14px 4px',
             padding: '9px 13px',
@@ -343,11 +343,11 @@ function MessageBubble({ msg, thinkingText }: { msg: Message, thinkingText?: str
       <div
         style={{
           maxWidth: '88%',
-          background: '#1c1c1c',
+          background: 'var(--student-surface)',
           border: '1px solid #2d2d2d',
           borderRadius: '14px 14px 14px 4px',
           padding: '9px 13px',
-          color: '#c9d1d9',
+          color: 'var(--student-text-secondary)',
           fontSize: 13,
           lineHeight: 1.55,
           whiteSpace: 'pre-wrap',
@@ -548,7 +548,7 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
     <div
       style={{
         marginTop: 12,
-        background: '#121212',
+        background: 'var(--student-bg)',
         border: '1px solid #2d2d2d',
         borderRadius: 16,
         overflow: 'hidden',
@@ -567,7 +567,7 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
           justifyContent: 'space-between',
           padding: '14px 18px',
           borderBottom: '1px solid #2d2d2d',
-          background: '#1c1c1c',
+          background: 'var(--student-surface)',
           flexShrink: 0,
         }}
       >
@@ -582,7 +582,7 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
               transition: 'all 0.3s',
             }}
           />
-          <span style={{ color: '#e0e0e0', fontWeight: 700, fontSize: 14 }}>
+          <span style={{ color: 'var(--student-text)', fontWeight: 700, fontSize: 14 }}>
             Auto Apply Agent
           </span>
           {isRunning && (
@@ -603,7 +603,7 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
           disabled={isRunning}
           style={{
             background: 'none', border: 'none', cursor: isRunning ? 'not-allowed' : 'pointer',
-            color: isRunning ? '#555555' : '#888888', fontSize: 18, lineHeight: 1,
+            color: isRunning ? 'var(--student-text-dim)' : 'var(--student-text-muted)', fontSize: 18, lineHeight: 1,
             padding: '2px 4px', borderRadius: 6, transition: 'color 0.15s',
           }}
           title="Close panel"
@@ -635,7 +635,7 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
           gap: 10,
           padding: '12px 14px',
           borderTop: '1px solid #2d2d2d',
-          background: '#1c1c1c',
+          background: 'var(--student-surface)',
           flexShrink: 0,
         }}
       >
@@ -648,28 +648,28 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
           placeholder="e.g. Apply to software engineering jobs above 10 LPA"
           style={{
             flex: 1,
-            background: isRunning ? '#1a1a1a' : '#242424',
-            border: `1px solid ${isRunning ? '#2a2a2a' : '#383838'}`,
+            background: isRunning ? 'var(--student-surface)' : '#242424',
+            border: `1px solid ${isRunning ? 'var(--student-border)' : 'var(--student-border)'}`,
             borderRadius: 10,
             padding: '9px 13px',
-            color: isRunning ? '#555555' : '#e0e0e0',
+            color: isRunning ? 'var(--student-text-dim)' : 'var(--student-text)',
             fontSize: 13,
             outline: 'none',
             transition: 'border-color 0.15s, color 0.15s',
             cursor: isRunning ? 'not-allowed' : 'text',
           }}
-          onFocus={e => { if (!isRunning) e.target.style.borderColor = '#20c997' }}
-          onBlur={e => { e.target.style.borderColor = isRunning ? '#2a2a2a' : '#383838' }}
+          onFocus={e => { if (!isRunning) e.target.style.borderColor = '#a78bfa' }}
+          onBlur={e => { e.target.style.borderColor = isRunning ? 'var(--student-border)' : 'var(--student-border)' }}
         />
         <button
           onClick={handleSend}
           disabled={isRunning || !inputText.trim()}
           style={{
-            background: isRunning || !inputText.trim() ? '#1c1c1c' : '#20c997',
-            border: `1px solid ${isRunning || !inputText.trim() ? '#333333' : '#20c997'}`,
+            background: isRunning || !inputText.trim() ? 'var(--student-surface)' : '#a78bfa',
+            border: `1px solid ${isRunning || !inputText.trim() ? 'var(--student-text-dim)' : '#a78bfa'}`,
             borderRadius: 10,
             padding: '9px 16px',
-            color: isRunning || !inputText.trim() ? '#555555' : '#0d1117',
+            color: isRunning || !inputText.trim() ? 'var(--student-text-dim)' : 'var(--student-bg)',
             fontWeight: 600,
             fontSize: 13,
             cursor: isRunning || !inputText.trim() ? 'not-allowed' : 'pointer',
