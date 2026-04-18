@@ -48,12 +48,26 @@ async def register(data: UserRegister, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login", response_model=LoginResponse)
 async def login(data: UserLogin, db: AsyncSession = Depends(get_db)):
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    logger.info(f"Login attempt for email: {data.email}")
+    
     result = await db.execute(select(User).where(User.email == data.email))
     user = result.scalar_one_or_none()
+    
+    if user is None:
+        logger.warning(f"Login failed: No user found with email {data.email}")
+    else:
+        logger.info(f"User found: {user.id}. Verifying password...")
+        is_valid = verify_password(data.password, user.password_hash)
+        if not is_valid:
+            logger.warning(f"Login failed: Password mismatch for email {data.email}")
 
     if not user or not verify_password(data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
+    logger.info(f"Login successful for email: {data.email}")
     token_data = {"sub": str(user.id), "email": user.email, "role": user.role.value}
 
     is_company_profile_completed = False
