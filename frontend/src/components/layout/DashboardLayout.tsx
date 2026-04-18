@@ -15,12 +15,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div 
+      className="student-shell"
       style={{ 
         display: 'flex', 
         height: '100vh', 
         overflow: 'hidden', 
-        background: '#0d1117',
-        color: '#e6edf3',
         position: 'relative'
       }}
     >

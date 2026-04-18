@@ -19,16 +19,16 @@ interface Bookmark {
 // --- Constants ---
 
 const COLORS = {
-  bg: '#0d0d0d',
-  surface: 'rgba(255, 255, 255, 0.03)',
-  border: 'rgba(255, 255, 255, 0.07)',
-  borderHover: 'rgba(255, 255, 255, 0.13)',
-  primary: '#ece8e1',
-  secondary: 'rgba(255, 255, 255, 0.45)',
-  muted: 'rgba(255, 255, 255, 0.28)',
-  accent: '#3a6fd4',
-  accentHover: '#2f5ab8',
-  accentTint: 'rgba(58, 111, 212, 0.08)',
+  bg: 'var(--student-bg)',
+  surface: 'var(--student-surface)',
+  border: 'var(--student-border)',
+  borderHover: 'var(--student-border-strong)',
+  primary: 'var(--student-text)',
+  secondary: 'var(--student-text-secondary)',
+  muted: 'var(--student-text-muted)',
+  accent: 'var(--student-accent)',
+  accentHover: 'var(--student-accent-hover)',
+  accentTint: 'var(--student-accent-bg)',
   tags: {
     DSA: '#4a7ab5',
     Development: '#4e8f65',
@@ -36,7 +36,7 @@ const COLORS = {
     'Core Subjects': '#8a5848',
     'Soft Skills': '#6a5a9a',
     'Interview Prep': '#7a6a4a',
-    General: '#6a6a6a',
+    General: 'var(--student-text-muted)',
   } as Record<string, string>,
 };
 
@@ -325,7 +325,7 @@ export default function ResourceBookmarks() {
                     {b.tags.map(t => (
                       <span key={t} style={{
                         fontSize: 10, fontWeight: 600, padding: '3px 8px', borderRadius: 99,
-                        background: `${COLORS.tags[t] || '#6a6a6a'}1f`, color: COLORS.tags[t] || '#6a6a6a'
+                        background: `${COLORS.tags[t] || 'var(--student-text-muted)'}1f`, color: COLORS.tags[t] || 'var(--student-text-muted)'
                       }}>{t}</span>
                     ))}
                   </div>
@@ -393,7 +393,7 @@ export default function ResourceBookmarks() {
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               style={{
                 position: 'fixed', top: 0, right: 0, bottom: 0, width: 380,
-                background: '#131316', borderLeft: `1px solid ${COLORS.border}`,
+                background: 'var(--student-surface)', borderLeft: `1px solid ${COLORS.border}`,
                 zIndex: 1001, display: 'flex', flexDirection: 'column'
               }}
             >

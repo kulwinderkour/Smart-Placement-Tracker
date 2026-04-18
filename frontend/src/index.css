@@ -76,30 +76,473 @@
   box-sizing: border-box;
 }
 
+/* ─── Student dashboard — unified palette (light default) ───
+   SCOPED to .student-shell so it NEVER bleeds into the admin
+   dashboard (which owns --color-* tokens). Theme switches via
+   the `.dark` class that ThemeProvider toggles on <html>.      */
+
+.student-shell {
+    /* ══════════════════════════════════════════════════════════════
+       STUDENT DASHBOARD — LIGHT THEME (default)
+       Premium SaaS aesthetic: soft neutral canvas, elevated white
+       surfaces, layered depth via shadows (not hard borders).
+       ══════════════════════════════════════════════════════════════ */
+
+    /* ── Elevation system ────────────────────────────────────────
+       Three layers of depth:
+         shell  (grey canvas)  <  surface (white card)  <  raised
+         surface-sunken (grey) is NESTED inside white cards
+         (inputs, wells) and sits "below" the card plane.
+       ──────────────────────────────────────────────────────────── */
+    --student-bg:              #F1F5F9;   /* app canvas — slate-100 */
+    --student-surface:         #FFFFFF;   /* cards, sidebar — elevated */
+    --student-surface-hover:   #F8FAFC;   /* subtle hover tint */
+    --student-surface-raised:  #FFFFFF;   /* modals, drawers */
+    --student-surface-sunken:  #F8FAFC;   /* inputs, wells inside cards */
+
+    /* ── Borders — minimal, for hairline separation only.
+       Primary depth comes from shadows (see --student-shadow-*). */
+    --student-border:          #E2E8F0;   /* subtle hairline */
+    --student-border-strong:   #CBD5E1;   /* used on hover/focus */
+    --student-border-subtle:   rgba(15, 23, 42, 0.06);
+
+    /* ── Typography — proper hierarchy ───────────────────────────
+         text           (primary — headings, key labels)
+         text-secondary (body copy, subtitles)
+         text-muted     (metadata, helper text)
+         text-dim       (placeholders, disabled) */
+    --student-text:            #0F172A;
+    --student-text-secondary:  #475569;
+    --student-text-muted:      #64748B;
+    --student-text-dim:        #94A3B8;
+
+    /* ── Brand accent — Cool Blue (unified w/ dark mode) ───────── */
+    --student-accent:          #4DA3FF;
+    --student-accent-hover:    #3B82F6;
+    --student-accent-bg:       rgba(77, 163, 255, 0.10);
+    --student-accent-bg-hover: rgba(77, 163, 255, 0.06);
+    --student-accent-border:   rgba(77, 163, 255, 0.28);
+    --student-accent-glow:     rgba(77, 163, 255, 0.20);
+
+    /* Aliases for the universal purple-→-blue remap block. */
+    --accent:          var(--student-accent);
+    --accent-solid:    var(--student-accent);
+    --accent-hover:    var(--student-accent-hover);
+    --accent-soft:     var(--student-accent-bg);
+    --accent-border:   var(--student-accent-border);
+    --accent-glow:     var(--student-accent-glow);
+    --accent-gradient: linear-gradient(135deg, #4DA3FF, #60A5FA);
+
+    /* ── Semantic danger ────────────────────────────────────────── */
+    --student-danger:        #DC2626;
+    --student-danger-bg:     rgba(220, 38, 38, 0.08);
+    --student-danger-border: rgba(220, 38, 38, 0.28);
+
+    /* ── Elevation / shadow tokens (NEW) ─────────────────────────
+       Modern soft shadows replace hard borders for card depth.
+       Light mode shadows are layered (ambient + direct) for the
+       "floating paper" feel used in Linear, Stripe, Notion. */
+    --student-shadow-xs:
+        0 1px 2px rgba(15, 23, 42, 0.04);
+    --student-shadow-sm:
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 2px 6px rgba(15, 23, 42, 0.04);
+    --student-shadow-card:
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 4px 12px rgba(15, 23, 42, 0.06);
+    --student-shadow-card-hover:
+        0 2px 4px rgba(15, 23, 42, 0.05),
+        0 8px 24px rgba(15, 23, 42, 0.10);
+    --student-shadow-lg:
+        0 10px 30px rgba(15, 23, 42, 0.12);
+    --student-shadow-focus:
+        0 0 0 3px rgba(77, 163, 255, 0.18);
+
+    background: var(--student-bg);
+    color: var(--student-text);
+    transition: background-color 0.25s ease, color 0.2s ease;
+}
+
+/* ── Dark theme override (activated by <html class="dark">) ── */
+html.dark .student-shell {
+    /* Monochrome dark system — Linear / Notion / Stripe aesthetic.
+       Pure black-blue base, dark card surfaces, neutral borders,
+       white/grey text. NO purple, NO teal, NO colored accents. */
+    --student-bg: #020617;
+    --student-surface: #0b1220;
+    --student-surface-hover: rgba(255, 255, 255, 0.04);
+    --student-surface-raised: #0f172a;
+    --student-border: #27272a;
+    --student-border-strong: #3f3f46;
+    --student-text: #ffffff;
+    --student-text-secondary: #a1a1aa;
+    --student-text-muted: #71717a;
+    --student-text-dim: #52525b;
+
+    /* Cool Blue accent system — calm, modern, premium.
+       Used sparingly (~10% of UI): active nav, primary CTAs, focus
+       rings, progress, links. Cards / inputs / chrome stay neutral. */
+    --accent: #4da3ff;
+    --accent-hover: #3b82f6;
+    --accent-solid: #4da3ff;          /* alias for progress/icons */
+    --accent-strong: #4da3ff;
+    --accent-soft: rgba(77, 163, 255, 0.12);
+    --accent-border: rgba(77, 163, 255, 0.28);
+    --accent-glow: rgba(77, 163, 255, 0.35);
+    /* Optional CTA gradient (not used by default — available to
+       components that opt-in via var(--accent-gradient)). */
+    --accent-gradient: linear-gradient(135deg, #4da3ff, #60a5fa);
+
+    /* Legacy --student-accent* aliases — the Sidebar composes its
+       active-nav + logo tile via
+       `linear-gradient(145deg, var(--student-accent), var(--student-accent-hover))`.
+       Pointing both endpoints at the same blue gives a flat solid-blue
+       active state (per the "bg-[var(--accent)] text-white" rule). */
+    --student-accent: #4da3ff;
+    --student-accent-hover: #3b82f6;
+    --student-accent-bg: var(--accent-soft);
+    --student-accent-bg-hover: rgba(77, 163, 255, 0.06);
+    --student-accent-border: var(--accent-border);
+    --student-accent-glow: var(--accent-glow);
+
+    --student-danger: #f85149;
+    --student-danger-bg: rgba(248, 81, 73, 0.08);
+    --student-danger-border: rgba(218, 54, 51, 0.35);
+
+    /* Dark-mode elevation — minimal, borders carry the depth here.
+       Overrides the light shadows so the light-mode elevation layer
+       below (`.student-shell [style*="background: var(--student-surface)"]`)
+       degrades gracefully in dark mode (no glowy shadow on every card). */
+    --student-shadow-xs:          none;
+    --student-shadow-sm:          none;
+    --student-shadow-card:        none;
+    --student-shadow-card-hover:  0 0 0 1px var(--student-border-strong);
+    --student-shadow-lg:          0 10px 30px rgba(0, 0, 0, 0.5);
+    --student-shadow-focus:       0 0 0 3px rgba(77, 163, 255, 0.25);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   STUDENT LIGHT-THEME — ELEVATION & POLISH LAYER
+   Applies ONLY when <html> does NOT have the .dark class. Every rule
+   is scoped to `.student-shell` so admin pages are never touched.
+   Dark mode is fully preserved.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* 1. Card elevation — any element using `background: var(--student-surface)`
+      (tokenized cards, sidebar, panels) gets a soft shadow instead of a
+      hard border. The border token is simultaneously relaxed below, so
+      existing `border: 1px solid var(--student-border)` renders as a near-
+      invisible hairline that complements (not fights) the shadow. */
+html:not(.dark) .student-shell [style*="background: var(--student-surface)"],
+html:not(.dark) .student-shell [style*="background:var(--student-surface)"],
+html:not(.dark) .student-shell [style*="background-color: var(--student-surface)"],
+html:not(.dark) .student-shell [style*="background-color:var(--student-surface)"] {
+    box-shadow: var(--student-shadow-card);
+    transition: box-shadow 200ms ease, transform 200ms ease;
+}
+
+/* 2. Inputs / selects / textareas — sunken below the card plane.
+      Grey tint bg, soft border, blue focus ring. Targets the bare
+      elements (components don't need to change). */
+html:not(.dark) .student-shell input:not([type="checkbox"]):not([type="radio"]),
+html:not(.dark) .student-shell textarea,
+html:not(.dark) .student-shell select {
+    background: var(--student-surface-sunken);
+    border: 1px solid var(--student-border);
+    color: var(--student-text);
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+html:not(.dark) .student-shell input:not([type="checkbox"]):not([type="radio"]):hover,
+html:not(.dark) .student-shell textarea:hover,
+html:not(.dark) .student-shell select:hover {
+    border-color: var(--student-border-strong);
+}
+html:not(.dark) .student-shell input:not([type="checkbox"]):not([type="radio"]):focus,
+html:not(.dark) .student-shell textarea:focus,
+html:not(.dark) .student-shell select:focus,
+html:not(.dark) .student-shell input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+html:not(.dark) .student-shell textarea:focus-visible,
+html:not(.dark) .student-shell select:focus-visible {
+    outline: none;
+    border-color: var(--student-accent);
+    background: var(--student-surface);
+    box-shadow: var(--student-shadow-focus);
+}
+html:not(.dark) .student-shell ::placeholder {
+    color: var(--student-text-dim);
+}
+
+/* 3. Soften any lingering dark hardcoded borders that slipped through
+      tokenisation (e.g. `#21262d`, `#2d2d2d`, `#30363d`). In light mode
+      these look like harsh black lines; remap them to the light hairline. */
+html:not(.dark) .student-shell [style*="border: 1px solid #21262d"],
+html:not(.dark) .student-shell [style*="border:1px solid #21262d"],
+html:not(.dark) .student-shell [style*="border: 1px solid #2d2d2d"],
+html:not(.dark) .student-shell [style*="border:1px solid #2d2d2d"],
+html:not(.dark) .student-shell [style*="border: 1px solid #30363d"],
+html:not(.dark) .student-shell [style*="border:1px solid #30363d"],
+html:not(.dark) .student-shell [style*="border: 1px solid #2c333d"],
+html:not(.dark) .student-shell [style*="border: 1px solid #2d353f"] {
+    border-color: var(--student-border) !important;
+}
+
+/* 4. Kill any hardcoded dark gradient heroes in light mode.
+      The JobBoard hero uses `linear-gradient(135deg, #121212 0%, #1c1c1c 100%)` —
+      in light mode we flatten it to a white card so it matches the page. */
+html:not(.dark) .student-shell [style*="linear-gradient(135deg, #121212"],
+html:not(.dark) .student-shell [style*="linear-gradient(135deg,#121212"],
+html:not(.dark) .student-shell [style*="linear-gradient(135deg, #0d1117"],
+html:not(.dark) .student-shell [style*="linear-gradient(135deg, #161b22"] {
+    background: var(--student-surface) !important;
+    box-shadow: var(--student-shadow-card) !important;
+    border-color: var(--student-border) !important;
+}
+
+/* 5. Hardcoded dark surface backgrounds (#161b22, #1a1a1a, etc.) →
+      white surface. Catches stray card bg's that escaped tokenisation. */
+html:not(.dark) .student-shell [style*="background: #161b22"],
+html:not(.dark) .student-shell [style*="background:#161b22"],
+html:not(.dark) .student-shell [style*="background: #1a1a1a"],
+html:not(.dark) .student-shell [style*="background:#1a1a1a"],
+html:not(.dark) .student-shell [style*="background: #1c1c1c"],
+html:not(.dark) .student-shell [style*="background:#1c1c1c"],
+html:not(.dark) .student-shell [style*="background: #0d1117"],
+html:not(.dark) .student-shell [style*="background:#0d1117"] {
+    background: var(--student-surface) !important;
+    color: var(--student-text) !important;
+}
+
+/* 6. Typography polish — many subtitle/helper paragraphs inline
+      `color: #8b949e` / `#6e7681` / `#7d8590` (GitHub-grey). In light
+      mode they're nearly invisible. Remap to --student-text-secondary. */
+html:not(.dark) .student-shell [style*="color: #8b949e"],
+html:not(.dark) .student-shell [style*="color:#8b949e"],
+html:not(.dark) .student-shell [style*="color: #6e7681"],
+html:not(.dark) .student-shell [style*="color:#6e7681"],
+html:not(.dark) .student-shell [style*="color: #7d8590"],
+html:not(.dark) .student-shell [style*="color:#7d8590"],
+html:not(.dark) .student-shell [style*="color: #9aa4af"],
+html:not(.dark) .student-shell [style*="color:#9aa4af"] {
+    color: var(--student-text-secondary) !important;
+}
+
+/* 7. Headings inside the student shell — the global `h1, h2 { color: var(--text-h) }`
+      rule further down the file uses an admin-theme token that's undefined inside
+      `.student-shell`, causing h1/h2 to render faded/near-transparent (visible on
+      Roadmap, Interview Replay Log, Dashboard greetings). Pin them to the student
+      text token in BOTH themes. Sizing/weight stays whatever the component sets. */
+.student-shell h1,
+.student-shell h2,
+.student-shell h3 {
+    color: var(--student-text);
+    font-family: inherit;
+}
+
+/* 8. Scrollbar — match the new premium light aesthetic. */
+html:not(.dark) .student-shell *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+html:not(.dark) .student-shell *::-webkit-scrollbar-track {
+    background: transparent;
+}
+html:not(.dark) .student-shell *::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 99px;
+    border: 2px solid var(--student-bg);
+}
+html:not(.dark) .student-shell *::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+}
+
+/* ─── Student dark-mode colored → Cool Blue remap ────
+   Student pages inline hardcoded brand hex values (purple from the
+   original design, plus ad-hoc green CTAs). These rules remap them
+   to the blue accent system ONLY inside html.dark .student-shell.
+   Light theme and admin shell are never touched. !important wins
+   over inline style attributes. */
+
+/* IMPORTANT: React's `style={{ ... }}` prop is applied via JS property
+   assignment, which the browser normalizes and reflects back to the
+   `style` attribute as `rgb(r, g, b)` — NOT the original hex. Attribute
+   selectors like `[style*="#7c3aed"]` therefore never match runtime-
+   mounted elements. Every rule below targets BOTH the hex form (for
+   SSR / static HTML) and the `rgb()` form (for live React output).
+
+   Purple RGB map:
+     #a78bfa → rgb(167, 139, 250)
+     #7c3aed → rgb(124, 58, 237)
+     #c4b5fd → rgb(196, 181, 253)
+     #bc8cff → rgb(188, 140, 255)
+   Green RGB map:
+     #10b981 → rgb(16, 185, 129)
+     #22c55e → rgb(34, 197, 94)
+     #16a34a → rgb(22, 163, 74)
+     #059669 → rgb(5, 150, 105) */
+
+/* Purple text accents → solid blue */
+.student-shell [style*="color: #a78bfa"],
+.student-shell [style*="color:#a78bfa"],
+.student-shell [style*="color: rgb(167, 139, 250)"],
+.student-shell [style*="color: #c4b5fd"],
+.student-shell [style*="color:#c4b5fd"],
+.student-shell [style*="color: rgb(196, 181, 253)"],
+.student-shell [style*="color: #bc8cff"],
+.student-shell [style*="color:#bc8cff"],
+.student-shell [style*="color: rgb(188, 140, 255)"],
+.student-shell [style*="color: #7c3aed"],
+.student-shell [style*="color:#7c3aed"],
+.student-shell [style*="color: rgb(124, 58, 237)"] {
+    color: var(--accent-solid) !important;
+}
+
+/* Solid purple buttons → flat blue + white text (primary CTA). */
+.student-shell [style*="background: #a78bfa"],
+.student-shell [style*="background:#a78bfa"],
+.student-shell [style*="background-color: #a78bfa"],
+.student-shell [style*="background-color:#a78bfa"],
+.student-shell [style*="background: rgb(167, 139, 250)"],
+.student-shell [style*="background-color: rgb(167, 139, 250)"],
+.student-shell [style*="background: #7c3aed"],
+.student-shell [style*="background:#7c3aed"],
+.student-shell [style*="background-color: #7c3aed"],
+.student-shell [style*="background-color:#7c3aed"],
+.student-shell [style*="background: rgb(124, 58, 237)"],
+.student-shell [style*="background-color: rgb(124, 58, 237)"] {
+    background: var(--accent) !important;
+    color: #ffffff !important;
+}
+
+/* Purple borders → subtle blue border */
+.student-shell [style*="border: 1px solid #a78bfa"],
+.student-shell [style*="border:1px solid #a78bfa"],
+.student-shell [style*="border: 2px solid #a78bfa"],
+.student-shell [style*="borderColor: '#a78bfa'"],
+.student-shell [style*="border-color: #a78bfa"],
+.student-shell [style*="border: 1px solid rgb(167, 139, 250)"],
+.student-shell [style*="border-color: rgb(167, 139, 250)"],
+.student-shell [style*="border: 1px solid #7c3aed"],
+.student-shell [style*="border:1px solid #7c3aed"],
+.student-shell [style*="border: 2px solid #7c3aed"],
+.student-shell [style*="border: 1px solid rgb(124, 58, 237)"],
+.student-shell [style*="border-color: rgb(124, 58, 237)"] {
+    border-color: var(--accent-border) !important;
+}
+
+/* Green solid CTAs → flat blue. Semantic dark-bg + green-text status
+   pills (Offered / match chips) are NOT matched here. */
+.student-shell [style*="background: #10b981"],
+.student-shell [style*="background:#10b981"],
+.student-shell [style*="background: rgb(16, 185, 129)"],
+.student-shell [style*="background: #22c55e"],
+.student-shell [style*="background:#22c55e"],
+.student-shell [style*="background: rgb(34, 197, 94)"],
+.student-shell [style*="background: #16a34a"],
+.student-shell [style*="background:#16a34a"],
+.student-shell [style*="background: rgb(22, 163, 74)"],
+.student-shell [style*="background: #059669"],
+.student-shell [style*="background:#059669"],
+.student-shell [style*="background: rgb(5, 150, 105)"] {
+    background: var(--accent) !important;
+    color: #ffffff !important;
+}
+
+/* Hex-alpha purple tints — remap to Cool Blue soft/border.
+   StatCard / tag pills inline patterns like `${color}20` (tint bg) and
+   `${color}30` (tint border). Low-alpha (≤24) → --accent-soft;
+   higher-alpha (30-66) → --accent-border. */
+.student-shell [style*="#a78bfa08"],
+.student-shell [style*="#a78bfa0d"],
+.student-shell [style*="#a78bfa10"],
+.student-shell [style*="#a78bfa12"],
+.student-shell [style*="#a78bfa18"],
+.student-shell [style*="#a78bfa1a"],
+.student-shell [style*="#a78bfa20"],
+.student-shell [style*="#a78bfa22"],
+.student-shell [style*="#a78bfa24"],
+.student-shell [style*="#7c3aed08"],
+.student-shell [style*="#7c3aed0d"],
+.student-shell [style*="#7c3aed10"],
+.student-shell [style*="#7c3aed12"],
+.student-shell [style*="#7c3aed18"],
+.student-shell [style*="#7c3aed1a"],
+.student-shell [style*="#7c3aed20"],
+.student-shell [style*="#7c3aed22"],
+.student-shell [style*="#7c3aed24"] {
+    background: var(--accent-soft) !important;
+}
+.student-shell [style*="#a78bfa30"],
+.student-shell [style*="#a78bfa33"],
+.student-shell [style*="#a78bfa40"],
+.student-shell [style*="#a78bfa4d"],
+.student-shell [style*="#a78bfa66"],
+.student-shell [style*="#7c3aed30"],
+.student-shell [style*="#7c3aed33"],
+.student-shell [style*="#7c3aed40"],
+.student-shell [style*="#7c3aed4d"],
+.student-shell [style*="#7c3aed66"] {
+    border-color: var(--accent-border) !important;
+}
+
+/* rgba(167, 139, 250, ...) — purple with alpha */
+.student-shell [style*="rgba(167, 139, 250, 0.1)"],
+.student-shell [style*="rgba(167,139,250,0.1)"],
+.student-shell [style*="rgba(167, 139, 250, 0.12)"],
+.student-shell [style*="rgba(167, 139, 250, 0.14)"],
+.student-shell [style*="rgba(167, 139, 250, 0.15)"],
+.student-shell [style*="rgba(167, 139, 250, 0.2)"],
+.student-shell [style*="rgba(167, 139, 250, 0.25)"],
+.student-shell [style*="rgba(167, 139, 250, 0.3)"],
+.student-shell [style*="rgba(167, 139, 250, 0.35)"] {
+    background: var(--accent-soft) !important;
+    border-color: var(--accent-border) !important;
+}
+
+/* rgba(124, 58, 237, ...) — deep purple with alpha */
+.student-shell [style*="rgba(124, 58, 237"],
+.student-shell [style*="rgba(124,58,237"] {
+    background: var(--accent-soft) !important;
+}
+
+/* rgba(139, 92, 246, ...) — mid purple */
+.student-shell [style*="rgba(139, 92, 246"],
+.student-shell [style*="rgba(139,92,246"] {
+    background: var(--accent-soft) !important;
+}
+
+/* Subtle focus ring polish — 1px monochrome outline, no glow. */
+html.dark .student-shell *:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 1px var(--accent-border);
+}
+
 /* ─── Dark theme tokens ──────────────────────────── */
 
 .dark {
-    --color-bg-base: #e5e5e7;
-    --color-bg-surface: #1c1c1c;
-    --color-bg-elevated: #161616;
-    --color-border: #2d2d2d;
-    --color-border-strong: #404040;
-    --color-text: #e0e0e0;
-    --color-text-secondary: #b0b0b0;
-    --color-text-muted: #787878;
-    --color-accent: #6b7280;
-    --color-accent-light: #9ca3af;
-    --color-accent-bg: rgba(107, 114, 128, 0.12);
-    --color-accent-bg-hover: rgba(107, 114, 128, 0.06);
-    --color-accent-border: rgba(107, 114, 128, 0.30);
-    --color-accent-glow: rgba(107, 114, 128, 0.15);
+    /* Admin dark — deep neutral surfaces + purple accent.
+       Light-mode purple (#7c3aed) shifts to a lighter,
+       more luminous tone (#a78bfa) for dark-bg contrast. */
+    --color-bg-base: #0f1115;
+    --color-bg-surface: #171a21;
+    --color-bg-elevated: #1f232c;
+    --color-border: #272c36;
+    --color-border-strong: #383f4d;
+    --color-text: #e7e9ee;
+    --color-text-secondary: #b8bcc6;
+    --color-text-muted: #8b909b;
+    --color-accent: #a78bfa;
+    --color-accent-light: #c4b5fd;
+    --color-accent-bg: rgba(167, 139, 250, 0.14);
+    --color-accent-bg-hover: rgba(167, 139, 250, 0.08);
+    --color-accent-border: rgba(167, 139, 250, 0.35);
+    --color-accent-glow: rgba(167, 139, 250, 0.25);
     --color-danger: #f87171;
-    --color-danger-bg: rgba(239, 68, 68, 0.1);
-    --color-skeleton-from: #1c1c1c;
-    --color-skeleton-mid: #2d2d2d;
-    --color-scrollbar-track: #121212;
-    --color-scrollbar-thumb: #2d2d2d;
-    --color-scrollbar-hover: #6b7280;
+    --color-danger-bg: rgba(248, 113, 113, 0.12);
+    --color-skeleton-from: #171a21;
+    --color-skeleton-mid: #272c36;
+    --color-scrollbar-track: #0f1115;
+    --color-scrollbar-thumb: #272c36;
+    --color-scrollbar-hover: #a78bfa;
 }
 
 /* ─── Base ───────────────────────────────────────── */
@@ -253,7 +696,7 @@ body {
 }
 
 .dark .user-avatar {
-    background: linear-gradient(135deg, #16a34a, #15803d);
+    background: linear-gradient(135deg, #a78bfa, #7c3aed);
     color: #ffffff;
 }
 
@@ -265,8 +708,8 @@ body {
 }
 
 .dark .admin-badge {
-    background: rgba(74, 222, 128, 0.15);
-    color: #4ade80;
+    background: rgba(167, 139, 250, 0.15);
+    color: #c4b5fd;
 }
 
 /* ─── Theme-aware input placeholder ─────────────── */
@@ -371,6 +814,141 @@ html:not(.dark) .admin-shell [style*="border-right:1px solid #2d2d2d"] {
 html:not(.dark) .admin-shell [style*="border-top: 1px solid #2d2d2d"],
 html:not(.dark) .admin-shell [style*="border-top:1px solid #2d2d2d"] {
     border-top-color: var(--color-border) !important;
+}
+
+/* ─── Light-mode overrides — SCOPED to .student-shell ───
+   Student pages inline ~230 hardcoded hex values from the old
+   dark-only design. When <html> does NOT have .dark class these
+   rules remap those hex literals to the light --student-* tokens,
+   so every student page flips to light mode without touching
+   individual page files. Long-term, pages should migrate to
+   var(--student-*) directly and this block can shrink.          */
+
+/* ── Hardcoded dark page backgrounds → light bg ── */
+html:not(.dark) .student-shell [style*="background: #0f1216"],
+html:not(.dark) .student-shell [style*="background:#0f1216"],
+html:not(.dark) .student-shell [style*="background-color: #0f1216"],
+html:not(.dark) .student-shell [style*="background-color:#0f1216"],
+html:not(.dark) .student-shell [style*="background: #0d1117"],
+html:not(.dark) .student-shell [style*="background:#0d1117"],
+html:not(.dark) .student-shell [style*="background: #121212"],
+html:not(.dark) .student-shell [style*="background:#121212"],
+html:not(.dark) .student-shell [style*="background: #0f1115"],
+html:not(.dark) .student-shell [style*="background:#0f1115"] {
+    background: var(--student-bg) !important;
+}
+
+/* ── Hardcoded dark card/surface backgrounds → surface ── */
+html:not(.dark) .student-shell [style*="background: #15181d"],
+html:not(.dark) .student-shell [style*="background:#15181d"],
+html:not(.dark) .student-shell [style*="background: #161b22"],
+html:not(.dark) .student-shell [style*="background:#161b22"],
+html:not(.dark) .student-shell [style*="background: #1c1c1c"],
+html:not(.dark) .student-shell [style*="background:#1c1c1c"],
+html:not(.dark) .student-shell [style*="background: #1a1a1a"],
+html:not(.dark) .student-shell [style*="background:#1a1a1a"],
+html:not(.dark) .student-shell [style*="background: #1f232c"],
+html:not(.dark) .student-shell [style*="background:#1f232c"],
+html:not(.dark) .student-shell [style*="background: #171a21"],
+html:not(.dark) .student-shell [style*="background:#171a21"] {
+    background: var(--student-surface) !important;
+}
+
+/* ── Hover/elevated surfaces ── */
+html:not(.dark) .student-shell [style*="background: #181b20"],
+html:not(.dark) .student-shell [style*="background:#181b20"],
+html:not(.dark) .student-shell [style*="background: #1b1f25"],
+html:not(.dark) .student-shell [style*="background:#1b1f25"],
+html:not(.dark) .student-shell [style*="background: #222830"],
+html:not(.dark) .student-shell [style*="background:#222830"],
+html:not(.dark) .student-shell [style*="background: #232a33"],
+html:not(.dark) .student-shell [style*="background:#232a33"],
+html:not(.dark) .student-shell [style*="background: #21262d"],
+html:not(.dark) .student-shell [style*="background:#21262d"] {
+    background: var(--student-surface-hover) !important;
+}
+
+/* ── Borders — remap all common dark border values ── */
+html:not(.dark) .student-shell [style*="1px solid #252b33"],
+html:not(.dark) .student-shell [style*="1px solid #21262d"],
+html:not(.dark) .student-shell [style*="1px solid #2d2d2d"],
+html:not(.dark) .student-shell [style*="1px solid #30363d"],
+html:not(.dark) .student-shell [style*="1px solid #2c333d"],
+html:not(.dark) .student-shell [style*="1px solid #2e3540"],
+html:not(.dark) .student-shell [style*="1px solid #272c36"],
+html:not(.dark) .student-shell [style*="1px solid #29303a"] {
+    border-color: var(--student-border) !important;
+}
+
+html:not(.dark) .student-shell [style*="border-bottom: 1px solid #252b33"],
+html:not(.dark) .student-shell [style*="border-bottom:1px solid #252b33"],
+html:not(.dark) .student-shell [style*="border-bottom: 1px solid #21262d"],
+html:not(.dark) .student-shell [style*="border-bottom:1px solid #21262d"],
+html:not(.dark) .student-shell [style*="border-bottom: 1px solid #30363d"] {
+    border-bottom-color: var(--student-border) !important;
+}
+
+html:not(.dark) .student-shell [style*="border-top: 1px solid #252b33"],
+html:not(.dark) .student-shell [style*="border-top: 1px solid #21262d"],
+html:not(.dark) .student-shell [style*="border-top: 1px solid #30363d"] {
+    border-top-color: var(--student-border) !important;
+}
+
+html:not(.dark) .student-shell [style*="border-right: 1px solid #252b33"],
+html:not(.dark) .student-shell [style*="border-right: 1px solid #21262d"] {
+    border-right-color: var(--student-border) !important;
+}
+
+/* ── Text colors — remap dark-mode-only text hex to light text ── */
+html:not(.dark) .student-shell [style*="color: #e6edf3"],
+html:not(.dark) .student-shell [style*="color:#e6edf3"],
+html:not(.dark) .student-shell [style*="color: #e0e0e0"],
+html:not(.dark) .student-shell [style*="color:#e0e0e0"],
+html:not(.dark) .student-shell [style*="color: #f0f6fc"],
+html:not(.dark) .student-shell [style*="color:#f0f6fc"] {
+    color: var(--student-text) !important;
+}
+
+html:not(.dark) .student-shell [style*="color: #b0b7bf"],
+html:not(.dark) .student-shell [style*="color:#b0b7bf"],
+html:not(.dark) .student-shell [style*="color: #9aa4af"],
+html:not(.dark) .student-shell [style*="color:#9aa4af"] {
+    color: var(--student-text-secondary) !important;
+}
+
+html:not(.dark) .student-shell [style*="color: #8b949e"],
+html:not(.dark) .student-shell [style*="color:#8b949e"],
+html:not(.dark) .student-shell [style*="color: #7d8590"],
+html:not(.dark) .student-shell [style*="color:#7d8590"],
+html:not(.dark) .student-shell [style*="color: #888888"],
+html:not(.dark) .student-shell [style*="color:#888888"],
+html:not(.dark) .student-shell [style*="color: #6b7280"],
+html:not(.dark) .student-shell [style*="color:#6b7280"] {
+    color: var(--student-text-muted) !important;
+}
+
+html:not(.dark) .student-shell [style*="color: #484f58"],
+html:not(.dark) .student-shell [style*="color:#484f58"],
+html:not(.dark) .student-shell [style*="color: #333333"],
+html:not(.dark) .student-shell [style*="color:#333333"] {
+    color: var(--student-text-dim) !important;
+}
+
+/* ── Textarea/input dark bg that some pages hardcode ── */
+html:not(.dark) .student-shell input[style*="background: #0f1216"],
+html:not(.dark) .student-shell textarea[style*="background: #0f1216"],
+html:not(.dark) .student-shell input[style*="background:#0f1216"],
+html:not(.dark) .student-shell textarea[style*="background:#0f1216"],
+html:not(.dark) .student-shell input[style*="background: #161b22"],
+html:not(.dark) .student-shell textarea[style*="background: #161b22"] {
+    background: var(--student-surface) !important;
+    color: var(--student-text) !important;
+}
+
+/* ── Rings and progress tracks ── */
+html:not(.dark) .student-shell [style*="background: #222830"],
+html:not(.dark) .student-shell [style*="background: #2c333d"] {
+    background: var(--student-border) !important;
 }
 
 /* Scrollbar ──────────────────────────────────────── */

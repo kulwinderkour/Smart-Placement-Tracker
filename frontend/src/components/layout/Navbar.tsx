@@ -67,7 +67,7 @@ export default function Navbar() {
                 key={link.name}
                 to={link.path}
                 className={`text-[13px] font-medium h-[56px] flex items-center border-b-[2px] mb-[-2px] transition-colors ${
-                  isActive ? 'border-[#20c997] text-[#e6edf3]' : 'border-transparent text-[#7d8590] hover:text-[#e6edf3]'
+                  isActive ? 'border-[#a78bfa] text-[#e6edf3]' : 'border-transparent text-[#7d8590] hover:text-[#e6edf3]'
                 }`}
               >
                 {link.name}
