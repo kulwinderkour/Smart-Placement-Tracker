@@ -287,13 +287,13 @@ async def list_applicants(
             Application.status,
             Application.applied_at,
             Application.notes,
+            Application.cover_letter,
+            Application.agent_applied,
             Student.full_name.label("student_name"),
             Student.college,
             Student.branch,
             Student.graduation_year,
             Student.cgpa,
-            Student.ats_score,
-            Student.phone,
             Student.resume_url,
             Student.linkedin_url,
             Job.role_title,
@@ -326,8 +326,6 @@ async def list_applicants(
             "branch": r["branch"],
             "graduation_year": r["graduation_year"],
             "cgpa": float(r["cgpa"]) if r["cgpa"] else None,
-            "ats_score": r["ats_score"],
-            "phone": r["phone"],
             "resume_url": r["resume_url"],
             "linkedin_url": r["linkedin_url"],
             "role_title": r["role_title"],
@@ -335,6 +333,8 @@ async def list_applicants(
             "status": r["status"].value if hasattr(r["status"], "value") else r["status"],
             "applied_at": r["applied_at"].isoformat(),
             "notes": r["notes"],
+            "cover_letter": r["cover_letter"],
+            "agent_applied": r["agent_applied"],
         }
         for r in rows
     ]

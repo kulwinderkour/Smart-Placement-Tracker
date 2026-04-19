@@ -71,6 +71,8 @@ async def my_applications(
             "status": app.status.value,
             "applied_at": app.applied_at.isoformat(),
             "notes": app.notes,
+            "cover_letter": app.cover_letter,
+            "agent_applied": app.agent_applied,
         }
         for app, company_name, role_title, salary_min in apps_result.all()
     ]

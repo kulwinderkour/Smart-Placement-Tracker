@@ -3,8 +3,7 @@ import { useEffect, useState } from 'react'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
-import { applicationsApi } from '../../api/applications'
-import type { Application } from '../../types'
+import { applicationsApi, type TrackedApplication } from '../../api/applications'
 
 // ── Match score types & cache helpers ────────────────────────────────────────
 
@@ -172,11 +171,11 @@ export default function Tracker() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
-      applicationsApi.update(id, { status: status as Application['status'] }),
+      applicationsApi.update(id, { status: status as 'applied' | 'online_test' | 'technical_round' | 'hr_round' | 'offer' | 'rejected' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-applications'] }),
   })
 
-  const applications: Application[] = data?.data || []
+  const applications: TrackedApplication[] = (data?.data ?? []) as TrackedApplication[]
 
   const [matchScores, setMatchScores] = useState<Record<string, MatchData | 'loading'>>({})
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -212,13 +211,13 @@ export default function Tracker() {
             student: studentPayload,
             job: {
               id: app.job_id || '',
-              title: app.job?.role_title || '',
-              company: app.job?.company_name || '',
-              location: app.job?.location || '',
-              package_lpa: app.job?.salary_max ? app.job.salary_max / 100000 : 0,
+              title: (app as TrackedApplication).role || '',
+              company: (app as TrackedApplication).company || '',
+              location: '',
+              package_lpa: 0,
               required_skills: [],
               min_cgpa: 0,
-              job_type: app.job?.job_type || '',
+              job_type: '',
               company_type: '',
             },
           }),
@@ -332,12 +331,26 @@ export default function Tracker() {
                             {/* Title row + score badge */}
                             <div className="flex justify-between items-start mb-1">
                               <h4 className="font-medium text-sm text-gray-900 flex-1 pr-1 leading-tight">
-                                {app.job?.role_title || 'Unknown Role'}
+                                {(app as TrackedApplication).role || 'Unknown Role'}
                               </h4>
                               <MatchBadge ms={matchScores[app.id]} />
                             </div>
-                            <p className="text-xs text-gray-600 mb-0.5">{app.job?.company_name || ''}</p>
-                            <p className="text-xs text-gray-500 mb-1">{app.job?.location || ''}</p>
+                            <p className="text-xs text-gray-600 mb-0.5">{(app as TrackedApplication).company || ''}</p>
+                            {/* AI Applied badge */}
+                            {(app as TrackedApplication).agent_applied && (
+                              <span style={{
+                                display: 'inline-block', fontSize: 9, fontWeight: 700,
+                                background: 'rgba(32,201,151,0.12)', color: '#20c997',
+                                border: '1px solid rgba(32,201,151,0.28)',
+                                borderRadius: 4, padding: '1px 6px', marginBottom: 4,
+                              }}>⚡ AI Applied</span>
+                            )}
+                            {/* Cover letter snippet */}
+                            {(app as TrackedApplication).cover_letter && (
+                              <p className="text-xs text-gray-400 mb-1 line-clamp-2" style={{ fontStyle: 'italic', lineHeight: 1.4 }}>
+                                "{(app as TrackedApplication).cover_letter?.slice(0, 80)}…"
+                              </p>
+                            )}
                             {app.next_step_date && (
                               <p className="text-xs text-gray-400">
                                 Applied: {new Date(app.next_step_date).toLocaleDateString()}

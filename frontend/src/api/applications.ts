@@ -9,6 +9,8 @@ export interface TrackedApplication {
   package_lpa: number | null
   status: string
   applied_at: string
+  cover_letter?: string
+  agent_applied?: boolean
 }
 
 export const applicationsApi = {
@@ -23,7 +25,8 @@ export const applicationsApi = {
 
   trackJobBoardApplication: async (
     userId: string,
-    job: { applyUrl: string; title: string; company: string; salary?: string; description?: string }
+    job: { applyUrl: string; title: string; company: string; salary?: string; description?: string },
+    coverLetter?: string
   ): Promise<string> => {
     const upsertRes = await apiClient.post<{ id: string }>('/internal/agent/upsert-job', {
       source_url: job.applyUrl,
@@ -36,6 +39,7 @@ export const applicationsApi = {
       job_id: jobId,
       user_id: userId,
       resume_path: 'resume.pdf',
+      cover_letter: coverLetter ?? null,
     })
     return jobId
   },
