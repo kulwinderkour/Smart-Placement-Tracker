@@ -232,6 +232,8 @@ export interface ApplicationWithStudent {
   status: 'applied' | 'online_test' | 'technical_round' | 'hr_round' | 'offer' | 'rejected'
   applied_at: string
   notes?: string
+  cover_letter?: string
+  agent_applied?: boolean
 }
 
 export interface Interview {

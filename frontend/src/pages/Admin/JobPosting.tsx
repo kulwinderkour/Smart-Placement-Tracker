@@ -29,6 +29,7 @@ export default function JobPosting() {
   const [activeStep, setActiveStep] = useState<WizardStep>(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hoveredFlowNode, setHoveredFlowNode] = useState<number | null>(null);
 
   const [form, setForm] = useState<JobCreatePayload>({
     company_name: "",
@@ -121,124 +122,215 @@ export default function JobPosting() {
     }
   };
 
+  // ── interview type cards data ─────────────────────────────────────────────
+  const rightNodes = [
+    {
+      title: "Technical interview",
+      description: "Coding assessment",
+      accent: "#58a6ff",
+      action: () => {},
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#58a6ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="16 18 22 12 16 6" />
+          <polyline points="8 6 2 12 8 18" />
+        </svg>
+      ),
+    },
+    {
+      title: "MCQs",
+      description: "Aptitude & technical test",
+      accent: "#3fb950",
+      action: () => {},
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3fb950" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="8" y1="6" x2="21" y2="6" />
+          <line x1="8" y1="12" x2="21" y2="12" />
+          <line x1="8" y1="18" x2="21" y2="18" />
+          <line x1="3" y1="6" x2="3.01" y2="6" />
+          <line x1="3" y1="12" x2="3.01" y2="12" />
+          <line x1="3" y1="18" x2="3.01" y2="18" />
+        </svg>
+      ),
+    },
+    {
+      title: "HR interview",
+      description: "Behavioral round",
+      accent: "#d29922",
+      action: () => {},
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d29922" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      ),
+    },
+    {
+      title: "Manual interview",
+      description: "One-on-one session",
+      accent: "#f85149",
+      action: () => {},
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f85149" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+      ),
+    },
+  ];
+
   if (page === "menu") {
+
     return (
-      <div
-        className="w-full"
-        style={{
-          minHeight: "calc(100vh - 60px)",
-          background: "linear-gradient(180deg,#f7f8fc 0%, #ffffff 70%)",
-        }}
-      >
-        <div className="mx-auto w-full max-w-[1200px] px-6 py-10">
-          <div className="mb-8 flex items-start justify-between gap-4">
-            <h1
-              className="text-[36px] font-semibold tracking-tight"
-              style={{ color: "#000000", opacity: 1 }}
-            >
-              Create a interview
-            </h1>
+      <div style={{ background: "#ffffff", minHeight: "calc(100vh - 60px)" }}>
+        <div style={{ maxWidth: 960, margin: "0 auto", padding: "40px 32px" }}>
+
+          {/* ── page header ──────────────────────────────────────────────── */}
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 36 }}>
+            <div>
+              <h1 style={{ fontSize: 24, fontWeight: 700, color: "#111827", margin: 0 }}>
+                Set up your hiring pipeline
+              </h1>
+              <p style={{ fontSize: 13, color: "#6b7280", margin: "5px 0 0" }}>
+                Start with a job post, then layer on the interview rounds you need.
+              </p>
+            </div>
             <button
               type="button"
+              id="back-to-dashboard-btn"
               onClick={() => navigate("/admin/dashboard")}
-              className="rounded-full border px-4 py-2 text-xs font-semibold transition"
               style={{
-                background: "#ffffff",
-                borderColor: "#e7e9f2",
-                color: "#000000",
-                opacity: 1,
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background = "#f4f5fb";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.background = "#ffffff";
+                background: "transparent",
+                border: "1px solid #e5e7eb",
+                color: "#6b7280",
+                borderRadius: 8,
+                padding: "7px 16px",
+                fontSize: 12,
+                fontWeight: 500,
+                cursor: "pointer",
+                flexShrink: 0,
               }}
             >
-              Back to dashboard
+              ← Back to dashboard
             </button>
           </div>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-4">
-          {[
-            {
-              title: "Create job post",
-              description:
-                "Post new job opportunities for your students. Include role details, eligibility criteria, and application deadlines to attract top talent.",
-              cta: "Create",
-              action: goToWizard,
-            },
-            {
-              title: "Technical interview",
-              description:
-                "Schedule coding and technical assessments. Automated evaluation with real-time feedback and performance analytics.",
-              cta: "Create",
-              action: () => {},
-            },
-            {
-              title: "MCQs",
-              description:
-                "Build quick aptitude and technical MCQ tests. Set difficulty levels, time limits, and instant scoring for screening.",
-              cta: "Create",
-              action: () => {},
-            },
-            {
-              title: "HR interview",
-              description:
-                "Conduct final HR rounds with behavioral questions. Track candidate fit, salary expectations, and offer readiness.",
-              cta: "Create",
-              action: () => {},
-            },
-            {
-              title: "Manual interview",
-              description:
-                "Arrange personalized one-on-one interviews. Custom scheduling, feedback collection, and direct recruiter-student matching.",
-              cta: "Create",
-              action: () => {},
-            },
-          ].map((card, idx) => (
-            <div
-              key={`${card.title}-${idx}`}
-              className="flex min-h-[190px] flex-col justify-between rounded-2xl border bg-white p-6"
-              style={{
-                borderColor: "#e7e9f2",
-                boxShadow:
-                  "0 10px 30px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04)",
-              }}
-            >
-              <div>
-                <h2
-                  className="text-[18px] font-semibold leading-tight"
-                  style={{ color: "#000000", opacity: 1 }}
-                >
-                  {card.title}
-                </h2>
-                <p
-                  className="mt-2 text-[12px] leading-relaxed"
-                  style={{ color: "#000000", opacity: 1 }}
-                >
-                  {card.description}
-                </p>
+
+          {/* ── step 1: create job post hero card ────────────────────────── */}
+          <div
+            id="create-job-post-card"
+            style={{
+              background: "linear-gradient(135deg, #f5f3ff 0%, #ede9fe 60%, #faf5ff 100%)",
+              border: "1.5px solid #ddd6fe",
+              borderRadius: 20,
+              padding: "30px 36px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 24,
+              marginBottom: 28,
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            {/* decorative blobs */}
+            <div style={{ position: "absolute", right: -40, top: -40, width: 200, height: 200, background: "radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", right: 80, bottom: -60, width: 160, height: 160, background: "radial-gradient(circle, rgba(167,139,250,0.10) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
+
+            {/* left: icon + text */}
+            <div style={{ display: "flex", alignItems: "center", gap: 20, position: "relative", zIndex: 1 }}>
+              <div style={{ width: 56, height: 56, borderRadius: 16, background: "linear-gradient(135deg, #7c3aed, #a855f7)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 20px rgba(124,58,237,0.28)", flexShrink: 0 }}>
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                </svg>
               </div>
-              <button
-                onClick={card.action}
-                className="mt-6 w-fit rounded-xl px-8 py-2 text-sm font-semibold text-white transition"
+              <div>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#7c3aed", textTransform: "uppercase" as const, background: "rgba(124,58,237,0.10)", borderRadius: 4, padding: "2px 8px", display: "inline-block", marginBottom: 5 }}>Step 1</span>
+                <h2 style={{ fontSize: 19, fontWeight: 700, color: "#1e1b4b", margin: 0 }}>Create job post</h2>
+                <p style={{ fontSize: 13, color: "#6d28d9", margin: "3px 0 0", fontWeight: 500 }}>Define role, eligibility, salary &amp; deadline</p>
+              </div>
+            </div>
+
+            {/* right: CTA button */}
+            <button
+              type="button"
+              id="create-job-post-btn"
+              onClick={goToWizard}
+              style={{ background: "linear-gradient(135deg, #7c3aed, #9333ea)", color: "#ffffff", border: "none", borderRadius: 10, padding: "12px 28px", fontSize: 14, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, flexShrink: 0, position: "relative", zIndex: 1, boxShadow: "0 6px 18px rgba(124,58,237,0.35)", transition: "transform 0.15s, box-shadow 0.15s" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 10px 24px rgba(124,58,237,0.42)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 6px 18px rgba(124,58,237,0.35)"; }}
+            >
+              Create Job Post
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+              </svg>
+            </button>
+          </div>
+
+          {/* ── step 2 divider ────────────────────────────────────────────── */}
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 22 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#374151", textTransform: "uppercase" as const, background: "#f3f4f6", borderRadius: 4, padding: "3px 10px", whiteSpace: "nowrap" as const }}>Step 2 — optional</span>
+            <div style={{ flex: 1, height: 1, background: "#e5e7eb" }} />
+            <span style={{ fontSize: 12, color: "#9ca3af", whiteSpace: "nowrap" as const }}>Attach an interview round</span>
+          </div>
+
+          {/* ── 2×2 interview type grid ───────────────────────────────────── */}
+          <div className="interview-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
+            {rightNodes.map((node, i) => (
+              <div
+                key={node.title}
+                id={`interview-card-${i}`}
+                onMouseEnter={() => setHoveredFlowNode(i)}
+                onMouseLeave={() => setHoveredFlowNode(null)}
+                onClick={node.action}
                 style={{
-                  background: "#7c3aed",
-                  boxShadow: "0 10px 18px rgba(124, 58, 237, 0.22)",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.background = "#6d28d9";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.background = "#7c3aed";
+                  background: hoveredFlowNode === i ? `${node.accent}08` : "#fafafa",
+                  border: `1.5px solid ${hoveredFlowNode === i ? node.accent : "#e5e7eb"}`,
+                  borderRadius: 16,
+                  padding: "22px 24px",
+                  cursor: "pointer",
+                  transition: "border-color 0.18s, background 0.18s, box-shadow 0.18s",
+                  boxShadow: hoveredFlowNode === i ? `0 4px 20px ${node.accent}22` : "0 1px 4px rgba(0,0,0,0.05)",
+                  display: "flex",
+                  flexDirection: "column" as const,
+                  gap: 14,
                 }}
               >
-                {card.cta}
-              </button>
-            </div>
-          ))}
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 10, background: `${node.accent}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    {node.icon}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#111827", lineHeight: 1.2 }}>{node.title}</div>
+                    <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>{node.description}</div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={e => { e.stopPropagation(); node.action(); }}
+                  style={{ alignSelf: "flex-start", background: `${node.accent}14`, color: node.accent, border: `1px solid ${node.accent}30`, borderRadius: 7, padding: "7px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "background 0.15s", display: "flex", alignItems: "center", gap: 6 }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `${node.accent}24`; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = `${node.accent}14`; }}
+                >
+                  Set up
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+
         </div>
-        </div>
+
+        <style>{`
+          @media (max-width: 640px) {
+            .interview-grid { grid-template-columns: 1fr !important; }
+          }
+        `}</style>
       </div>
     );
   }
@@ -685,6 +777,7 @@ export default function JobPosting() {
                   <option value="Debugging Technical Interview">
                     Debugging Technical Interview
                   </option>
+                  <option value="Custom">Custom</option>
                 </select>
               </div>
 
@@ -789,6 +882,7 @@ export default function JobPosting() {
                   <option value="Behavioral">Behavioral</option>
                   <option value="Culture Fit">Culture Fit</option>
                   <option value="Communication">Communication</option>
+                  <option value="Custom">Custom</option>
                 </select>
               </div>
 

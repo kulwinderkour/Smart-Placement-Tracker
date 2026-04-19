@@ -18,6 +18,7 @@ class AgentApplyRequest(BaseModel):
     job_id: str
     user_id: str
     resume_path: str = "resume.pdf"
+    cover_letter: str | None = None
 
 
 class JobUpsertRequest(BaseModel):
@@ -82,6 +83,8 @@ async def agent_apply(data: AgentApplyRequest, db: AsyncSession = Depends(get_db
         student_id=student.id,
         job_id=job_uuid,
         notes=f"Applied via AI Agent | Resume: {data.resume_path}",
+        cover_letter=data.cover_letter,
+        agent_applied=True,
     )
     db.add(application)
     await db.commit()
