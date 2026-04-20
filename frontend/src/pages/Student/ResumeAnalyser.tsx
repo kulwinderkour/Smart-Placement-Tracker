@@ -111,7 +111,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 function Panel({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
     <div style={{
-      background: 'var(--student-surface)', border: '1px solid #21262d',
+      background: 'var(--student-surface)', border: '1px solid var(--student-border)',
       borderRadius: 12, padding: '20px 22px', ...style,
     }}>
       {children}
@@ -245,8 +245,8 @@ Use exactly this structure:
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
-          background: 'rgba(33, 38, 45, 0.5)',
-          border: '1px solid #30363d',
+          background: 'var(--student-surface)',
+          border: '1px solid var(--student-border)',
           borderRadius: '8px',
           padding: '8px 14px',
           color: 'var(--student-text-muted)',
@@ -376,7 +376,7 @@ Use exactly this structure:
               )}
             </button>
 
-            <p style={{ margin: '14px 0 0', textAlign: 'center', fontSize: 11, color: 'var(--student-border)' }}>
+            <p style={{ margin: '14px 0 0', textAlign: 'center', fontSize: 11, color: 'var(--student-text-muted)' }}>
               Powered by Gemini AI · Your resume is never stored
             </p>
           </div>

@@ -175,7 +175,7 @@ export default function JobMatchScoreCard({
             </svg>
           </div>
           <div>
-            <p style={{ margin: 0, fontWeight: 700, fontSize: 17, color: 'var(--student-surface)' }}>Skill Match Analysis</p>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 17, color: '#111827' }}>Skill Match Analysis</p>
             <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--student-text-dim)', fontWeight: 400 }}>
               {skillPct}% match ({matchedSkills.length} of {totalSkills} skills)
             </p>
@@ -194,7 +194,7 @@ export default function JobMatchScoreCard({
         <div style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
             <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--student-text-dim)' }}>Needs Improvement</span>
-            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--student-border)' }}>{skillPct}%</span>
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--student-text-secondary)' }}>{skillPct}%</span>
           </div>
           <AnimatedBar pct={skillPct} />
         </div>
@@ -203,7 +203,7 @@ export default function JobMatchScoreCard({
 
         {/* Skills You Have */}
         <div style={{ marginBottom: 20 }}>
-          <p style={{ margin: '0 0 10px', fontSize: 13.5, fontWeight: 700, color: 'var(--student-surface)', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <p style={{ margin: '0 0 10px', fontSize: 13.5, fontWeight: 700, color: '#111827', display: 'flex', alignItems: 'center', gap: 6 }}>
             <span>✅</span> Skills You Have ({matchedSkills.length})
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -220,7 +220,7 @@ export default function JobMatchScoreCard({
 
         {/* Skills to Learn */}
         <div>
-          <p style={{ margin: '0 0 10px', fontSize: 13.5, fontWeight: 700, color: 'var(--student-surface)', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <p style={{ margin: '0 0 10px', fontSize: 13.5, fontWeight: 700, color: '#111827', display: 'flex', alignItems: 'center', gap: 6 }}>
             <span>⚠️</span> Skills to Learn ({missingSkills.length})
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>

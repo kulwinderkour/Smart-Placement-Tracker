@@ -153,14 +153,13 @@ export default function MockInterviewSetup() {
         .co-card.co-active::before { transform: scaleY(1); }
         .co-card.co-active .co-label { color: var(--student-accent); }
 
-        /* Persona chips */
         .persona-chip {
           display: inline-flex; align-items: center; gap: 8px;
-          padding: 9px 18px; border-radius: 100px; cursor: pointer; white-space: nowrap;
-          border: 1px solid var(--student-border); background: var(--student-surface); color: var(--student-text-muted);
-          font-size: 13px; font-family: inherit; transition: all 0.15s;
+          padding: 10px 20px; border-radius: 100px; cursor: pointer; white-space: nowrap;
+          border: 1px solid var(--student-border); background: var(--student-surface); color: #ffffff;
+          font-size: 14px; font-family: inherit; transition: all 0.15s;
         }
-        .persona-chip:hover { border-color: var(--student-border-strong); color: var(--student-text); background: var(--student-surface-hover); }
+        .persona-chip:hover { border-color: var(--student-border-strong); color: #ffffff; background: var(--student-surface-hover); }
         .persona-chip.p-active { background: var(--student-accent); border-color: var(--student-accent); color: #ffffff; font-weight: 600; }
         .persona-char {
           width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center;
@@ -172,18 +171,18 @@ export default function MockInterviewSetup() {
         /* Segmented control */
         .seg-wrap { display: flex; border: 1px solid var(--student-border); border-radius: 10px; overflow: hidden; }
         .seg-btn {
-          flex: 1; padding: 10px 8px; background: transparent; border: none;
-          border-right: 1px solid var(--student-border); color: var(--student-text-muted); font-size: 13px;
+          flex: 1; padding: 12px 8px; background: transparent; border: none;
+          border-right: 1px solid var(--student-border); color: #ffffff; font-size: 14px;
           cursor: pointer; font-family: inherit; transition: all 0.15s;
         }
         .seg-btn:last-child { border-right: none; }
-        .seg-btn:hover { color: var(--student-text-secondary); background: var(--student-surface-hover); }
+        .seg-btn:hover { color: #ffffff; background: var(--student-surface-hover); }
         .seg-btn.seg-active { background: var(--student-accent-bg); color: var(--student-accent); font-weight: 600; }
 
         /* Section label */
         .sec-label {
-          font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
-          color: var(--student-text-muted); margin: 0 0 12px;
+          font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+          color: #ffffff; margin: 0 0 14px;
         }
 
         /* CTA btn */
@@ -225,7 +224,7 @@ export default function MockInterviewSetup() {
               </h1>
               <span style={{ fontFamily: 'monospace', fontSize: 10, background: 'var(--student-surface)', color: 'var(--student-text-muted)', border: '1px solid var(--student-border)', borderRadius: 5, padding: '2px 7px', letterSpacing: '0.05em' }}>v2.1</span>
             </div>
-            <p style={{ margin: 0, fontSize: 13, color: 'var(--student-border)', fontWeight: 300, letterSpacing: '0.01em' }}>
+            <p style={{ margin: 0, fontSize: 13, color: 'var(--student-text-muted)', fontWeight: 300, letterSpacing: '0.01em' }}>
               AI-powered interview simulator — tuned to your role
             </p>
           </div>
@@ -290,13 +289,13 @@ export default function MockInterviewSetup() {
                 style={{ minHeight: c.premium ? 108 : 90 }}
                 onClick={() => setCompanyType(c.id)}
               >
-                <div style={{ color: companyType === c.id ? 'var(--student-accent)' : 'var(--student-border)', marginBottom: 10, transition: 'color 0.15s' }}>
+                <div style={{ color: companyType === c.id ? 'var(--student-accent)' : 'var(--student-text-muted)', marginBottom: 10, transition: 'color 0.15s' }}>
                   <c.Icon />
                 </div>
                 <div className="co-label" style={{ fontSize: 13, fontWeight: 600, color: 'var(--student-text)', marginBottom: 4, transition: 'color 0.15s' }}>
                   {c.label}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--student-border)', lineHeight: 1.4 }}>{c.sub}</div>
+                <div style={{ fontSize: 12, color: 'var(--student-text-muted)', lineHeight: 1.4 }}>{c.sub}</div>
               </div>
             ))}
           </div>
@@ -334,7 +333,7 @@ export default function MockInterviewSetup() {
 
         {/* ── CTA ── */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-          <span style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--student-border)', letterSpacing: '0.02em', flexShrink: 0 }}>
+          <span style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--student-text-muted)', letterSpacing: '0.02em', flexShrink: 0 }}>
             ~{duration} min session
           </span>
           <button className="cta-btn" onClick={handleStart}>

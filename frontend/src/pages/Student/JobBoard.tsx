@@ -645,24 +645,34 @@ export default function JobBoard() {
                   key={job.id}
                   style={{
                     background: "var(--student-surface)",
-                    border: "1px solid #2d2d2d",
+                    border: "1px solid var(--student-border)",
                     borderRadius: "10px",
                     padding: "1.2rem",
+                    transition: "border-color 0.15s, box-shadow 0.15s",
+                    cursor: "default",
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = "rgba(47,129,247,0.45)";
+                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(47,129,247,0.08)";
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = "var(--student-border)";
+                    e.currentTarget.style.boxShadow = "none";
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
                     <div>
                       <h3 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "4px" }}>{job.title}</h3>
-                      <p style={{ color: "var(--student-text-muted)", fontSize: "14px" }}>{job.company} · {job.location}</p>
+                      <p style={{ color: "var(--student-text-secondary)", fontSize: "14px", fontWeight: 500 }}>{job.company} · {job.location}</p>
                       <p style={{ color: "var(--student-text-muted)", fontSize: "13px", marginTop: "6px" }}>{job.description}</p>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', marginLeft: '1rem', flexShrink: 0 }}>
                       {appliedIds.has(job.applyUrl) ? (
                         <span style={{
-                          background: '#1a2e22', color: '#3fb950',
-                          border: '1px solid #23863633',
+                          background: '#0d1117', color: '#2f81f7',
+                          border: '1px solid rgba(47,129,247,0.35)',
                           padding: '6px 14px', borderRadius: '6px',
-                          fontSize: '13px', whiteSpace: 'nowrap'
+                          fontSize: '13px', whiteSpace: 'nowrap', fontWeight: 600
                         }}>✓ Applied</span>
                       ) : (
                         <>
@@ -674,12 +684,12 @@ export default function JobBoard() {
                               );
                             }}
                             style={{
-                              background: pendingJobs.some(j => j.applyUrl === job.applyUrl) ? '#1f1f1f' : '#238636',
-                              color: pendingJobs.some(j => j.applyUrl === job.applyUrl) ? 'var(--student-text-muted)' : '#fff',
-                              border: pendingJobs.some(j => j.applyUrl === job.applyUrl) ? '1px solid var(--student-text-dim)' : 'none',
+                              background: pendingJobs.some(j => j.applyUrl === job.applyUrl) ? '#161b22' : '#1f6feb',
+                              color: pendingJobs.some(j => j.applyUrl === job.applyUrl) ? '#2f81f7' : '#ffffff',
+                              border: pendingJobs.some(j => j.applyUrl === job.applyUrl) ? '1px solid rgba(47,129,247,0.35)' : 'none',
                               padding: '6px 16px', borderRadius: '6px', fontSize: '13px',
                               cursor: 'pointer', whiteSpace: 'nowrap', minWidth: '90px',
-                              transition: 'all 0.2s ease',
+                              transition: 'all 0.2s ease', fontWeight: 600,
                             }}
                           >
                             {pendingJobs.some(j => j.applyUrl === job.applyUrl) ? 'Open Again ↗' : 'Apply →'}

@@ -60,9 +60,9 @@ const SectionCard = ({ icon, title, subtitle, children }: any) => (
   }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
       {icon}
-      <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'white', margin: 0 }}>{title}</h2>
+      <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--student-text)', margin: 0 }}>{title}</h2>
     </div>
-    <div style={{ fontSize: '12px', color: 'var(--student-text-muted)', marginBottom: '16px', marginLeft: '26px' }}>{subtitle}</div>
+    <div style={{ fontSize: '14px', color: 'var(--student-text-muted)', marginBottom: '16px', marginLeft: '26px' }}>{subtitle}</div>
     <div>{children}</div>
   </div>
 );
@@ -127,7 +127,7 @@ export default function Settings() {
     <div style={{ background: 'var(--student-bg)', minHeight: '100%', width: '100%' }}>
       <div style={{ maxWidth: '680px', margin: '0 auto', padding: '28px 24px' }}>
         <div style={{ marginBottom: '24px' }}>
-          <h1 style={{ fontSize: '22px', fontWeight: 600, color: 'white', margin: '0 0 4px 0' }}>Settings</h1>
+          <h1 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--student-text)', margin: '0 0 4px 0' }}>Settings</h1>
           <div style={{ fontSize: '13px', color: 'var(--student-text-muted)' }}>Manage your preferences</div>
         </div>
 
@@ -149,13 +149,7 @@ export default function Settings() {
           title="Security"
           subtitle="Protect your account"
         >
-          <SettingRow title="Two-factor authentication" description="Add an extra layer of security" control={
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {tfa && <span style={{ fontSize: '11px', background: 'var(--student-border)', color: 'var(--student-text)', padding: '2px 8px', borderRadius: '12px' }}>Coming soon</span>}
-              <Toggle value={tfa} onChange={setTfa} />
-            </div>
-          } />
-          
+
           <div style={{ paddingTop: '14px' }}>
             <div style={{ color: 'var(--student-text)', fontSize: '13px', fontWeight: 600, marginBottom: '12px' }}>Change Password</div>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
