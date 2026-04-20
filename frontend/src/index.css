@@ -172,8 +172,8 @@ html.dark .student-shell {
     --student-surface: #0b1220;
     --student-surface-hover: rgba(255, 255, 255, 0.04);
     --student-surface-raised: #0f172a;
-    --student-border: #27272a;
-    --student-border-strong: #3f3f46;
+    --student-border: rgba(255, 255, 255, 0.12);
+    --student-border-strong: rgba(255, 255, 255, 0.22);
     --student-text: #ffffff;
     --student-text-secondary: #a1a1aa;
     --student-text-muted: #71717a;
@@ -216,7 +216,7 @@ html.dark .student-shell {
     --student-shadow-xs:          none;
     --student-shadow-sm:          none;
     --student-shadow-card:        none;
-    --student-shadow-card-hover:  0 0 0 1px var(--student-border-strong);
+    --student-shadow-card-hover:  0 0 0 1px rgba(255, 255, 255, 0.22);
     --student-shadow-lg:          0 10px 30px rgba(0, 0, 0, 0.5);
     --student-shadow-focus:       0 0 0 3px rgba(77, 163, 255, 0.25);
 }
@@ -353,6 +353,41 @@ html:not(.dark) .student-shell *::-webkit-scrollbar-thumb {
 }
 html:not(.dark) .student-shell *::-webkit-scrollbar-thumb:hover {
     background: #94A3B8;
+}
+
+/* 9. MockInterviewSetup — light-mode text fixes.
+   The component <style> block hardcodes color:#ffffff for labels,
+   persona chips and duration buttons. These overrides make them
+   readable in light mode WITHOUT touching dark theme at all. */
+html:not(.dark) .student-shell .sec-label {
+    color: var(--student-text) !important;
+}
+html:not(.dark) .student-shell .persona-chip {
+    color: var(--student-text) !important;
+    background: var(--student-surface) !important;
+    border-color: var(--student-border) !important;
+}
+html:not(.dark) .student-shell .persona-chip:hover {
+    color: #2f81f7 !important;
+    border-color: rgba(47,129,247,0.45) !important;
+    background: rgba(47,129,247,0.05) !important;
+}
+html:not(.dark) .student-shell .seg-btn {
+    color: var(--student-text) !important;
+}
+html:not(.dark) .student-shell .seg-btn:hover {
+    color: #2f81f7 !important;
+    background: rgba(47,129,247,0.05) !important;
+}
+
+/* 10. Sidebar nav — light-mode text fix.
+   Inactive nav items use var(--student-text-muted) which is too faint
+   in light mode. Make them fully dark so they're always readable. */
+html:not(.dark) .student-shell a[href] {
+    color: var(--student-text) !important;
+}
+html:not(.dark) .student-shell a[href]:hover {
+    color: var(--student-text) !important;
 }
 
 /* ─── Student dark-mode colored → Cool Blue remap ────

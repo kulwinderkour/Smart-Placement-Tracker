@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { studentApi } from '../../api/student'
+import { applicationsApi, type TrackedApplication } from '../../api/applications'
 import type { Interview } from '../../types'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -199,17 +200,17 @@ function MiniCalendar({ year, month, selectedDay, events, onPrev, onNext, onSele
   const hasAdmin  = (d: number) => events.some(e => e.date === toISO(year, month, d) && e.adminScheduled)
 
   return (
-    <div style={{ background: C.card, border:`0.5px solid ${C.border}`, borderRadius:14, padding:'16px 14px', userSelect:'none' }}>
+    <div style={{ background: C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:'20px 18px', userSelect:'none' }}>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
         <button type="button" onClick={onPrev}
           style={{ background:'transparent', border:'none', color:C.muted, cursor:'pointer', fontSize:16 }}>‹</button>
-        <span style={{ fontSize:13, fontWeight:600, color:C.text }}>{MONTHS[month]} {year}</span>
+        <span style={{ fontSize:16, fontWeight:700, color:C.text }}>{MONTHS[month]} {year}</span>
         <button type="button" onClick={onNext}
           style={{ background:'transparent', border:'none', color:C.muted, cursor:'pointer', fontSize:16 }}>›</button>
       </div>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', marginBottom:6 }}>
         {DAYS.map(d => (
-          <span key={d} style={{ textAlign:'center', fontSize:10, color:C.dim, fontWeight:600 }}>{d}</span>
+          <span key={d} style={{ textAlign:'center', fontSize:13, color:C.text, fontWeight:600 }}>{d}</span>
         ))}
       </div>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', rowGap:2 }}>
@@ -225,7 +226,7 @@ function MiniCalendar({ year, month, selectedDay, events, onPrev, onNext, onSele
                 padding:'4px 0', borderRadius:8, cursor:'pointer',
                 background: isSelected ? C.accent : isToday ? C.accentBg : 'transparent',
                 color: isSelected ? '#fff' : isToday ? C.accent : C.text,
-                fontSize:12, fontWeight: isToday || isSelected ? 600 : 400, position:'relative' }}>
+                fontSize:14, fontWeight: isToday || isSelected ? 700 : 400, position:'relative' }}>
               {cell}
               {hasDot && (
                 <span style={{ width:4, height:4, borderRadius:'50%',
@@ -268,6 +269,23 @@ export default function StreakTracker() {
     staleTime: 60_000,
   })
 
+  // ── Fetch application status updates ────────────────────────────────────
+  const [appStatuses, setAppStatuses] = useState<TrackedApplication[]>([])
+  useEffect(() => {
+    applicationsApi.myApplications()
+      .then(res => setAppStatuses((res.data as unknown as TrackedApplication[]) || []))
+      .catch(() => {})
+  }, [])
+
+  const ACTIVE_STAGES: Record<string, { label: string; color: string; bg: string; icon: string }> = {
+    online_test:     { label: 'Online Test',     color: '#f0b429', bg: 'rgba(240,180,41,0.10)',  icon: '📝' },
+    technical_round: { label: 'Technical Round', color: '#79c0ff', bg: 'rgba(121,192,255,0.10)', icon: '💻' },
+    hr_round:        { label: 'HR Round',        color: '#c084fc', bg: 'rgba(192,132,252,0.10)', icon: '🤝' },
+    offer:           { label: 'Offer Received',  color: '#3fb950', bg: 'rgba(63,185,80,0.10)',   icon: '🎉' },
+  }
+
+  const activeApps = appStatuses.filter(a => ACTIVE_STAGES[a.status])
+
   const adminEvents: ScheduleEvent[] = (adminData?.data?.data ?? []).map(adminInterviewToEvent)
 
   // Merge local + admin (deduplicate by id)
@@ -303,15 +321,52 @@ export default function StreakTracker() {
 
   return (
     <div style={{ background: C.bg, minHeight:'100vh', color: C.text }}>
-      <div style={{ maxWidth:980, margin:'0 auto', padding:'28px 24px 60px' }}>
+      <div style={{ padding:'28px 32px 60px' }}>
+
+        {/* ── Application Status Alerts ── */}
+        {activeApps.length > 0 && (
+          <div style={{ marginBottom: 18 }}>
+            <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 600, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+              🔔 Active Stages
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {activeApps.map((app, i) => {
+                const stage = ACTIVE_STAGES[app.status]!
+                return (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    background: stage.bg, border: `1px solid ${stage.color}44`,
+                    borderRadius: 10, padding: '10px 14px',
+                  }}>
+                    <span style={{ fontSize: 18 }}>{stage.icon}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.text }}>
+                        {(app as any).company || 'Company'}
+                      </p>
+                      <p style={{ margin: '2px 0 0', fontSize: 11, color: C.muted }}>
+                        {(app as any).role || ''}
+                      </p>
+                    </div>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, padding: '3px 10px',
+                      borderRadius: 20, background: stage.bg,
+                      border: `1px solid ${stage.color}66`, color: stage.color,
+                      whiteSpace: 'nowrap',
+                    }}>{stage.label}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ── Header ── */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:20 }}>
           <div>
-            <h1 style={{ margin:'0 0 4px', fontSize:20, fontWeight:700, color:C.text }}>
+            <h1 style={{ margin:'0 0 6px', fontSize:26, fontWeight:700, color:C.text }}>
               Interview Scheduler
             </h1>
-            <p style={{ margin:0, fontSize:13, color:C.muted }}>
+            <p style={{ margin:0, fontSize:15, color:C.muted }}>
               All your interviews, OA dates and deadlines in one place.
             </p>
           </div>
@@ -338,7 +393,7 @@ export default function StreakTracker() {
         </div>
 
         {/* ── Two-column layout ── */}
-        <div style={{ display:'grid', gridTemplateColumns:'220px 1fr', gap:16, alignItems:'start' }}>
+        <div style={{ display:'grid', gridTemplateColumns:'300px 1fr', gap:20, alignItems:'start' }}>
 
           {/* Left — Mini calendar */}
           <MiniCalendar
@@ -348,14 +403,14 @@ export default function StreakTracker() {
           />
 
           {/* Right — Event list */}
-          <div style={{ background: C.card, border:`0.5px solid ${C.border}`, borderRadius:14, overflow:'hidden' }}>
+          <div style={{ background: C.card, border:`0.5px solid ${C.border}`, borderRadius:14, overflow:'hidden', minHeight: 'calc(100vh - 180px)', display: 'flex', flexDirection: 'column' }}>
 
             {/* Filter tabs */}
             <div style={{ display:'flex', gap:6, padding:'12px 14px 10px', borderBottom:`0.5px solid ${C.border}` }}>
               {FILTERS.map(f => (
                 <button key={f} type="button" onClick={() => setFilter(f)}
-                  style={{ padding:'5px 12px', borderRadius:7, border:'0.5px solid transparent',
-                    fontSize:12, fontWeight:500, cursor:'pointer',
+                  style={{ padding:'7px 16px', borderRadius:8, border:'1px solid transparent',
+                    fontSize:14, fontWeight:500, cursor:'pointer',
                     background: filter===f ? C.accent : C.bg,
                     color:      filter===f ? '#fff'   : C.muted,
                     borderColor: filter===f ? C.accent : C.border }}>
@@ -382,10 +437,10 @@ export default function StreakTracker() {
                   {/* Content */}
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:2 }}>
-                      <span style={{ fontSize:14, fontWeight:600, color:C.text }}>{ev.company}</span>
-                      <span style={{ fontSize:11, color:C.muted, whiteSpace:'nowrap' }}>{fmtDate(ev.date)}</span>
+                      <span style={{ fontSize:16, fontWeight:600, color:C.text }}>{ev.company}</span>
+                      <span style={{ fontSize:13, color:C.muted, whiteSpace:'nowrap' }}>{fmtDate(ev.date)}</span>
                     </div>
-                    <span style={{ fontSize:12, color:C.muted }}>{ev.detail}</span>
+                    <span style={{ fontSize:14, color:C.muted }}>{ev.detail}</span>
                     <div style={{ marginTop:5, display:'flex', gap:6, flexWrap:'wrap', alignItems:'center' }}>
                       {/* Type badge */}
                       <span style={{ fontSize:11, fontWeight:600, padding:'2px 8px', borderRadius:20,

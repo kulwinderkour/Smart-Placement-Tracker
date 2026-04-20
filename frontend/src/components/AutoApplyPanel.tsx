@@ -649,7 +649,7 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
           style={{
             flex: 1,
             background: isRunning ? 'var(--student-surface)' : '#242424',
-            border: `1px solid ${isRunning ? 'var(--student-border)' : 'var(--student-border)'}`,
+            border: `1px solid ${isRunning ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)'}`,
             borderRadius: 10,
             padding: '9px 13px',
             color: isRunning ? 'var(--student-text-dim)' : 'var(--student-text)',
@@ -658,8 +658,8 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
             transition: 'border-color 0.15s, color 0.15s',
             cursor: isRunning ? 'not-allowed' : 'text',
           }}
-          onFocus={e => { if (!isRunning) e.target.style.borderColor = '#a78bfa' }}
-          onBlur={e => { e.target.style.borderColor = isRunning ? 'var(--student-border)' : 'var(--student-border)' }}
+          onFocus={e => { if (!isRunning) e.target.style.borderColor = '#2f81f7' }}
+          onBlur={e => { e.target.style.borderColor = isRunning ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)' }}
         />
         <button
           onClick={handleSend}

@@ -226,6 +226,7 @@ export interface ApplicationWithStudent {
   ats_score?: number
   phone?: string
   resume_url?: string
+  resume_base64?: string
   linkedin_url?: string
   role_title: string
   company_name: string

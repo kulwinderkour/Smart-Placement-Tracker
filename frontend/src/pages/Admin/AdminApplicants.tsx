@@ -238,22 +238,29 @@ function StudentModal({
           </div>
 
           {/* Resume / LinkedIn links */}
-          {(app.resume_url || app.linkedin_url) && (
+          {(app.resume_url || app.resume_base64 || app.linkedin_url) && (
             <div className="flex gap-2">
-              {app.resume_url && (
-                <a
-                  href={app.resume_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+              {(app.resume_url || app.resume_base64) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (app.resume_url) {
+                      window.open(app.resume_url, '_blank')
+                    } else if (app.resume_base64) {
+                      const win = window.open('', '_blank')
+                      if (win) win.document.write(`<html><body style="margin:0"><iframe src="${app.resume_base64}" width="100%" height="100%" style="border:none;height:100vh"></iframe></body></html>`)
+                    }
+                  }}
                   className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-all"
                   style={{
                     background: "var(--color-accent-bg)",
                     color: "var(--color-accent)",
                     border: "1px solid var(--color-accent-border)",
+                    cursor: 'pointer',
                   }}
                 >
                   <FileText size={13} /> View Resume
-                </a>
+                </button>
               )}
               {app.linkedin_url && (
                 <a
@@ -767,25 +774,23 @@ export default function AdminApplicants() {
                         className="px-5 py-4"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        {app.resume_url ? (
-                          <a
-                            href={app.resume_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                        {(app.resume_url || app.resume_base64) ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (app.resume_url) {
+                                window.open(app.resume_url, '_blank')
+                              } else if (app.resume_base64) {
+                                const win = window.open('', '_blank')
+                                if (win) win.document.write(`<html><body style="margin:0"><iframe src="${app.resume_base64}" width="100%" height="100%" style="border:none;height:100vh"></iframe></body></html>`)
+                              }
+                            }}
                             className="inline-flex items-center gap-1 transition-colors"
-                            style={{ color: "var(--color-accent)" }}
-                            title="Download Resume"
-                            onMouseEnter={(e) => {
-                              (e.currentTarget as HTMLElement).style.opacity =
-                                "0.7";
-                            }}
-                            onMouseLeave={(e) => {
-                              (e.currentTarget as HTMLElement).style.opacity =
-                                "1";
-                            }}
+                            style={{ color: "var(--color-accent)", background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                            title="View Resume"
                           >
                             <Download size={16} />
-                          </a>
+                          </button>
                         ) : (
                           <span
                             className="text-xs"

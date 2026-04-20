@@ -364,6 +364,8 @@ async def get_job_applicants(
             "status": app.status.value,
             "applied_at": app.applied_at.isoformat(),
             "notes": app.notes,
+            "cover_letter": app.cover_letter,
+            "agent_applied": app.agent_applied,
         }
         for app, student in rows
     ]
@@ -458,10 +460,13 @@ async def list_all_company_applicants(
             "ats_score": student.ats_score,
             "phone": student.phone,
             "resume_url": app.resume_url or student.resume_url,
+            "resume_base64": student.resume_base64,
             "linkedin_url": student.linkedin_url,
             "status": app.status.value,
             "applied_at": app.applied_at.isoformat(),
             "notes": app.notes,
+            "cover_letter": app.cover_letter,
+            "agent_applied": app.agent_applied,
         }
         for app, student, role_title, company_name in rows
     ]
