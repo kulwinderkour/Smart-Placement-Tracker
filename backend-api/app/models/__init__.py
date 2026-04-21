@@ -7,3 +7,4 @@ from .company_profile import CompanyProfile
 from .interview import Interview
 from .roadmap import Roadmap
 from .generated_roadmap import GeneratedRoadmap
+from .resume import Resume, ResumeAnalysis

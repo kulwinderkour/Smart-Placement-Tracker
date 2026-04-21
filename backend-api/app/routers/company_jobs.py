@@ -30,8 +30,10 @@ from app.dependencies import get_current_user, get_db
 from app.models.application import Application, ApplicationStatus
 from app.models.company_profile import CompanyProfile
 from app.models.job import Job, JobType
+from app.models.resume import Resume
 from app.models.student import Student
 from app.models.user import User, UserRole
+from app.services import storage_service
 from app.services.realtime import publish_job_event
 
 router = APIRouter(prefix="/company", tags=["company-jobs"])
@@ -460,7 +462,6 @@ async def list_all_company_applicants(
             "ats_score": student.ats_score,
             "phone": student.phone,
             "resume_url": app.resume_url or student.resume_url,
-            "resume_base64": student.resume_base64,
             "linkedin_url": student.linkedin_url,
             "status": app.status.value,
             "applied_at": app.applied_at.isoformat(),
@@ -612,3 +613,54 @@ async def get_company_stats(
             "recent_applications": recent_applications,
         },
     }
+
+
+@router.get("/applicants/{application_id}/resume-url")
+async def get_applicant_resume_url(
+    application_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return a 15-minute signed GCS URL for an applicant's resume.
+    Only accessible by the company that owns the job the applicant applied to.
+    """
+    profile_q = await db.execute(
+        select(CompanyProfile).where(CompanyProfile.user_id == current_user.id)
+    )
+    profile = profile_q.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(status_code=403, detail="Company profile not found.")
+
+    app_q = await db.execute(
+        select(Application, Student)
+        .join(Job, Application.job_id == Job.id)
+        .join(Student, Application.student_id == Student.id)
+        .where(
+            Application.id == application_id,
+            Job.company_profile_id == profile.id,
+        )
+    )
+    row = app_q.first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Application not found.")
+
+    application, student = row
+
+    resume_q = await db.execute(
+        select(Resume)
+        .where(Resume.student_id == student.id, Resume.is_active == True)
+        .order_by(Resume.version.desc())
+        .limit(1)
+    )
+    resume = resume_q.scalar_one_or_none()
+
+    gcs_key = resume.gcs_key if resume else student.resume_url
+    if not gcs_key:
+        raise HTTPException(status_code=404, detail="No resume found for this applicant.")
+
+    try:
+        signed_url = storage_service.generate_signed_url(gcs_key, expiry_minutes=15)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc))
+
+    return {"signed_url": signed_url, "file_name": resume.file_name if resume else "resume.pdf"}

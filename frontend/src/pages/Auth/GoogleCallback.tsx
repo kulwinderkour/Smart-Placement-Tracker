@@ -37,13 +37,10 @@ export default function GoogleCallback() {
             { replace: true }
           );
         } else {
-          const userId = meRes.data.id
-          const onboardingComplete = localStorage.getItem(`onboardingComplete_${userId}`);
-          if (onboardingComplete === 'true') {
-            navigate('/dashboard', { replace: true });
-          } else {
-            navigate('/onboarding', { replace: true });
-          }
+          navigate(
+            meRes.data.is_onboarding_completed ? '/dashboard' : '/onboarding',
+            { replace: true }
+          );
         }
 
       } catch (err) {

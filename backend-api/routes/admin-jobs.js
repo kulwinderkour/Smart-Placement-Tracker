@@ -42,52 +42,6 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// Initialize database table
-async function initDB() {
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS admin_jobs (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        title TEXT NOT NULL,
-        company TEXT NOT NULL,
-        location TEXT,
-        description TEXT,
-        posted_by UUID REFERENCES users(id),
-        is_active BOOLEAN DEFAULT true,
-        package_lpa DECIMAL,
-        application_deadline DATE,
-        job_type TEXT DEFAULT 'Full-time',
-        required_skills TEXT[],
-        min_cgpa DECIMAL DEFAULT 0,
-        created_at TIMESTAMP DEFAULT NOW(),
-        apply_link TEXT,
-        company_logo TEXT,
-        openings INTEGER DEFAULT 1
-      );
-
-      CREATE TABLE IF NOT EXISTS applications (
-        id SERIAL PRIMARY KEY,
-        student_id UUID NOT NULL REFERENCES users(id),
-        job_id UUID NOT NULL REFERENCES admin_jobs(id),
-        resume_url TEXT,
-        cover_letter TEXT,
-        applied_at TIMESTAMP DEFAULT NOW(),
-        status TEXT DEFAULT 'Applied',
-        agent_applied BOOLEAN DEFAULT false,
-        notes TEXT,
-        UNIQUE(student_id, job_id)
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_applications_student ON applications(student_id);
-      CREATE INDEX IF NOT EXISTS idx_applications_job ON applications(job_id);
-      CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
-    `);
-    console.log('admin_jobs and applications tables initialized');
-  } catch (err) {
-    console.error('Error initializing admin_jobs table:', err.message);
-  }
-}
-initDB();
 
 // GET /api/admin-jobs/active
 // Returns all active jobs posted by admin — more robust version for debugging

@@ -1,0 +1,11 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'asia-south1-docker.pkg.dev/smart-placement-prod/services/node-scraper:latest'
+      - '-f'
+      - 'Dockerfile.node'
+      - '.'
+images:
+  - 'asia-south1-docker.pkg.dev/smart-placement-prod/services/node-scraper:latest'

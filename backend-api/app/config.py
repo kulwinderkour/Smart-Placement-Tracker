@@ -6,19 +6,21 @@ class Settings(BaseSettings):
     JWT_SECRET: str = "change-this-secret"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-    
+
     OPENAI_API_KEY: str = ""
-    
-    GOOGLE_CLIENT_ID: str 
-    GOOGLE_CLIENT_SECRET: str
-    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/google/callback"
-    
-    FRONTEND_URL: str = "http://localhost:3000"
-    
+
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_REDIRECT_URI: str = ""
+    FRONTEND_URL: str = ""
+
     GEMINI_API_KEY: str = ""
 
     UPSTASH_REDIS_REST_URL: str = ""
     UPSTASH_REDIS_REST_TOKEN: str = ""
+
+    GCS_BUCKET_NAME: str = ""
+    GCS_PROJECT_ID: str = ""
 
     class Config:
         env_file = ".env"

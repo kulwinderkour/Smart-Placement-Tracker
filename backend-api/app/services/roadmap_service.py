@@ -47,9 +47,9 @@ class RoadmapService:
                     Roadmap.role == role,
                     Roadmap.skills == skills_json,
                 )
-            )
+            ).limit(1)
         )
-        return result.scalar_one_or_none()
+        return result.scalars().first()
 
     async def _get_generated_roadmap(self, roadmap_key: str) -> Optional[GeneratedRoadmap]:
         """Return a shared GeneratedRoadmap row by its key."""

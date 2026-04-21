@@ -13,7 +13,7 @@ app.add_middleware(
     CORSMiddleware,
     # Allow both localhost and 127.0.0.1 on any dev port (3000, 5173, etc.)
     # because the browser's Origin must match exactly or fetch() fails.
-    allow_origin_regex=r"^http://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_origin_regex=r"^(http://(localhost|127\.0\.0\.1)(:\d+)?|https://smart-placement-pro\.web\.app|https://smart-placement-pro\.firebaseapp\.com)$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

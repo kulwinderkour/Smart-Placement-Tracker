@@ -4,7 +4,6 @@ const cors = require("cors");
 const { scrapeInternshala } = require("./scrapers/internshala");
 const roadmapRouter = require("./routes/roadmap");
 const questionsRouter = require("./routes/questions");
-const adminJobsRouter = require("./routes/admin-jobs");
 const path = require('path');
 
 const app = express();
@@ -41,9 +40,6 @@ app.use("/api/roadmap", roadmapRouter);
 
 // Questions routes
 app.use("/questions", questionsRouter);
-
-// Admin Jobs routes
-app.use("/api/admin-jobs", adminJobsRouter);
 
 app.listen(port, () => {
   console.log(`Scraper & Roadmap server listening at http://localhost:${port}`);

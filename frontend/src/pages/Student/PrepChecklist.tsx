@@ -143,7 +143,7 @@ export default function PrepChecklist() {
   const [isAddingTask, setIsAddingTask] = useState<string | null>(null);
   const [newTaskName, setNewTaskName] = useState('');
   const [newTaskPriority, setNewTaskPriority] = useState<'High' | 'Medium' | 'Low'>('Medium');
-  const [newTaskDate, setNewTaskDate] = useState(new Date().toISOString().split('T')[0]);
+  const [newTaskDate] = useState(new Date().toISOString().split('T')[0]); void newTaskDate;
   
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -443,7 +443,7 @@ export default function PrepChecklist() {
                         key={color}
                         onClick={() => setSelectedCategoryColor(color)}
                         style={{
-                          width: 20, height: 20, borderRadius: '50%', background: color, border: 'none',
+                          width: 20, height: 20, borderRadius: '50%', background: color,
                           cursor: 'pointer', position: 'relative', transition: 'all 0.2s',
                           border: selectedCategoryColor === color ? '2px solid white' : `2px solid transparent`
                         }}

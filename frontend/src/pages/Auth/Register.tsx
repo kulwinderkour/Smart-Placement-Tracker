@@ -127,7 +127,7 @@ export default function Register() {
 
           {/* Google OAuth Button */}
           <a
-            href="http://localhost:8000/api/v1/auth/google"
+            href={`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/auth/google`}
             style={{
               display: 'flex',
               alignItems: 'center',

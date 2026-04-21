@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { apiClient } from '../../api/client';
 
 const Toggle = ({ value, onChange }: { value: boolean, onChange: (val: boolean) => void }) => (
@@ -75,7 +75,7 @@ export default function Settings() {
     weekly: false
   });
 
-  const [tfa, setTfa] = useState(false);
+  const [_tfa, _setTfa] = useState(false); void _tfa; void _setTfa;
   
   const [passwords, setPasswords] = useState({ current: '', new: '' });
   const [pwStatus, setPwStatus] = useState({ message: '', type: '' });

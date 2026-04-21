@@ -11,6 +11,8 @@ export interface TrackedApplication {
   applied_at: string
   cover_letter?: string
   agent_applied?: boolean
+  next_step_date?: string
+  offer_ctc?: number
 }
 
 export const applicationsApi = {
