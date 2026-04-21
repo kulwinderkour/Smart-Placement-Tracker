@@ -15,7 +15,6 @@ class StudentCreate(BaseModel):
     skills: Optional[list[str]] = None
     job_type: Optional[str] = None
     resume_url: Optional[str] = None
-    resume_base64: Optional[str] = None
     resume_name: Optional[str] = None
     linkedin_url: Optional[str] = None
     github_url: Optional[str] = None
@@ -31,7 +30,6 @@ class StudentUpdate(BaseModel):
     skills: Optional[list[str]] = None
     job_type: Optional[str] = None
     resume_url: Optional[str] = None
-    resume_base64: Optional[str] = None
     resume_name: Optional[str] = None
     ats_score: Optional[int] = None
     linkedin_url: Optional[str] = None
@@ -49,7 +47,6 @@ class StudentResponse(BaseModel):
     cgpa: Optional[float]
     job_type: Optional[str]
     resume_url: Optional[str]
-    resume_base64: Optional[str]
     resume_name: Optional[str]
     ats_score: Optional[int]
     linkedin_url: Optional[str]

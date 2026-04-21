@@ -243,13 +243,15 @@ function StudentModal({
               {(app.resume_url || app.resume_base64) && (
                 <button
                   type="button"
-                  onClick={() => {
-                    if (app.resume_url) {
-                      window.open(app.resume_url, '_blank')
-                    } else if (app.resume_base64) {
-                      const win = window.open('', '_blank')
-                      if (win) win.document.write(`<html><body style="margin:0"><iframe src="${app.resume_base64}" width="100%" height="100%" style="border:none;height:100vh"></iframe></body></html>`)
-                    }
+                  onClick={async () => {
+                    try {
+                      const API = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1').replace(/\/$/, '')
+                      const token = localStorage.getItem('access_token') || ''
+                      const res = await fetch(`${API}/company/applicants/${app.id}/resume-url`, { headers: { Authorization: `Bearer ${token}` } })
+                      if (!res.ok) throw new Error('Failed')
+                      const data = await res.json()
+                      window.open(data.signed_url, '_blank')
+                    } catch { alert('Could not load resume. Please try again.') }
                   }}
                   className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-all"
                   style={{
@@ -777,13 +779,15 @@ export default function AdminApplicants() {
                         {(app.resume_url || app.resume_base64) ? (
                           <button
                             type="button"
-                            onClick={() => {
-                              if (app.resume_url) {
-                                window.open(app.resume_url, '_blank')
-                              } else if (app.resume_base64) {
-                                const win = window.open('', '_blank')
-                                if (win) win.document.write(`<html><body style="margin:0"><iframe src="${app.resume_base64}" width="100%" height="100%" style="border:none;height:100vh"></iframe></body></html>`)
-                              }
+                            onClick={async () => {
+                              try {
+                                const API = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1').replace(/\/$/, '')
+                                const token = localStorage.getItem('access_token') || ''
+                                const res = await fetch(`${API}/company/applicants/${app.id}/resume-url`, { headers: { Authorization: `Bearer ${token}` } })
+                                if (!res.ok) throw new Error('Failed')
+                                const data = await res.json()
+                                window.open(data.signed_url, '_blank')
+                              } catch { alert('Could not load resume. Please try again.') }
                             }}
                             className="inline-flex items-center gap-1 transition-colors"
                             style={{ color: "var(--color-accent)", background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}

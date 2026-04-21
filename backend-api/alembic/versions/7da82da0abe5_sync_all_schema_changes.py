@@ -33,19 +33,20 @@ def upgrade() -> None:
     sa.Column('payload', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    if_not_exists=True
     )
-    op.create_index(op.f('ix_generated_roadmaps_roadmap_key'), 'generated_roadmaps', ['roadmap_key'], unique=True)
-    op.drop_table('admin_jobs')
+    op.create_index(op.f('ix_generated_roadmaps_roadmap_key'), 'generated_roadmaps', ['roadmap_key'], unique=True, if_not_exists=True)
+    op.drop_table('admin_jobs', if_exists=True)
     op.alter_column('applications', 'agent_applied',
                existing_type=sa.BOOLEAN(),
                nullable=False,
                existing_server_default=sa.text('false'))
-    op.drop_index('idx_applications_job', table_name='applications')
-    op.drop_index('idx_applications_status', table_name='applications')
-    op.drop_index('idx_applications_student', table_name='applications')
-    op.drop_index('idx_roadmaps_field', table_name='roadmaps')
-    op.drop_index('idx_roadmaps_user_id', table_name='roadmaps')
+    op.drop_index('idx_applications_job', table_name='applications', if_exists=True)
+    op.drop_index('idx_applications_status', table_name='applications', if_exists=True)
+    op.drop_index('idx_applications_student', table_name='applications', if_exists=True)
+    op.drop_index('idx_roadmaps_field', table_name='roadmaps', if_exists=True)
+    op.drop_index('idx_roadmaps_user_id', table_name='roadmaps', if_exists=True)
     # ### end Alembic commands ###
 
 

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { applicationsApi } from "../../api/applications";
+import { cleanDescription } from "../../utils/text";
 
 interface Job {
   id: string;
@@ -227,7 +228,8 @@ export default function JobBoard() {
       // 2. Fetch from your Internshala scraper
       let internshalaResults: Job[] = [];
       try {
-        const res = await fetch(`http://localhost:8081/api/jobs/internshala?skills=${encodeURIComponent(baseQuery)}`);
+        const scraperBase = (import.meta.env.VITE_SCRAPER_URL || 'http://localhost:8081/api').replace(/\/$/, '');
+        const res = await fetch(`${scraperBase}/jobs/internshala?skills=${encodeURIComponent(baseQuery)}`);
         if (res.ok) {
           const data = await res.json();
           internshalaResults = data.map((job: any) => ({
@@ -664,7 +666,7 @@ export default function JobBoard() {
                     <div>
                       <h3 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "4px" }}>{job.title}</h3>
                       <p style={{ color: "var(--student-text-secondary)", fontSize: "14px", fontWeight: 500 }}>{job.company} · {job.location}</p>
-                      <p style={{ color: "var(--student-text-muted)", fontSize: "13px", marginTop: "6px" }}>{job.description}</p>
+                      <p style={{ color: "var(--student-text-muted)", fontSize: "13px", marginTop: "6px", lineHeight: 1.5 }}>{cleanDescription(job.description)}</p>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', marginLeft: '1rem', flexShrink: 0 }}>
                       {appliedIds.has(job.applyUrl) ? (

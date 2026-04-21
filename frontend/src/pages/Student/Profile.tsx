@@ -66,10 +66,17 @@ export default function Profile() {
 
   const cgpaPercent = profile.cgpa ? Math.min((profile.cgpa / 10) * 100, 100) : 0
 
-  const handleViewResume = () => {
-    if (!profile.resume_base64) return
-    const win = window.open('', '_blank')
-    if (win) win.document.write(`<html><body style="margin:0"><iframe src="${profile.resume_base64}" width="100%" height="100%" style="border:none;position:fixed;inset:0"></iframe></body></html>`)
+  const handleViewResume = async () => {
+    try {
+      const API = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1').replace(/\/$/, '')
+      const token = localStorage.getItem('access_token') || ''
+      const res = await fetch(`${API}/student/resume`, { headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) throw new Error('Could not load resume')
+      const data = await res.json()
+      window.open(data.signed_url, '_blank')
+    } catch {
+      alert('Could not load resume. Please try again.')
+    }
   }
 
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,24 +84,27 @@ export default function Profile() {
     if (!file || file.type !== 'application/pdf') return
 
     setUploading(true)
-    const reader = new FileReader()
-    reader.onload = async (event) => {
-      const base64 = event.target?.result as string
-      try {
-        const res = await studentApi.updateProfile({
-          resume_name: file.name,
-          resume_base64: base64
-        })
-        setProfile(res.data)
-        localStorage.setItem('userProfile', JSON.stringify(res.data))
-      } catch (err) {
-        console.error('Upload failed:', err)
-        alert('Failed to upload resume. Please try again.')
-      } finally {
-        setUploading(false)
-      }
+    try {
+      const API = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1').replace(/\/$/, '')
+      const token = localStorage.getItem('access_token') || ''
+      const form = new FormData()
+      form.append('file', file)
+      const res = await fetch(`${API}/student/upload-resume`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      })
+      if (!res.ok) throw new Error('Upload failed')
+      const profileRes = await studentApi.getProfile()
+      setProfile(profileRes.data)
+      localStorage.setItem('userProfile', JSON.stringify(profileRes.data))
+    } catch (err) {
+      console.error('Upload failed:', err)
+      alert('Failed to upload resume. Please try again.')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
-    reader.readAsDataURL(file)
   }
 
   const card = (children: React.ReactNode, extraStyle?: React.CSSProperties) => (
@@ -141,7 +151,7 @@ export default function Profile() {
         </div>
         {/* Edit button */}
         <Link to="/onboarding" style={{ height: 36, padding: '0 20px', borderRadius: 10, background: 'transparent', border: '1px solid #30363d', color: 'var(--student-text-secondary)', fontSize: 13, fontWeight: 500, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121(0-0-1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           Edit Profile
         </Link>
       </div>

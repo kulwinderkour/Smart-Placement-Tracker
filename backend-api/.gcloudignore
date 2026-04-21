@@ -1,0 +1,16 @@
+.git
+.gitignore
+.env
+.env.*
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+.pytest_cache
+.mypy_cache
+node_modules
+uploads/
+*.pdf
+alembic_upgrade_output.txt

@@ -26,7 +26,8 @@ Connect WebSocket:
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Body, Depends, File, HTTPException, Query, UploadFile, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel
 from sqlalchemy import or_, select, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,6 +41,7 @@ from app.models.student import Student
 from app.models.user import User
 from app.models.skill import Skill
 from app.schemas.student import StudentUpdate, StudentResponse
+from app.services import storage_service
 
 router = APIRouter(prefix="/student", tags=["student-api"])
 
@@ -101,6 +103,369 @@ async def get_my_interviews(
     return {"success": True, "data": data}
 
 
+
+
+# ─── Resume Upload & Access ───────────────────────────────────────────────────
+
+@router.post("/upload-resume")
+async def upload_resume(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Upload a resume PDF to GCS with versioning.
+
+    Each upload creates a new Resume row (v1, v2, …). Old versions are preserved
+    in GCS and the DB (is_active=False). The student.resume_url pointer is updated
+    to the latest GCS key for backward-compat with the rest of the app.
+    """
+    from app.models.resume import Resume
+
+    if file.content_type not in storage_service.ALLOWED_CONTENT_TYPES:
+        raise HTTPException(
+            status_code=415,
+            detail="Only PDF files are accepted. Please upload a .pdf resume.",
+        )
+
+    file_bytes = await file.read()
+    if len(file_bytes) > storage_service.MAX_RESUME_SIZE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail="File too large. Maximum resume size is 5 MB.",
+        )
+
+    result = await db.execute(select(Student).where(Student.user_id == current_user.id))
+    student = result.scalar_one_or_none()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student profile not found.")
+
+    # Find current version number
+    ver_result = await db.execute(
+        select(func.max(Resume.version)).where(Resume.student_id == student.id)
+    )
+    latest_ver = ver_result.scalar() or 0
+    new_version = latest_ver + 1
+
+    # Deactivate all existing active resumes
+    active_result = await db.execute(
+        select(Resume).where(Resume.student_id == student.id, Resume.is_active == True)
+    )
+    for old in active_result.scalars().all():
+        old.is_active = False
+
+    # Upload to GCS — do NOT delete old versions
+    try:
+        object_key = storage_service.upload_resume(file_bytes, str(student.id))
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc))
+
+    # Create versioned record
+    new_resume = Resume(
+        student_id=student.id,
+        gcs_key=object_key,
+        file_name=file.filename or "resume.pdf",
+        version=new_version,
+        is_active=True,
+    )
+    db.add(new_resume)
+
+    # Keep student.resume_url in sync for backward-compat
+    student.resume_url = object_key
+    student.resume_name = file.filename or "resume.pdf"
+
+    await db.commit()
+    await db.refresh(new_resume)
+
+    return {
+        "message": "Resume uploaded successfully.",
+        "resume_id": str(new_resume.id),
+        "version": new_version,
+        "file_name": new_resume.file_name,
+    }
+
+
+@router.get("/resume")
+async def get_my_resume(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return latest active resume metadata + 15-min signed URL."""
+    from app.models.resume import Resume
+
+    student_q = await db.execute(select(Student).where(Student.user_id == current_user.id))
+    student = student_q.scalar_one_or_none()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student profile not found.")
+
+    resume_q = await db.execute(
+        select(Resume)
+        .where(Resume.student_id == student.id, Resume.is_active == True)
+        .order_by(Resume.version.desc())
+        .limit(1)
+    )
+    resume = resume_q.scalar_one_or_none()
+
+    # Fallback: student.resume_url set before versioning was added
+    gcs_key = resume.gcs_key if resume else student.resume_url
+    if not gcs_key:
+        raise HTTPException(status_code=404, detail="No resume uploaded yet.")
+
+    try:
+        signed_url = storage_service.generate_signed_url(gcs_key, expiry_minutes=15)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc))
+
+    return {
+        "resume_id": str(resume.id) if resume else None,
+        "version": resume.version if resume else 1,
+        "file_name": resume.file_name if resume else student.resume_name,
+        "signed_url": signed_url,
+        "expires_in_minutes": 15,
+    }
+
+
+@router.get("/resume/history")
+async def get_resume_history(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return all resume versions for this student (newest first)."""
+    from app.models.resume import Resume
+
+    student_q = await db.execute(select(Student).where(Student.user_id == current_user.id))
+    student = student_q.scalar_one_or_none()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student profile not found.")
+
+    result = await db.execute(
+        select(Resume)
+        .where(Resume.student_id == student.id)
+        .order_by(Resume.version.desc())
+    )
+    resumes = result.scalars().all()
+
+    return {
+        "success": True,
+        "data": [
+            {
+                "id": str(r.id),
+                "version": r.version,
+                "file_name": r.file_name,
+                "is_active": r.is_active,
+                "uploaded_at": r.created_at.isoformat(),
+            }
+            for r in resumes
+        ],
+    }
+
+
+@router.get("/resume/{resume_id}/url")
+async def get_resume_signed_url(
+    resume_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Generate a 15-min signed URL for any specific resume version."""
+    from app.models.resume import Resume
+    import uuid as _uuid
+
+    student_q = await db.execute(select(Student).where(Student.user_id == current_user.id))
+    student = student_q.scalar_one_or_none()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student profile not found.")
+
+    try:
+        rid = _uuid.UUID(resume_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid resume ID.")
+
+    resume_q = await db.execute(
+        select(Resume).where(Resume.id == rid, Resume.student_id == student.id)
+    )
+    resume = resume_q.scalar_one_or_none()
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume not found.")
+
+    try:
+        signed_url = storage_service.generate_signed_url(resume.gcs_key, expiry_minutes=15)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc))
+
+    return {"signed_url": signed_url, "expires_in_minutes": 15}
+
+
+class AnalyzeResumeRequest(BaseModel):
+    job_description: str = ""
+
+
+@router.post("/resume/analyze")
+async def analyze_resume(
+    body: AnalyzeResumeRequest = Body(default=AnalyzeResumeRequest()),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Analyze the student's latest stored resume using Gemini.
+
+    Flow:
+      1. Fetch latest active Resume from DB.
+      2. Check Redis cache (keyed resume:analyze:{resume_id}:{jd_hash}).
+      3. On miss: download PDF bytes from GCS, call Gemini inline_data, parse JSON.
+      4. Store ResumeAnalysis row, update student.ats_score, cache result (1h).
+    """
+    import base64
+    import hashlib
+    import json as _json
+    from app.models.resume import Resume, ResumeAnalysis
+    from app.services.redis_cache import cache_get, cache_set
+    from app.config import settings as _settings
+
+    job_description: str = body.job_description or ""
+
+    student_q = await db.execute(select(Student).where(Student.user_id == current_user.id))
+    student = student_q.scalar_one_or_none()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student profile not found.")
+
+    resume_q = await db.execute(
+        select(Resume)
+        .where(Resume.student_id == student.id, Resume.is_active == True)
+        .order_by(Resume.version.desc())
+        .limit(1)
+    )
+    resume = resume_q.scalar_one_or_none()
+    if not resume:
+        raise HTTPException(status_code=404, detail="No resume uploaded yet. Please upload your resume first.")
+
+    # Cache key includes JD hash so different JDs get different cached analyses
+    jd_hash = hashlib.md5(job_description.encode()).hexdigest()[:8]
+    cache_key = f"resume:analyze:{resume.id}:{jd_hash}"
+    cached = await cache_get(cache_key)
+    if cached:
+        return {"success": True, "cached": True, "data": cached}
+
+    # Download PDF bytes from GCS
+    try:
+        pdf_bytes = storage_service.download_resume_bytes(resume.gcs_key)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc))
+
+    pdf_b64 = base64.b64encode(pdf_bytes).decode()
+
+    prompt = """You are an expert ATS resume analyzer. Analyze this resume {jd_context}.
+Respond ONLY with valid JSON, no markdown, no backticks:
+{{
+  "atsScore": 78,
+  "breakdown": {{"keywordsMatch": 80, "formatScore": 75, "skillsRelevance": 82, "experienceMatch": 70}},
+  "strengths": ["s1", "s2", "s3"],
+  "improvements": ["i1", "i2", "i3"],
+  "missingKeywords": ["k1", "k2"],
+  "suggestedKeywords": ["k1", "k2"],
+  "summary": "2-3 sentence overall assessment"
+}}""".format(
+        jd_context=f"for this job description: {job_description}" if job_description else "for general ATS compatibility"
+    )
+
+    if not _settings.GEMINI_API_KEY:
+        raise HTTPException(status_code=503, detail="AI analysis service not configured.")
+
+    gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_settings.GEMINI_API_KEY}"
+
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            resp = await client.post(
+                gemini_url,
+                json={
+                    "contents": [{
+                        "parts": [
+                            {"inline_data": {"mime_type": "application/pdf", "data": pdf_b64}},
+                            {"text": prompt},
+                        ]
+                    }],
+                    "generationConfig": {
+                        "temperature": 0.1,
+                        "maxOutputTokens": 2048,
+                        "thinkingConfig": {"thinkingBudget": 0},
+                        "responseMimeType": "application/json",
+                    },
+                },
+            )
+        resp.raise_for_status()
+        resp_json = resp.json()
+        raw_text = resp_json.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+        # Strip markdown code fences if model wrapped the JSON
+        if raw_text.startswith("```"):
+            raw_text = raw_text.split("```")[-2] if raw_text.count("```") >= 2 else raw_text
+            raw_text = raw_text.lstrip("json").strip()
+        if not raw_text:
+            finish = resp_json.get("candidates", [{}])[0].get("finishReason", "UNKNOWN")
+            raise HTTPException(status_code=502, detail=f"Gemini returned empty response (finishReason={finish}).")
+        analysis = _json.loads(raw_text)
+    except (_json.JSONDecodeError, KeyError, IndexError) as exc:
+        raise HTTPException(status_code=502, detail=f"AI response parsing failed: {exc}")
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(status_code=502, detail=f"Gemini API error: {exc}")
+
+    ats_score = int(analysis.get("atsScore", 0))
+
+    # Persist analysis
+    record = ResumeAnalysis(
+        student_id=student.id,
+        resume_id=resume.id,
+        ats_score=ats_score,
+        feedback=_json.dumps(analysis),
+        job_description=job_description or None,
+    )
+    db.add(record)
+    student.ats_score = ats_score
+    await db.commit()
+    await db.refresh(record)
+
+    # Cache for 1 hour
+    await cache_set(cache_key, analysis, ttl=3600)
+
+    return {"success": True, "cached": False, "data": analysis, "analysis_id": str(record.id)}
+
+
+@router.get("/resume/analysis/history")
+async def get_analysis_history(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return all past ATS analyses for this student (newest first)."""
+    import json as _json
+    from app.models.resume import Resume, ResumeAnalysis
+
+    student_q = await db.execute(select(Student).where(Student.user_id == current_user.id))
+    student = student_q.scalar_one_or_none()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student profile not found.")
+
+    result = await db.execute(
+        select(ResumeAnalysis, Resume.version, Resume.file_name)
+        .join(Resume, ResumeAnalysis.resume_id == Resume.id)
+        .where(ResumeAnalysis.student_id == student.id)
+        .order_by(ResumeAnalysis.created_at.desc())
+        .limit(20)
+    )
+    rows = result.all()
+
+    return {
+        "success": True,
+        "data": [
+            {
+                "id": str(ra.id),
+                "resume_version": version,
+                "file_name": file_name,
+                "ats_score": ra.ats_score,
+                "analyzed_at": ra.created_at.isoformat(),
+                "job_description_snippet": (ra.job_description or "")[:80] or None,
+                "feedback": _json.loads(ra.feedback) if ra.feedback else None,
+            }
+            for ra, version, file_name in rows
+        ],
+    }
 
 
 # ─── Profile Management ────────────────────────────────────────────────────────
@@ -196,13 +561,12 @@ async def list_all_jobs(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Return ALL active jobs from ALL companies.
+    Return active jobs posted by companies via their dashboard (company_profile_id IS NOT NULL).
 
-    This is the student job board endpoint.
-    Supports search (role, company, description), location, job_type,
-    and company_name filters with pagination.
+    Scraped/external jobs (company_profile_id=None) are served separately via /jobs/external.
+    Supports search (role, company, description), location, job_type, and company_name filters.
     """
-    query = select(Job).where(Job.is_active == True)
+    query = select(Job).where(Job.is_active == True, Job.company_profile_id != None)
 
     if search:
         query = query.where(
@@ -236,7 +600,6 @@ async def list_all_jobs(
 
 @router.get("/jobs/external", response_model=dict)
 async def list_external_jobs(
-    search: Optional[str] = Query(None, description="Free-text search across external jobs"),
     limit: int = Query(30, ge=1, le=60),
 ):
     """
@@ -249,15 +612,6 @@ async def list_external_jobs(
     Current source:
     - Arbeitnow Job Board API (no key)
     """
-    q = (search or "").strip().lower()
-    terms = [t for t in q.split() if t]
-
-    def _matches(hay: str) -> bool:
-        if not terms:
-            return True
-        h = hay.lower()
-        return all(t in h for t in terms)
-
     try:
         async with httpx.AsyncClient(timeout=20, follow_redirects=True) as client:
             # Arbeitnow redirects arbeitnow.com -> www.arbeitnow.com (301)
@@ -267,37 +621,46 @@ async def list_external_jobs(
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"External jobs fetch failed: {e}")
 
+    from app.utils.text_cleaner import normalize_description, fallback
+
     out = []
+    skipped_non_english = 0
     for j in (payload.get("data") or []):
         title = j.get("title") or ""
         company = j.get("company_name") or ""
         location = j.get("location") or ("Remote" if j.get("remote") else "Not specified")
-        desc = (j.get("description") or "")
+        raw_desc = j.get("description") or ""
         url = j.get("url") or ""
         slug = j.get("slug") or url
 
-        hay = f"{title} {company} {location} {desc}"
-        if not _matches(hay):
-            continue
+        # Clean pipeline: strip HTML -> decode entities -> collapse ws -> detect lang -> truncate.
+        description, lang = normalize_description(raw_desc, max_len=220, translate_non_english=False)
 
-        # Keep it close to the frontend's Student JobBoard shape.
+        if lang not in ("en", "unknown"):
+            skipped_non_english += 1
+
         out.append(
             {
                 "id": f"arb-{slug}",
                 "title": title,
                 "company": company,
-                "location": location,
-                "salary": "Not listed",
+                "location": fallback(location, "Location not specified"),
+                "salary": fallback(None, "Salary not disclosed"),
                 "applyUrl": url,
                 "source": "Arbeitnow",
-                "description": (desc.replace("<", " <") if desc else "")[:220] + ("..." if len(desc) > 220 else ""),
+                "description": description or "No description available.",
+                "language": lang,
                 "employmentType": "remote" if j.get("remote") else "full-time",
             }
         )
         if len(out) >= limit:
             break
 
-    return {"success": True, "data": out, "meta": {"limit": limit, "returned": len(out)}}
+    return {
+        "success": True,
+        "data": out,
+        "meta": {"limit": limit, "returned": len(out), "skipped_non_english": skipped_non_english},
+    }
 
 
 @router.get("/jobs/{job_id}")

@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
 
 interface AnalysisResult {
   atsScore: number
@@ -15,8 +14,6 @@ interface AnalysisResult {
   suggestedKeywords: string[]
   summary: string
 }
-
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY}`
 
 function scoreColor(n: number) {
   return n >= 70 ? 'var(--student-accent)' : n >= 50 ? '#f0b429' : '#f85149'
@@ -119,35 +116,74 @@ function Panel({ children, style }: { children: React.ReactNode; style?: React.C
   )
 }
 
+interface StoredResume {
+  resume_id: string | null
+  version: number
+  file_name: string | null
+  signed_url: string
+  expires_in_minutes: number
+}
+
+interface HistoryEntry {
+  id: string
+  resume_version: number
+  file_name: string
+  ats_score: number
+  analyzed_at: string
+  job_description_snippet: string | null
+  feedback: AnalysisResult | null
+}
+
 export default function ResumeAnalyser() {
-  const navigate = useNavigate()
-  const [file, setFile]               = useState<File | null>(null)
-  const [base64, setBase64]           = useState<string>('')
+  const API = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1').replace(/\/$/, '')
+
+  const [storedResume, setStoredResume] = useState<StoredResume | null>(null)
+  const [loadingResume, setLoadingResume] = useState(true)
+  const [uploadFile, setUploadFile]   = useState<File | null>(null)
+  const [isDragging, setIsDragging]   = useState(false)
+  const [uploading, setUploading]     = useState(false)
   const [jobDescription, setJobDescription] = useState('')
   const [isLoading, setIsLoading]     = useState(false)
   const [result, setResult]           = useState<AnalysisResult | null>(null)
   const [error, setError]             = useState<string>('')
-  const [isDragging, setIsDragging]   = useState(false)
   const [visible, setVisible]         = useState(false)
+  const [activeTab, setActiveTab]     = useState<'analyze' | 'history'>('analyze')
+  const [history, setHistory]         = useState<HistoryEntry[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
+  const [resultFileName, setResultFileName] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const readFileAsBase64 = (f: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => {
-        const raw = reader.result as string
-        resolve(raw.replace(/^data:.+;base64,/, ''))
-      }
-      reader.onerror = reject
-      reader.readAsDataURL(f)
-    })
+  const token = () => localStorage.getItem('token') || localStorage.getItem('access_token') || ''
+  const authHeader = () => ({ Authorization: `Bearer ${token()}` })
 
-  const handleFile = useCallback(async (f: File) => {
-    if (!f.name.endsWith('.pdf')) { setError('Only PDF files are supported.'); return }
-    setFile(f)
-    setError('')
-    const b64 = await readFileAsBase64(f)
-    setBase64(b64)
+  const fetchStoredResume = useCallback(async () => {
+    setLoadingResume(true)
+    try {
+      const res = await fetch(`${API}/student/resume`, { headers: authHeader() })
+      if (res.ok) setStoredResume(await res.json())
+      else setStoredResume(null)
+    } catch { setStoredResume(null) }
+    finally { setLoadingResume(false) }
+  }, [API])
+
+  const fetchHistory = useCallback(async () => {
+    setLoadingHistory(true)
+    try {
+      const res = await fetch(`${API}/student/resume/analysis/history`, { headers: authHeader() })
+      if (res.ok) {
+        const data = await res.json()
+        setHistory(data.data || [])
+      }
+    } catch { /* silent */ }
+    finally { setLoadingHistory(false) }
+  }, [API])
+
+  useEffect(() => { fetchStoredResume() }, [fetchStoredResume])
+  useEffect(() => { if (activeTab === 'history') fetchHistory() }, [activeTab, fetchHistory])
+
+  const handleFile = useCallback((f: File) => {
+    if (!f.name.toLowerCase().endsWith('.pdf')) { setError('Only PDF files are supported.'); return }
+    setUploadFile(f); setError('')
   }, [])
 
   const onDrop = useCallback((e: React.DragEvent) => {
@@ -156,123 +192,50 @@ export default function ResumeAnalyser() {
     if (f) handleFile(f)
   }, [handleFile])
 
-  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0]
-    if (f) handleFile(f)
+  const handleUpload = async () => {
+    if (!uploadFile) return
+    setUploading(true); setError('')
+    try {
+      const form = new FormData()
+      form.append('file', uploadFile)
+      const res = await fetch(`${API}/student/upload-resume`, {
+        method: 'POST',
+        headers: authHeader(),
+        body: form,
+      })
+      if (!res.ok) {
+        const d = await res.json()
+        throw new Error(d.detail || 'Upload failed')
+      }
+      setUploadFile(null)
+      await fetchStoredResume()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed')
+    } finally { setUploading(false) }
   }
 
   const handleAnalyze = async () => {
-    if (!file || !base64) { setError('Please upload your resume first'); return }
+    if (!storedResume) { setError('Please upload your resume first'); return }
     setIsLoading(true); setError(''); setResult(null); setVisible(false)
-
-    const promptText = `You are an expert ATS (Applicant Tracking System) and resume analyzer.
-Analyze this resume ${jobDescription ? 'for this job description: ' + jobDescription : 'for general ATS compatibility'}.
-
-Respond ONLY with a valid JSON object, no markdown, no backticks, no explanation.
-Use exactly this structure:
-{
-  "atsScore": 78,
-  "breakdown": {
-    "keywordsMatch": 80,
-    "formatScore": 75,
-    "skillsRelevance": 82,
-    "experienceMatch": 70
-  },
-  "strengths": ["string1", "string2", "string3"],
-  "improvements": ["string1", "string2", "string3"],
-  "missingKeywords": ["keyword1", "keyword2", "keyword3"],
-  "suggestedKeywords": ["keyword1", "keyword2", "keyword3"],
-  "summary": "2-3 sentence overall assessment"
-}`
+    setResultFileName(storedResume.file_name || 'resume.pdf')
 
     try {
-      const response = await fetch(GEMINI_URL, {
+      const res = await fetch(`${API}/student/resume/analyze`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { inline_data: { mime_type: 'application/pdf', data: base64 } },
-              { text: promptText }
-            ]
-          }],
-          generationConfig: {
-            thinkingConfig: { thinkingBudget: 0 },
-            temperature: 1
-          }
-        })
+        headers: { ...authHeader(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_description: jobDescription }),
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        const apiMsg = data?.error?.message || `HTTP ${response.status}`
-        throw new Error(`Gemini API error: ${apiMsg}`)
-      }
-
-      if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
-        const reason = data.candidates?.[0]?.finishReason || data.promptFeedback?.blockReason || 'No response text'
-        throw new Error(`Gemini returned no text: ${reason}`)
-      }
-
-      const raw = data.candidates[0].content.parts[0].text
-      let cleaned = raw.replace(/```json|```/g, '').trim()
-      let parsed: AnalysisResult
-      try {
-        parsed = JSON.parse(cleaned)
-      } catch {
-        const match = cleaned.match(/\{[\s\S]*\}/)
-        if (!match) throw new Error('Could not parse JSON from response')
-        parsed = JSON.parse(match[0])
-      }
-      setResult(parsed)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.detail || 'Analysis failed')
+      setResult(data.data)
       setTimeout(() => setVisible(true), 50)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed. Please try again.')
-    } finally {
-      setIsLoading(false)
-    }
+    } finally { setIsLoading(false) }
   }
 
   return (
-    <div style={{ background: 'var(--student-bg)', minHeight: '100vh', color: 'var(--student-text)', position: 'relative' }}>
-      <button 
-        onClick={() => navigate('/dashboard')}
-        style={{
-          position: 'absolute',
-          top: '20px',
-          left: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          background: 'var(--student-surface)',
-          border: '1px solid var(--student-border)',
-          borderRadius: '8px',
-          padding: '8px 14px',
-          color: 'var(--student-text-muted)',
-          fontSize: '13px',
-          fontWeight: 500,
-          cursor: 'pointer',
-          transition: 'all 0.2s',
-          zIndex: 30,
-          backdropFilter: 'blur(8px)'
-        }}
-        onMouseOver={(e) => {
-          e.currentTarget.style.background = 'var(--student-border)';
-          e.currentTarget.style.color = 'var(--student-text)';
-          e.currentTarget.style.borderColor = 'var(--student-text-dim)';
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.background = 'rgba(33, 38, 45, 0.5)';
-          e.currentTarget.style.color = 'var(--student-text-muted)';
-          e.currentTarget.style.borderColor = 'var(--student-border)';
-        }}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M19 12H5M12 19l-7-7 7-7"/>
-        </svg>
-        Back to Dashboard
-      </button>
+    <div style={{ background: 'var(--student-bg)', minHeight: '100vh', color: 'var(--student-text)' }}>
       <style>{`
         .ra-page { padding: 32px 16px 60px; }
         .ra-drop { border: 2px dashed var(--student-border); border-radius: 14px; padding: 36px 20px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: transparent; }
@@ -286,126 +249,162 @@ Use exactly this structure:
         .ra-results { opacity: 0; transform: translateY(12px); transition: opacity 0.5s ease, transform 0.5s ease; }
         .ra-results.visible { opacity: 1; transform: translateY(0); }
         .ra-glass { background: var(--student-surface); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--student-border); border-radius: 20px; }
-        @media (max-width: 768px) {
-          .ra-two-col { grid-template-columns: 1fr !important; }
-          .ra-page { padding: 20px 12px 48px; }
-        }
+        @media (max-width: 768px) { .ra-two-col { grid-template-columns: 1fr !important; } .ra-page { padding: 20px 12px 48px; } }
       `}</style>
 
-      {/* ── Upload section — vertically centered when no results ── */}
       {!result ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 60px)', padding: '32px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '32px 16px' }}>
           <div className="ra-glass" style={{ width: '100%', maxWidth: 680, padding: '40px 40px 32px' }}>
 
             {/* Header */}
-            <div style={{ textAlign: 'center', marginBottom: 32 }}>
-              <div style={{ width: 56, height: 56, borderRadius: 16, background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, margin: '0 auto 16px' }}>
-                📄
-              </div>
+            <div style={{ textAlign: 'center', marginBottom: 28 }}>
+              <div style={{ width: 56, height: 56, borderRadius: 16, background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, margin: '0 auto 16px' }}>📄</div>
               <h1 style={{ margin: '0 0 8px', fontSize: 24, fontWeight: 700, color: 'var(--student-text)', letterSpacing: '-0.02em' }}>Resume Analyser</h1>
-              <p style={{ margin: 0, fontSize: 14, color: 'var(--student-text-muted)', lineHeight: 1.6 }}>
-                Upload your PDF resume and get a detailed ATS compatibility<br />report powered by Gemini AI.
-              </p>
+              <p style={{ margin: 0, fontSize: 14, color: 'var(--student-text-muted)', lineHeight: 1.6 }}>AI-powered ATS compatibility report. Resume stored securely in GCS.</p>
             </div>
 
-            {/* Drop zone */}
-            <div
-              className={`ra-drop${isDragging ? ' dragging' : ''}`}
-              onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={onDrop}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <input ref={fileInputRef} type="file" accept=".pdf" style={{ display: 'none' }} onChange={onInputChange} />
-              {file ? (
-                <>
-                  <div style={{ fontSize: 32, marginBottom: 10 }}>✅</div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--student-accent)', marginBottom: 4 }}>{file.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--student-text-muted)' }}>Click to change file</div>
-                </>
-              ) : (
-                <>
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--student-text-muted)" strokeWidth="1.5" style={{ marginBottom: 12 }}>
-                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M12 12v6M9 15l3-3 3 3" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  <div style={{ fontSize: 14, color: 'var(--student-text-muted)', marginBottom: 4, fontWeight: 500 }}>Drag & drop your PDF here</div>
-                  <div style={{ fontSize: 12, color: 'var(--student-text-muted)' }}>or <span style={{ color: 'var(--student-accent)', textDecoration: 'underline' }}>click to browse</span></div>
-                </>
-              )}
+            {/* Tabs */}
+            <div style={{ display: 'flex', gap: 4, background: 'var(--student-bg)', borderRadius: 10, padding: 4, marginBottom: 24 }}>
+              {(['analyze', 'history'] as const).map(tab => (
+                <button key={tab} onClick={() => setActiveTab(tab)} style={{ flex: 1, padding: '8px 0', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: activeTab === tab ? 'var(--student-surface)' : 'transparent', color: activeTab === tab ? 'var(--student-text)' : 'var(--student-text-muted)', transition: 'all 0.15s' }}>
+                  {tab === 'analyze' ? '✨ Analyze' : '🕒 History'}
+                </button>
+              ))}
             </div>
 
-            {/* Job description */}
-            <div style={{ marginTop: 20 }}>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--student-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
-                Target Job Description (optional)
-              </label>
-              <textarea
-                className="ra-textarea"
-                value={jobDescription}
-                onChange={e => setJobDescription(e.target.value)}
-                placeholder="Paste the job description you're applying for..."
-                rows={4}
-              />
-            </div>
+            {activeTab === 'analyze' ? (
+              <>
+                {/* Stored resume banner */}
+                {storedResume ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.25)', borderRadius: 12, padding: '12px 16px', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 20 }}>📎</span>
+                      <div>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--student-accent)' }}>{storedResume.file_name}</p>
+                        <p style={{ margin: 0, fontSize: 11, color: 'var(--student-text-muted)' }}>v{storedResume.version} · Stored in GCS · Ready to analyze</p>
+                      </div>
+                    </div>
+                    <a href={storedResume.signed_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--student-accent)', textDecoration: 'none', fontWeight: 500 }}>View →</a>
+                  </div>
+                ) : loadingResume ? (
+                  <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--student-text-muted)', textAlign: 'center' }}>Loading resume…</p>
+                ) : (
+                  <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--student-text-muted)', textAlign: 'center' }}>No resume stored yet — upload one below.</p>
+                )}
 
-            {/* Error */}
-            {error && (
-              <div style={{ marginTop: 14, background: 'rgba(248,81,73,0.08)', border: '1px solid rgba(248,81,73,0.25)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#f85149' }}>
-                {error}
+                {/* Upload new / replace */}
+                <div
+                  className={`ra-drop${isDragging ? ' dragging' : ''}`}
+                  onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={onDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <input ref={fileInputRef} type="file" accept=".pdf" aria-label="Upload resume PDF" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
+                  {uploadFile ? (
+                    <>
+                      <div style={{ fontSize: 28, marginBottom: 8 }}>✅</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--student-accent)', marginBottom: 4 }}>{uploadFile.name}</div>
+                      <div style={{ fontSize: 12, color: 'var(--student-text-muted)' }}>Click to change · will create new version</div>
+                    </>
+                  ) : (
+                    <>
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--student-text-muted)" strokeWidth="1.5" style={{ marginBottom: 10 }}>
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M12 12v6M9 15l3-3 3 3" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <div style={{ fontSize: 13, color: 'var(--student-text-muted)', marginBottom: 4, fontWeight: 500 }}>
+                        {storedResume ? 'Upload new version (drag & drop or click)' : 'Drag & drop PDF or click to browse'}
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--student-text-dim)' }}>PDF only · max 5 MB</div>
+                    </>
+                  )}
+                </div>
+
+                {uploadFile && (
+                  <button className="ra-btn" onClick={handleUpload} disabled={uploading} style={{ marginTop: 10, background: uploading ? 'var(--student-border)' : 'var(--student-surface)', border: '1px solid var(--student-border)', color: 'var(--student-text)', fontSize: 13 }}>
+                    {uploading ? 'Uploading…' : '⬆ Save resume to GCS'}
+                  </button>
+                )}
+
+                {/* JD input */}
+                <div style={{ marginTop: 20 }}>
+                  <label htmlFor="ra-jd" style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--student-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
+                    Target Job Description (optional)
+                  </label>
+                  <textarea id="ra-jd" className="ra-textarea" value={jobDescription} onChange={e => setJobDescription(e.target.value)} placeholder="Paste the job description you're applying for…" rows={4} />
+                </div>
+
+                {error && (
+                  <div style={{ marginTop: 14, background: 'rgba(248,81,73,0.08)', border: '1px solid rgba(248,81,73,0.25)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#f85149' }}>{error}</div>
+                )}
+
+                <button className="ra-btn" onClick={handleAnalyze} disabled={isLoading || !storedResume} style={{ marginTop: 20, background: (!storedResume || isLoading) ? 'var(--student-border)' : 'linear-gradient(135deg, var(--student-accent), var(--student-accent-hover))', color: 'var(--student-bg)' }}>
+                  {isLoading ? (
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83">
+                          <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite" />
+                        </path>
+                      </svg>
+                      Analyzing…
+                    </>
+                  ) : '✨ Analyze Resume'}
+                </button>
+
+                <p style={{ margin: '14px 0 0', textAlign: 'center', fontSize: 11, color: 'var(--student-text-muted)' }}>
+                  Powered by Gemini AI · Stored securely in Google Cloud Storage
+                </p>
+              </>
+            ) : (
+              /* History tab */
+              <div>
+                {loadingHistory ? (
+                  <p style={{ textAlign: 'center', color: 'var(--student-text-muted)', fontSize: 13, padding: '20px 0' }}>Loading history…</p>
+                ) : history.length === 0 ? (
+                  <p style={{ textAlign: 'center', color: 'var(--student-text-muted)', fontSize: 13, padding: '20px 0' }}>No analyses yet. Analyze your resume to see history here.</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {history.map(h => (
+                      <div key={h.id} style={{ background: 'var(--student-bg)', border: '1px solid var(--student-border)', borderRadius: 12, padding: '14px 16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                          <div>
+                            <p style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 600, color: 'var(--student-text)' }}>{h.file_name} <span style={{ color: 'var(--student-text-dim)', fontWeight: 400 }}>v{h.resume_version}</span></p>
+                            <p style={{ margin: 0, fontSize: 11, color: 'var(--student-text-muted)' }}>{new Date(h.analyzed_at).toLocaleString()}</p>
+                          </div>
+                          <span style={{ fontSize: 20, fontWeight: 700, color: scoreColor(h.ats_score) }}>{h.ats_score}</span>
+                        </div>
+                        {h.job_description_snippet && (
+                          <p style={{ margin: '0 0 6px', fontSize: 12, color: 'var(--student-text-dim)', fontStyle: 'italic' }}>JD: {h.job_description_snippet}…</p>
+                        )}
+                        {h.feedback && (
+                          <button onClick={() => { setResult(h.feedback!); setResultFileName(h.file_name); setTimeout(() => setVisible(true), 50) }} style={{ fontSize: 12, color: 'var(--student-accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 500 }}>
+                            View full report →
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
-
-            {/* Button */}
-            <button
-              className="ra-btn"
-              onClick={handleAnalyze}
-              disabled={isLoading}
-              style={{ marginTop: 20, background: isLoading ? 'var(--student-border)' : 'linear-gradient(135deg, var(--student-accent), var(--student-accent-hover))', color: 'var(--student-bg)' }}
-            >
-              {isLoading ? (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--student-text)" strokeWidth="2.5">
-                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83">
-                      <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite" />
-                    </path>
-                  </svg>
-                  <span style={{ color: 'var(--student-text)' }}>Analyzing your resume…</span>
-                </>
-              ) : (
-                <>✨ Analyze Resume</>
-              )}
-            </button>
-
-            <p style={{ margin: '14px 0 0', textAlign: 'center', fontSize: 11, color: 'var(--student-text-muted)' }}>
-              Powered by Gemini AI · Your resume is never stored
-            </p>
           </div>
         </div>
       ) : (
-        /* ── Results view — two column ── */
+        /* ── Results view ── */
         <div className="ra-page">
           <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-
-            {/* Top bar with score + re-analyze */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>
               <div>
                 <h1 style={{ margin: '0 0 4px', fontSize: 20, fontWeight: 700, color: 'var(--student-text)' }}>Analysis Complete</h1>
-                <p style={{ margin: 0, fontSize: 13, color: 'var(--student-text-muted)' }}>{file?.name}</p>
+                <p style={{ margin: 0, fontSize: 13, color: 'var(--student-text-muted)' }}>{resultFileName}</p>
               </div>
-              <button
-                onClick={() => { setResult(null); setVisible(false); setFile(null); setBase64(''); setError(''); }}
-                style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #2d3748', background: 'transparent', color: 'var(--student-text)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
-              >
-                ← Analyze Another
+              <button onClick={() => { setResult(null); setVisible(false); setError('') }} style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid var(--student-border)', background: 'transparent', color: 'var(--student-text)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+                ← Back
               </button>
             </div>
 
             <div className={`ra-results ra-two-col${visible ? ' visible' : ''}`} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, alignItems: 'start' }}>
-
-              {/* LEFT col */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-
-                {/* ATS Score */}
                 <Panel>
                   <SectionLabel>ATS Score</SectionLabel>
                   <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 8px' }}>
@@ -415,8 +414,6 @@ Use exactly this structure:
                     {result.atsScore >= 70 ? '✅ Good ATS compatibility' : result.atsScore >= 50 ? '⚠️ Needs improvement' : '❌ Significant improvements needed'}
                   </p>
                 </Panel>
-
-                {/* Breakdown */}
                 <Panel>
                   <SectionLabel>Score Breakdown</SectionLabel>
                   <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: 12 }}>
@@ -426,14 +423,10 @@ Use exactly this structure:
                     <RingGauge score={result.breakdown.experienceMatch} size={80} strokeW={7} label="Experience" />
                   </div>
                 </Panel>
-
-                {/* Summary */}
                 <Panel>
                   <SectionLabel>Overall Assessment</SectionLabel>
                   <p style={{ margin: 0, fontSize: 13, color: 'var(--student-text-secondary)', lineHeight: 1.8 }}>{result.summary}</p>
                 </Panel>
-
-                {/* Missing keywords */}
                 <Panel>
                   <SectionLabel>Missing Keywords</SectionLabel>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -441,11 +434,7 @@ Use exactly this structure:
                   </div>
                 </Panel>
               </div>
-
-              {/* RIGHT col */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-
-                {/* Strengths */}
                 <Panel>
                   <SectionLabel>Strengths</SectionLabel>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -457,8 +446,6 @@ Use exactly this structure:
                     ))}
                   </div>
                 </Panel>
-
-                {/* Improvements */}
                 <Panel>
                   <SectionLabel>Areas to Improve</SectionLabel>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -470,15 +457,12 @@ Use exactly this structure:
                     ))}
                   </div>
                 </Panel>
-
-                {/* Suggested keywords */}
                 <Panel>
                   <SectionLabel>Suggested Keywords to Add</SectionLabel>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                     {result.suggestedKeywords.map((k, i) => <Pill key={i} text={k} color="var(--student-accent)" />)}
                   </div>
                 </Panel>
-
               </div>
             </div>
           </div>

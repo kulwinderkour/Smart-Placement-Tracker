@@ -175,7 +175,7 @@ export default function Tracker() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-applications'] }),
   })
 
-  const applications: TrackedApplication[] = (data?.data ?? []) as TrackedApplication[]
+  const applications: TrackedApplication[] = (data?.data ?? []) as unknown as TrackedApplication[]
 
   const [matchScores, setMatchScores] = useState<Record<string, MatchData | 'loading'>>({})
   const [expandedId, setExpandedId] = useState<string | null>(null)

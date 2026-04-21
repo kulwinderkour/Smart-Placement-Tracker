@@ -31,7 +31,6 @@ import AdminInterviews from "./pages/Admin/AdminInterviews";
 import AdminCompanyProfile from "./pages/Admin/AdminCompanyProfile";
 import AdminSettings from "./pages/Admin/AdminSettings";
 
-import PrepChecklist from "./pages/Student/PrepChecklist";
 import ResourceBookmarks from "./pages/Student/ResourceBookmarks";
 import InterviewLog from "./pages/Student/InterviewLog";
 import AdminPlatformJobs from "./pages/Admin/AdminPlatformJobs";
@@ -213,11 +212,11 @@ export const router = createBrowserRouter([
   {
     path: "/profile",
     element: (
-      <Layout>
-        <OnboardingGuard>
+      <OnboardingGuard>
+        <DashboardLayout>
           <Profile />
-        </OnboardingGuard>
-      </Layout>
+        </DashboardLayout>
+      </OnboardingGuard>
     ),
   },
   {

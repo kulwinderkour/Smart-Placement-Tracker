@@ -3,6 +3,7 @@ import uuid
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query
+from app.services import storage_service
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -566,6 +567,44 @@ async def get_analytics_summary(
         "shortlisted": int(shortlisted),
         "offersMade": int(offers_made),
         "offerRate": int(offer_rate),
+    }
+
+
+@router.get("/students/{student_id}/resume")
+async def get_student_resume(
+    student_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """
+    Generate a 15-minute signed URL for admin to download a student's resume.
+
+    The file is fetched directly from Google Cloud Storage by the browser.
+    This endpoint never proxies the file bytes — it only generates and
+    returns the signed URL.
+
+    Access control:
+      - Admin JWT required (require_admin dependency)
+      - Signed URL expires in 15 minutes
+      - URL is single-use in practice (browser fetches it once)
+    """
+    student = await db.get(Student, student_id)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found.")
+
+    if not student.resume_url:
+        raise HTTPException(status_code=404, detail="This student has not uploaded a resume.")
+
+    try:
+        signed_url = storage_service.generate_signed_url(student.resume_url, expiry_minutes=15)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc))
+
+    return {
+        "signed_url": signed_url,
+        "resume_name": student.resume_name,
+        "student_name": student.full_name,
+        "expires_in_minutes": 15,
     }
 
 
