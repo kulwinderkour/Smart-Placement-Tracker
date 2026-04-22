@@ -61,4 +61,4 @@ def test_me_with_valid_token(client):
 
 def test_me_without_token(client):
     res = client.get("/api/v1/auth/me")
-    assert res.status_code == 403
+    assert res.status_code == 401

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import SmartPlacementLogo from '../common/SmartPlacementLogo'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 import ConfirmActionModal from '../common/ConfirmActionModal'
@@ -53,9 +54,7 @@ export default function AdminNavbar() {
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
             </button>
             <Link to="/admin/dashboard" className="flex items-center gap-3">
-              <div className="w-[30px] h-[30px] rounded-[8px] bg-[#7c3aed] flex items-center justify-center shadow-[0_0_15px_rgba(124,58,237,0.45)]">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>
-              </div>
+              <SmartPlacementLogo size={30} />
               <span className="font-['Sora'] font-extrabold text-white text-[18px] tracking-tight">SmartPlacement</span>
               <span className="hidden sm:inline-block ml-2 px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Admin</span>
             </Link>

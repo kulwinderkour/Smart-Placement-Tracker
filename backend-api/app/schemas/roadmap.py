@@ -1,5 +1,5 @@
 import json
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
@@ -18,8 +18,7 @@ class RoadmapResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
     @field_validator("user_id", mode="before")
     @classmethod

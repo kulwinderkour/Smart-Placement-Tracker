@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import SmartPlacementLogo from '../common/SmartPlacementLogo'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Sun, Moon } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
@@ -127,22 +128,12 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
         }}>
           {isOpen ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{
-                width: 30, height: 30, borderRadius: 8,
-                background: 'linear-gradient(145deg, var(--student-accent), var(--student-accent-hover))', display: 'flex',
-                alignItems: 'center', justifyContent: 'center'
-              }}>
-                <Icon d="M22 10v6M2 10l10-5 10 5-10 5" color="white" size={16} />
-              </div>
+              <SmartPlacementLogo size={30} />
               <span style={{ color: 'var(--student-text)', fontSize: 15, fontWeight: 700, lineHeight: 1 }}>SmartPlacement</span>
             </div>
           ) : (
-            <div onClick={onToggle} style={{
-              width: 30, height: 30, borderRadius: 8,
-              background: 'linear-gradient(145deg, var(--student-accent), var(--student-accent-hover))', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>
-              <Icon d="M22 10v6M2 10l10-5 10 5-10 5" color="white" size={16} />
+            <div onClick={onToggle} style={{ cursor: 'pointer' }}>
+              <SmartPlacementLogo size={30} />
             </div>
           )}
 

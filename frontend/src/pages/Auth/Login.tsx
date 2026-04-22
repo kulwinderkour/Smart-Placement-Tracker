@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
+import SmartPlacementLogo from '../../components/common/SmartPlacementLogo'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { GradientBlinds } from '../../components/common/GradientBlinds'
@@ -276,13 +277,7 @@ export default function Login() {
       }}>
         {/* LEFT — LOGO */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <div style={{
-            width: 34, height: 34, borderRadius: '50%',
-            background: '#966485',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>
-          </div>
+          <SmartPlacementLogo size={34} />
           <span style={{ fontFamily: 'Sora,sans-serif', fontWeight: 800, fontSize: 22, color: '#fff', letterSpacing: '-0.01em' }}>SmartPlacement</span>
         </div>
 
