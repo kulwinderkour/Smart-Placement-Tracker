@@ -165,19 +165,19 @@
 
 /* ── Dark theme override (activated by <html class="dark">) ── */
 html.dark .student-shell {
-    /* Monochrome dark system — Linear / Notion / Stripe aesthetic.
-       Pure black-blue base, dark card surfaces, neutral borders,
-       white/grey text. NO purple, NO teal, NO colored accents. */
-    --student-bg: #020617;
+    /* Dark Teal theme — requested custom color.
+       Dark Teal base (#0F3F44), dark card surfaces, neutral borders,
+       white text. NO purple, NO colored accents. */
+    --student-bg: #0F3F44;
     --student-surface: #0b1220;
     --student-surface-hover: rgba(255, 255, 255, 0.04);
     --student-surface-raised: #0f172a;
     --student-border: rgba(255, 255, 255, 0.12);
     --student-border-strong: rgba(255, 255, 255, 0.22);
     --student-text: #ffffff;
-    --student-text-secondary: #a1a1aa;
-    --student-text-muted: #71717a;
-    --student-text-dim: #52525b;
+    --student-text-secondary: #ffffff;
+    --student-text-muted: #ffffff;
+    --student-text-dim: #ffffff;
 
     /* Cool Blue accent system — calm, modern, premium.
        Used sparingly (~10% of UI): active nav, primary CTAs, focus
