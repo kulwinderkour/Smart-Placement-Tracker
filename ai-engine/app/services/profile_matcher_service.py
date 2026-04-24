@@ -103,7 +103,7 @@ def _tfidf_similarity(text1: str, text2: str) -> float:
 
 def get_model_version() -> str:
     """Load artifact and return its version string."""
-    artifact = _load_artifact()
+    artifact = _load_matcher_artifact()
     return str(artifact.get("version", "unknown"))
 
 
@@ -117,7 +117,7 @@ def reload_model() -> str:
     global _artifact
     _artifact = None
     logger.info("Model singleton cleared — reloading from disk …")
-    artifact = _load_artifact()
+    artifact = _load_matcher_artifact()
     version = str(artifact.get("version", "unknown"))
     logger.info("Model reloaded successfully — version: %s", version)
     return version
@@ -358,7 +358,7 @@ def predict(student_profile: dict[str, Any], job: dict[str, Any]) -> dict[str, A
             feature_values: dict[str, float],
         }
     """
-    artifact = _load_artifact()
+    artifact = _load_matcher_artifact()
 
     # Normalise case up-front — "Algorithm" and "algorithm" must always match
     student_skills: list[str] = [

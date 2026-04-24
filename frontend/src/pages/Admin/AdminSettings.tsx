@@ -1,35 +1,7 @@
 import { useState } from "react";
-import { Bell, Shield, Palette, CheckCircle } from "lucide-react";
+import { Shield, Palette, CheckCircle } from "lucide-react";
 import AdminLayout from "../../components/admin/AdminLayout";
 
-interface Toggle {
-  label: string;
-  description: string;
-  key: string;
-}
-
-const NOTIFICATION_TOGGLES: Toggle[] = [
-  {
-    key: "email_notifications",
-    label: "Email notifications",
-    description: "Receive updates via email",
-  },
-  {
-    key: "new_application_alerts",
-    label: "New application alerts",
-    description: "Get notified when students apply",
-  },
-  {
-    key: "interview_reminders",
-    label: "Interview reminders",
-    description: "Receive reminders before interviews",
-  },
-  {
-    key: "weekly_digest",
-    label: "Weekly digest",
-    description: "Get a weekly summary report",
-  },
-];
 
 /* ── Toggle switch — uses CSS variables for off state ── */
 function ToggleSwitch({
@@ -110,24 +82,28 @@ const SELECT_STYLE: React.CSSProperties = {
 };
 
 export default function AdminSettings() {
-  const [toggles, setToggles] = useState<Record<string, boolean>>({
-    email_notifications: true,
-    new_application_alerts: true,
-    interview_reminders: true,
-    weekly_digest: false,
-    two_factor: false,
-  });
+  const [darkMode, setDarkMode] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [language, setLanguage] = useState("English");
   const [timezone, setTimezone] = useState("IST (UTC+5:30)");
   const [saved, setSaved] = useState(false);
 
-  const toggle = (key: string) => setToggles((p) => ({ ...p, [key]: !p[key] }));
-
   const handleSave = () => {
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
+  };
+
+  const toggleTheme = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    
+    // Apply theme to document
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   };
 
   const focusStyle = (
@@ -164,45 +140,35 @@ export default function AdminSettings() {
         </div>
 
         <div className="space-y-5">
-          {/* ── Notifications ── */}
+          {/* ── Theme ── */}
           <div className="glass-card p-6">
             <SectionHead
-              icon={Bell}
-              title="Notifications"
-              subtitle="Configure how you receive notifications"
+              icon={Palette}
+              title="Theme"
+              subtitle="Choose your preferred theme"
             />
 
-            <div className="space-y-0">
-              {NOTIFICATION_TOGGLES.map(({ key, label, description }, idx) => (
-                <div
-                  key={key}
-                  className="flex items-center justify-between py-4"
-                  style={
-                    idx < NOTIFICATION_TOGGLES.length - 1
-                      ? { borderBottom: "1px solid var(--color-border)" }
-                      : {}
-                  }
+            <div
+              className="flex items-center justify-between py-4"
+            >
+              <div>
+                <p
+                  className="text-sm font-semibold"
+                  style={{ color: "var(--color-text)" }}
                 >
-                  <div>
-                    <p
-                      className="text-sm font-semibold"
-                      style={{ color: "var(--color-text)" }}
-                    >
-                      {label}
-                    </p>
-                    <p
-                      className="text-sm mt-0.5"
-                      style={{ color: "var(--color-text-muted)" }}
-                    >
-                      {description}
-                    </p>
-                  </div>
-                  <ToggleSwitch
-                    enabled={!!toggles[key]}
-                    onChange={() => toggle(key)}
-                  />
-                </div>
-              ))}
+                  Dark Mode
+                </p>
+                <p
+                  className="text-sm mt-0.5"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  Toggle between light and dark themes
+                </p>
+              </div>
+              <ToggleSwitch
+                enabled={darkMode}
+                onChange={toggleTheme}
+              />
             </div>
           </div>
 
@@ -215,31 +181,6 @@ export default function AdminSettings() {
             />
 
             <div className="space-y-5">
-              {/* Two-factor */}
-              <div
-                className="flex items-center justify-between py-1 pb-5"
-                style={{ borderBottom: "1px solid var(--color-border)" }}
-              >
-                <div>
-                  <p
-                    className="text-sm font-semibold"
-                    style={{ color: "var(--color-text)" }}
-                  >
-                    Two-factor authentication
-                  </p>
-                  <p
-                    className="text-sm mt-0.5"
-                    style={{ color: "var(--color-text-muted)" }}
-                  >
-                    Add an extra layer of security
-                  </p>
-                </div>
-                <ToggleSwitch
-                  enabled={!!toggles.two_factor}
-                  onChange={() => toggle("two_factor")}
-                />
-              </div>
-
               {/* Change password */}
               <div>
                 <p
@@ -328,9 +269,6 @@ export default function AdminSettings() {
                   >
                     <option style={{ background: "var(--color-bg-surface)" }}>
                       English
-                    </option>
-                    <option style={{ background: "var(--color-bg-surface)" }}>
-                      Hindi
                     </option>
                   </select>
                   <svg
