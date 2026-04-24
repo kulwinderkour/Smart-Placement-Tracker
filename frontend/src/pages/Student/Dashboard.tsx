@@ -197,11 +197,9 @@ export default function Dashboard() {
 
   const fetchMatchScores = async (jobs: any[], freshProfile?: any) => {
     const activeProfile = freshProfile || profile;
-
-    // Only fetch if profile has skills
-    if (!activeProfile.skills || activeProfile.skills.length === 0) {
-      console.warn('No skills in profile — skipping match score fetch');
-      return;
+    const hasSkills = Array.isArray(activeProfile.skills) && activeProfile.skills.length > 0;
+    if (!hasSkills) {
+      console.warn('[Match] No skills in profile — will show CGPA/semantic-based scores');
     }
 
     setMatchScores(prev => {
@@ -244,14 +242,22 @@ export default function Dashboard() {
               },
             }),
           });
-          if (!res.ok) throw new Error('Score fetch failed');
+          if (!res.ok) throw new Error(`Score fetch failed: ${res.status}`);
           const data = await res.json();
+          console.log(`[Match] job=${job.id} score=${data.match_score} label=${data.match_label}`);
           setMatchScores(prev => ({
             ...prev,
-            [job.id]: { loading: false, score: data.match_score, label: data.match_label, matched: data.matched_skills || [], gaps: data.gap_skills || [] },
+            [job.id]: {
+              loading: false,
+              score: typeof data.match_score === 'number' ? data.match_score : null,
+              label: data.match_label ?? null,
+              matched: data.matched_skills ?? [],
+              gaps: data.gap_skills ?? [],
+            },
           }));
-        } catch {
-          setMatchScores(prev => ({ ...prev, [job.id]: { loading: false } }));
+        } catch (err) {
+          console.error('[Match] Score fetch error:', err);
+          setMatchScores(prev => ({ ...prev, [job.id]: { loading: false, score: null } }));
         }
       })
     );
@@ -496,7 +502,7 @@ export default function Dashboard() {
                   );
                   const score = ms.score ?? 0;
                   const scoreColor = score >= 70 ? '#3fb950' : score >= 50 ? '#d29922' : '#f85149';
-                  const msg = score >= 80 ? '🎯 Excellent match' : score >= 60 ? '✔ Good match' : score >= 50 ? '⚡ Eligible' : '⚠️ Low match';
+                  const msg = score >= 80 ? '🎯 Excellent match' : score >= 60 ? '✔ Good match' : score >= 50 ? '⚡ Eligible' : '⚠️ Low match — add skills to improve';
                   return (
                     <div style={{ background: `${scoreColor}0d`, border: `1px solid ${scoreColor}40`, borderRadius: '10px', padding: '12px 14px', marginBottom: '16px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -722,7 +728,7 @@ export default function Dashboard() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           {ms ? (
                             <span style={{ fontSize: '11px', fontWeight: 600, color: ms.loading ? '#555' : scoreColor }}>
-                              {ms.loading ? '⏳ Scoring...' : ms.score === undefined || ms.score === null ? '🎯 N/A' : `🎯 ${ms.score}% match`}
+                              {ms.loading ? '⏳ Scoring...' : (ms.score === undefined || ms.score === null) ? '🎯 N/A' : `🎯 ${ms.score.toFixed(1)}% match`}
                             </span>
                           ) : <div />}
                           <span style={{ color: 'var(--student-text)', fontSize: '11px', fontWeight: 500 }}>View →</span>

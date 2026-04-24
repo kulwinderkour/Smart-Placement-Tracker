@@ -1,8 +1,12 @@
 import json
 import httpx
 import re
+import logging
 from typing import List, Dict, Any, Optional
 from app.config import settings
+from app.services.redis_cache import cache_get, cache_set
+
+logger = logging.getLogger(__name__)
 
 
 class QuestionService:
@@ -11,23 +15,7 @@ class QuestionService:
 
     def normalize_key(self, str_val: str) -> str:
         """Normalize string for cache key"""
-        import re
-        return re.sub(r'[^a-z0-9\s]', '', str_val.lower().strip()).replace(r'\s+', '-')
-
-    async def _get_redis_client(self):
-        """Get Redis client for caching"""
-        try:
-            import redis
-            # Try to connect to Redis (assuming it's configured in settings)
-            redis_client = redis.Redis(
-                host=settings.REDIS_URL.split('://')[1].split(':')[0] if ':' in settings.REDIS_URL else 'localhost',
-                port=int(settings.REDIS_URL.split(':')[-1]) if ':' in settings.REDIS_URL else 6379,
-                decode_responses=True
-            )
-            return redis_client
-        except Exception as e:
-            print(f"Redis connection failed: {e}")
-            return None
+        return re.sub(r'[^a-z0-9\s]', '', str_val.lower().strip()).replace(' ', '-')
 
     async def generate_questions(
         self, 
@@ -44,32 +32,26 @@ class QuestionService:
             raise ValueError("Topic is required")
 
         cache_key = f"questions:{self.normalize_key(topic)}:{difficulty}:{question_type}:{count}"
-        
-        # Try to get from cache
-        redis_client = await self._get_redis_client()
-        if redis_client:
-            try:
-                cached = redis_client.get(cache_key)
-                if cached:
-                    print(f"Cache HIT: {cache_key}")
-                    return {"data": json.loads(cached), "fromCache": True}
-            except Exception as e:
-                print(f"Cache get error: {e}")
+        print(f"[QUESTIONS] cache_key={cache_key}")
 
-        print(f"Cache MISS — calling Gemini for: {topic}")
-        
-        # Generate questions using Gemini
+        cached = await cache_get(cache_key)
+        if cached:
+            print(f"[QUESTIONS] HIT — returning from cache key={cache_key}")
+            return {"data": cached, "fromCache": True}
+
+        print(f"[QUESTIONS] MISS — calling Gemini for topic={topic}")
+
         questions_data = await self._generate_with_gemini(
             topic, difficulty, question_type, count, user_skills, custom_question
         )
 
-        # Cache for 7 days (604800 seconds)
-        if redis_client:
-            try:
-                redis_client.setex(cache_key, 604800, json.dumps(questions_data))
-                print(f"Saved to cache: {cache_key}")
-            except Exception as e:
-                print(f"Cache set error: {e}")
+        if not isinstance(questions_data, dict):
+            logger.error("[QUESTIONS] Gemini returned non-dict type=%s", type(questions_data))
+            return {"data": questions_data, "fromCache": False}
+
+        print(f"[QUESTIONS] Gemini OK — saving to cache key={cache_key}")
+        await cache_set(cache_key, questions_data, ttl=604800)
+        print(f"[QUESTIONS] cache_set done key={cache_key}")
 
         return {"data": questions_data, "fromCache": False}
 

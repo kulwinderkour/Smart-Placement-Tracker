@@ -189,17 +189,18 @@ export default function Questions() {
       const topic = useCustomQuestion ? customQuestion.trim() : selectedTopic;
       const response = await aiApi.getInterviewQuestions(topic, userSkills, selectedDifficulty, selectedType, questionCount);
       
-      // AI engine returns { success, data: { questions: [...], type, difficulty } }
+      // FastAPI returns { data: { questions: [...], type, difficulty }, fromCache }
+      // Legacy AI engine returned { success, data: { questions: [...] } }
       const payload = response.data?.data ?? response.data;
       const rawQuestions: Question[] = (payload?.questions || [])
         .filter((q: { options?: string[] }) => Array.isArray(q.options) && q.options.length >= 2)
         .map(
-          (q: { question: string; answer?: string; correct_answer?: string; options?: string[]; explanation?: string }, i: number) => ({
+          (q: { question: string; answer?: string; correct_answer?: string; correctAnswer?: string; options?: string[]; explanation?: string }, i: number) => ({
             id: `q${i + 1}`,
             type: "mcq" as const,
             question: q.question,
             options: q.options || [],
-            correctAnswer: q.correct_answer || q.answer || "",
+            correctAnswer: q.correctAnswer || q.correct_answer || q.answer || "",
             explanation: q.explanation || q.answer || "",
             topic: topic,
             difficulty: selectedDifficulty,
@@ -216,7 +217,7 @@ export default function Questions() {
       setQuestions(questionSet);
       setCurrentQuestionIndex(0);
       setShowResults(false);
-      setFromCache(false); // AI API doesn't use cache
+      setFromCache(Boolean(response.data?.fromCache));
     } catch (error: unknown) {
       const msg =
         error instanceof Error

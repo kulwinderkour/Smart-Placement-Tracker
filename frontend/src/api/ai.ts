@@ -1,4 +1,4 @@
-import { aiClient } from './client'
+import { aiClient, apiClient } from './client'
 import type { ATSResult } from '../types'
 
 export const aiApi = {
@@ -12,8 +12,22 @@ export const aiApi = {
     )
   },
 
-  getInterviewQuestions: (job_title: string, skills: string[], difficulty = 'medium', question_type = 'mcq', num_questions = 10) =>
-    aiClient.post('/ai/interview/questions', { job_title, skills, difficulty, question_type, num_questions }),
+  // Routes through FastAPI backend-api `/questions/generate` which has Upstash Redis caching.
+  getInterviewQuestions: (
+    job_title: string,
+    skills: string[],
+    difficulty = 'medium',
+    question_type = 'mcq',
+    num_questions = 10,
+  ) =>
+    apiClient.post('/questions/generate', {
+      topic: job_title,
+      difficulty,
+      type: question_type,
+      count: num_questions,
+      userSkills: skills,
+      customQuestion: false,
+    }),
 
   getSkillGap: (student_id: string, job_id: string) =>
     aiClient.get(`/ai/skill-gap/${student_id}/${job_id}`),

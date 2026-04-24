@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     GEMINI_MODEL: str = "gemini-2.5-flash"
     MAX_RESUME_SIZE_MB: int = 5
     SKILLS_TAXONOMY_PATH: str = "app/data/skills_taxonomy.json"
-    BACKEND_URL: str = "http://backend-api:8000/api/v1"
+    BACKEND_URL: str = "https://backend-api-385144446825.asia-south1.run.app"
     MATCHER_ADMIN_API_KEY: str = "change-me-admin-key"
     UPSTASH_REDIS_REST_URL: str = ""
     UPSTASH_REDIS_REST_TOKEN: str = ""

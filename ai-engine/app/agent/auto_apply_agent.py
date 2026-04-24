@@ -190,8 +190,7 @@ def run_auto_apply_agent(instruction, student_token, student_profile, resume_url
 
     # Step 2 — Fetch jobs (same source as student dashboard: includes description for matcher)
     api_base = _backend_api_v1_base()
-    if "localhost" in api_base or "127.0.0.1" in api_base:
-        api_base = "http://backend-api:8000/api/v1"
+    logger.info(f"[auto_apply_agent] Using backend api_base={api_base}")
 
     try:
         response = requests.get(
