@@ -353,7 +353,7 @@ http://localhost:3000 for frontend
 
 
 
-cd /Users/abhishekswami/Developer/Projects/Smart-Placement-Tracker/ai-engine
+cd /Users/kkour/Developer/Projects/Smart-Placement-Tracker/ai-engine
 
 python3 -m venv venv
 source venv/bin/activate
