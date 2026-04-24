@@ -425,58 +425,90 @@ def predict(student_profile: dict[str, Any], job: dict[str, Any]) -> dict[str, A
     scaler = artifact.get("scaler")
     feature_vector_scaled = scaler.transform(feature_vector) if scaler is not None else feature_vector
 
-    # ── Transparent formula-based scoring ───────────────────────────────────
-    # Primary signal: skill match ratio (4/5 = 80%, 5/5 = 100%, 0/5 = 0%)
-    skill_match_ratio = feature_values["skill_match_ratio"]
-    semantic_sim      = feature_values["semantic_sim"]
-    role_kw           = feature_values["role_keyword_match"]
+    # ── Extract feature values ────────────────────────────────────────────────
+    skill_match_ratio      = feature_values["skill_match_ratio"]
+    semantic_sim           = feature_values["semantic_sim"]
+    role_kw                = feature_values["role_keyword_match"]
     matched_skill_count_n  = feature_values["matched_skill_count_n"]
     profile_skill_density  = feature_values["profile_skill_density"]
 
     branch = student_profile.get("branch") or ""
     title_kw_score = _title_keyword_score(job_title, student_skills, branch)
+    cgpa = float(student_profile.get("cgpa") or 0)
 
-    skill_score      = skill_match_ratio * 100.0          # 0–100
-    semantic_bonus   = min(semantic_sim * 15.0, 10.0)     # up to +10 pts
-    role_bonus       = role_kw * 5.0                      # 0 or +5 pts
-    title_bonus      = title_kw_score * 8.0               # up to +8 pts from title keywords
-    raw              = skill_score + semantic_bonus + role_bonus + title_bonus
+    # ── Component 1: Skill overlap — primary signal (70 pts max) ─────────────
+    # skill_match_ratio = matched / min(required, 10).  Multiply by 100 for pts.
+    skill_component = skill_match_ratio * 70.0   # 0–70
 
-    # CGPA-based floor: strong academics always get a minimum even with 0 skills
-    # CGPA 7→0%, 8→8%, 9→17%, 10→25%
-    cgpa      = float(student_profile.get("cgpa") or 0)
-    cgpa_floor = max(0.0, (cgpa - 7.0) / 3.0 * 25.0) if cgpa >= 7.0 else 0.0
+    # ── Component 2: Model OR semantic — secondary signal (20 pts max) ───────
+    ml_model = artifact.get("model") if artifact.get("model_loaded") else None
+    model_score_raw: float = 0.0
+    model_used = False
+    if ml_model is not None:
+        try:
+            pred = float(ml_model.predict(feature_vector_scaled)[0])
+            # Model is trained to predict 0–100; clip in case of extrapolation
+            model_score_raw = float(np.clip(pred, 0.0, 100.0))
+            model_used = True
+            logger.info(
+                "[Matcher] ML model prediction: %.2f (job=%s)", model_score_raw, job_title
+            )
+        except Exception as exc:
+            logger.warning("[Matcher] ML model inference failed — using semantic_sim: %s", exc)
+            model_score_raw = semantic_sim * 100.0
+    else:
+        # Fallback: use skill_match_ratio as proxy for model score.
+        # The model would primarily use skills too, so ratio IS the best proxy.
+        effective_semantic = max(semantic_sim, skill_match_ratio)
+        model_score_raw = effective_semantic * 100.0
+
+    model_component = model_score_raw * 0.20   # 0–20
+
+    # ── Component 3: Bonus signals (10 pts max) ──────────────────────────────
+    role_bonus  = role_kw * 3.0                    # 0 or +3
+    title_bonus = title_kw_score * 4.0             # 0–4
+    cgpa_bonus  = max(0.0, (cgpa - 7.0) / 3.0 * 3.0) if cgpa >= 7.0 else 0.0  # 0–3
+    # precision bonus: smooth 0→5 pts scaled by skill match ratio
+    precision_bonus = skill_match_ratio * 5.0
+    bonus_component = min(role_bonus + title_bonus + cgpa_bonus + precision_bonus, 10.0)
+
+    raw = skill_component + model_component + bonus_component
+
+    # CGPA floor: academics ensure a visible minimum even with 0 matched skills
+    cgpa_floor = max(0.0, (cgpa - 7.0) / 3.0 * 12.0) if cgpa >= 7.0 else 0.0
 
     match_score = round(float(np.clip(max(raw, cgpa_floor), 0.0, 100.0)), 1)
 
-    print(
-        f"\n── SCORE DEBUG ─────────────────────────────\n"
-        f"  job              : {job_title}\n"
-        f"  branch           : {branch}\n"
-        f"  student_skills   : {student_skills}\n"
-        f"  required_skills  : {required_skills}\n"
-        f"  matched          : {matched_skills}\n"
-        f"  skill_match_ratio: {skill_match_ratio:.4f}  (× 100 = {skill_score:.1f} pts)\n"
-        f"  matched_count_n  : {matched_skill_count_n:.4f}\n"
-        f"  role_kw_match    : {role_kw:.4f}  (+{role_bonus:.1f} pts)\n"
-        f"  semantic_sim     : {semantic_sim:.4f}  (+{min(semantic_sim*15,10):.1f} pts)\n"
-        f"  title_kw_score   : {title_kw_score:.4f}  (+{title_bonus:.1f} pts)\n"
-        f"  profile_density  : {profile_skill_density:.4f}\n"
-        f"  skill_score      : {skill_score:.2f}\n"
-        f"  semantic_bonus   : {min(semantic_sim*15.0,10.0):.2f}\n"
-        f"  role_bonus       : {role_bonus:.2f}\n"
-        f"  title_bonus      : {title_bonus:.2f}\n"
-        f"  raw_formula      : {raw:.2f}\n"
-        f"  cgpa             : {cgpa:.1f} → floor {cgpa_floor:.1f}\n"
-        f"  FINAL SCORE      : {match_score:.1f}%\n"
-        f"────────────────────────────────────────────",
-        flush=True
+    logger.info(
+        "[Matcher] job=%s | matched=%d/%d | ratio=%.3f | "
+        "skill_cmp=%.1f | model_cmp=%.1f (used=%s, raw=%.1f) | "
+        "bonus=%.1f | cgpa_floor=%.1f | FINAL=%.1f%%",
+        job_title,
+        len(matched_skills), len(required_skills),
+        skill_match_ratio,
+        skill_component, model_component, model_used, model_score_raw,
+        bonus_component, cgpa_floor, match_score,
     )
 
     return {
+        # ── Primary fields (backward-compatible) ─────────────────────────────
         "match_score": match_score,
         "match_label": _match_label(match_score),
         "matched_skills": matched_skills,
         "gap_skills": gap_skills,
         "feature_values": feature_values,
+        # ── Extended debug breakdown ──────────────────────────────────────────
+        "skill_match_ratio": round(skill_match_ratio, 4),
+        "model_score": round(model_score_raw, 2),
+        "model_used": model_used,
+        "debug": {
+            "skill_component": round(skill_component, 2),
+            "model_component": round(model_component, 2),
+            "bonus_component": round(bonus_component, 2),
+            "cgpa_floor": round(cgpa_floor, 2),
+            "semantic_sim": round(semantic_sim, 4),
+            "title_kw_score": round(title_kw_score, 4),
+            "matched_count": len(matched_skills),
+            "required_count": len(required_skills),
+        },
     }

@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.services.redis_cache import cache_get, cache_set
 from app.routers import auth, jobs, applications, admin, company, roadmap, questions
 from app.routers.agent_internal import router as agent_internal_router
 from app.routers.google_auth import router as google_router
@@ -65,3 +66,60 @@ app.include_router(agent_internal_router, prefix="/api/v1")
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "backend-api"}
+
+
+@app.get("/debug/all-keys")
+async def all_redis_keys():
+    """Return every key currently in Redis (KEYS *)."""
+    import httpx
+    from app.config import settings
+    if not settings.UPSTASH_REDIS_REST_URL or not settings.UPSTASH_REDIS_REST_TOKEN:
+        return {"error": "Upstash env vars not set"}
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                settings.UPSTASH_REDIS_REST_URL,
+                headers={
+                    "Authorization": f"Bearer {settings.UPSTASH_REDIS_REST_TOKEN}",
+                    "Content-Type": "application/json",
+                },
+                json=["KEYS", "*"],
+            )
+            print(f"[DEBUG/all-keys] status={resp.status_code} body={resp.text[:500]}")
+            return {"status": resp.status_code, "keys": resp.json().get("result", [])}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.get("/debug/redis-test")
+async def redis_test():
+    """Debug endpoint: SET then GET a test key and return the result."""
+    from app.config import settings
+    test_key = "debug:redis-test"
+    test_val = {"msg": "hello from smartplacement", "ts": "check"}
+    errors = []
+
+    if not settings.UPSTASH_REDIS_REST_URL:
+        return {"error": "UPSTASH_REDIS_REST_URL not set"}
+    if not settings.UPSTASH_REDIS_REST_TOKEN:
+        return {"error": "UPSTASH_REDIS_REST_TOKEN not set"}
+
+    try:
+        await cache_set(test_key, test_val, ttl=300)
+    except Exception as e:
+        errors.append(f"SET error: {e}")
+
+    retrieved = None
+    try:
+        retrieved = await cache_get(test_key)
+    except Exception as e:
+        errors.append(f"GET error: {e}")
+
+    return {
+        "upstash_url": settings.UPSTASH_REDIS_REST_URL,
+        "token_prefix": settings.UPSTASH_REDIS_REST_TOKEN[:12] + "...",
+        "set_value": test_val,
+        "get_result": retrieved,
+        "match": retrieved == test_val,
+        "errors": errors,
+    }
