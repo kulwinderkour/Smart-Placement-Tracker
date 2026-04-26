@@ -18,6 +18,8 @@ export default function Profile() {
   )
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [editingCgpa, setEditingCgpa] = useState(false)
+  const [tempCgpa, setTempCgpa] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [editingSkills, setEditingSkills] = useState(false)
@@ -135,9 +137,36 @@ export default function Profile() {
           <h1 style={{ color: 'var(--student-text)', fontSize: 22, fontWeight: 700, margin: '0 0 4px' }}>
             {profile.full_name || user?.email || 'My Profile'}
           </h1>
-          <p style={{ color: 'var(--student-text-muted)', fontSize: 13, margin: '0 0 12px' }}>
-            {[profile.college, profile.branch, profile.graduation_year].filter(Boolean).join(' · ') || 'No college info yet'}
-          </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <p style={{ color: 'var(--student-text-muted)', fontSize: 13, margin: 0 }}>
+              {[profile.college, profile.branch, profile.graduation_year].filter(Boolean).join(' · ') || 'No college info yet'}
+            </p>
+            <button
+              onClick={() => alert('Edit college info')}
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--student-border)',
+                color: 'var(--student-text-secondary)',
+                borderRadius: 6,
+                padding: '4px 8px',
+                fontSize: 12,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--student-accent-bg)';
+                e.currentTarget.style.borderColor = 'var(--student-accent)';
+                e.currentTarget.style.color = 'var(--student-accent)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.borderColor = 'var(--student-border)';
+                e.currentTarget.style.color = 'var(--student-text-secondary)';
+              }}
+            >
+              Edit
+            </button>
+          </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {profile.job_type && (
               <span style={{ background: 'rgba(167, 139, 250, 0.1)', border: '1px solid rgba(167, 139, 250, 0.2)', color: '#a78bfa', borderRadius: 50, padding: '4px 14px', fontSize: 12, fontWeight: 600 }}>
@@ -152,18 +181,82 @@ export default function Profile() {
         {/* Edit button */}
         <Link to="/onboarding" style={{ height: 36, padding: '0 20px', borderRadius: 10, background: 'transparent', border: '1px solid #30363d', color: 'var(--student-text-secondary)', fontSize: 13, fontWeight: 500, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Edit Profile
-        </Link>
+                  </Link>
       </div>
 
       {/* ── Stats Grid ──────────────────────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 12, marginBottom: 16 }}>
         {card(
           <>
-            <p style={{ fontSize: 12, color: 'var(--student-text-muted)', margin: '0 0 8px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>CGPA</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <p style={{ fontSize: 12, color: 'var(--student-text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>CGPA</p>
+              {editingCgpa ? (
+                <input
+                  type="number"
+                  value={tempCgpa}
+                  onChange={(e) => setTempCgpa(e.target.value)}
+                  onBlur={() => {
+                    const newCgpa = parseFloat(tempCgpa)
+                    if (!isNaN(newCgpa) && newCgpa >= 0 && newCgpa <= 10) {
+                      setProfile(prev => ({ ...prev, cgpa: newCgpa }))
+                      localStorage.setItem('userProfile', JSON.stringify({ ...profile, cgpa: newCgpa }))
+                      setTempCgpa('')
+                      setEditingCgpa(false)
+                    }
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.currentTarget.blur()
+                    }
+                  }}
+                  style={{
+                    background: 'var(--student-surface)',
+                    border: '1px solid var(--student-accent)',
+                    borderRadius: 6,
+                    padding: '4px 8px',
+                    fontSize: 14,
+                    color: 'var(--student-text)',
+                    width: '80px',
+                    outline: 'none'
+                  }}
+                  autoFocus
+                />
+              ) : (
+                <button
+                  onClick={() => {
+                    setTempCgpa(profile.cgpa?.toString() || '')
+                    setEditingCgpa(true)
+                  }}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid var(--student-border)',
+                    color: 'var(--student-text-secondary)',
+                    borderRadius: 6,
+                    padding: '4px 8px',
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--student-accent-bg)';
+                    e.currentTarget.style.borderColor = 'var(--student-accent)';
+                    e.currentTarget.style.color = 'var(--student-accent)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.borderColor = 'var(--student-border)';
+                    e.currentTarget.style.color = 'var(--student-text-secondary)';
+                  }}
+                >
+                  Edit
+                </button>
+              )}
+            </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 10 }}>
-              <span style={{ fontSize: 28, fontWeight: 700, color: 'var(--student-text)' }}>{profile.cgpa || '—'}</span>
-              {profile.cgpa && <span style={{ fontSize: 13, color: 'var(--student-text-muted)' }}>/ 10</span>}
+              <span style={{ fontSize: 28, fontWeight: 700, color: 'var(--student-text)' }}>
+                {editingCgpa ? tempCgpa : (profile.cgpa || '—')}
+              </span>
+              {profile.cgpa && !editingCgpa && <span style={{ fontSize: 13, color: 'var(--student-text-muted)' }}>/ 10</span>}
             </div>
             <div style={{ height: 6, background: 'var(--student-border)', borderRadius: 99, overflow: 'hidden' }}>
               <div style={{ height: '100%', width: `${cgpaPercent}%`, background: '#a78bfa', borderRadius: 99, transition: 'width 0.6s ease' }} />
