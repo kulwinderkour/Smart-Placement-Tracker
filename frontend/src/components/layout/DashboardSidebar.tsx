@@ -45,7 +45,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Interview Replay Log', path: '/interview-log', icon: <Icon d="M12 21a9 9 0 100-18 9 9 0 000 18zm-1-12l5 3-5 3V9z" /> },
       { label: 'Interview Scheduler', path: '/placement-pulse', icon: <Icon d="M8 2v4M16 2v4M3 10h18M3 6a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6z" /> },
     ],
-  },
+  },  
   {
     title: 'Other',
     items: [
@@ -79,9 +79,6 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
   const email = user?.email || 'user@example.com'
   const initials = displayName.split(' ').slice(0, 2).map((n: string) => n[0]?.toUpperCase() || '').join('')
 
-  const handleLogout = () => {
-    setShowLogoutConfirm(true)
-  }
   const confirmLogout = () => {
     setShowLogoutConfirm(false)
     logout()
@@ -238,7 +235,6 @@ export default function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
                 <p style={{ margin: 0, fontSize: 12, color: 'var(--student-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</p>
               </div>
             )}
-
           </div>
         </div>
       </div>
