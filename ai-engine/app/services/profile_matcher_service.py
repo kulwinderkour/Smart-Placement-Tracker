@@ -488,6 +488,20 @@ def predict(student_profile: dict[str, Any], job: dict[str, Any]) -> dict[str, A
         # Use real ML model prediction
         raw = model_score_raw
         cgpa_floor = 0.0
+        # Blend model confidence with observed skill overlap.
+        skill_pct = skill_match_ratio * 100.0
+        raw = (0.65 * raw) + (0.35 * skill_pct)
+
+    # Guardrail for BOTH paths (ML + rule-based): prevent false-perfect matches
+    # when skill overlap is weak.
+    if len(required_skills) >= 3 and len(matched_skills) == 0:
+        raw = min(raw, 35.0)
+    elif skill_match_ratio < 0.20:
+        raw = min(raw, 50.0)
+    elif skill_match_ratio < 0.40:
+        raw = min(raw, 65.0)
+    elif skill_match_ratio < 0.60:
+        raw = min(raw, 80.0)
 
     match_score = round(float(np.clip(max(raw, cgpa_floor), 0.0, 100.0)), 1)
 

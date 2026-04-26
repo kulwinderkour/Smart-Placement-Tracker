@@ -15,7 +15,6 @@ interface Job {
   score?: number;
   matchScore?: number;
   matchedSkills?: string[];
-  job_apply_link?: string; // JSearch field
 }
 
 const JobCard = ({ job }: { job: Job }) => (
@@ -81,10 +80,10 @@ const JobCard = ({ job }: { job: Job }) => (
           background: 'var(--student-border)', color: 'var(--student-text-muted)',
           borderRadius: '4px', padding: '2px 8px', fontSize: '11px'
         }}>
-          {job.source || 'JSearch'}
+          {job.source || 'Job Board'}
         </span>
       </div>
-      <a href={job.applyUrl || job.job_apply_link} target="_blank" rel="noopener noreferrer" style={{
+      <a href={job.applyUrl} target="_blank" rel="noopener noreferrer" style={{
         background: '#a78bfa', color: 'var(--student-bg)',
         borderRadius: '6px', padding: '6px 14px',
         fontSize: '12px', fontWeight: 600,
@@ -110,32 +109,47 @@ const SkeletonJobCard = () => (
 const JobBoard = () => {
   const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
   const userSkills = profile.skills || [];
-  const jobType = profile.jobType || 'Both';
   const { user } = useAuthStore();
   const firstName = profile.fullName?.split(' ')[0] || user?.email?.split('@')[0] || 'Member';
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     location: 'all',
     type: 'all',
     matchOnly: true
   });
 
-  const loadJobs = async () => {
+  const SCRAPER_BASE = (import.meta.env.VITE_SCRAPER_API_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/scraped-jobs`).replace(/\/$/, '');
+
+  const loadJobs = async (overrideQuery?: string) => {
     setLoading(true);
     try {
-      // 1. Fetch from JSearch API
-      const jsearchJobs = await fetchJSearchJobs(userSkills, jobType);
+      const query = new URLSearchParams();
+      const q = (overrideQuery ?? searchQuery).trim();
+      if (q) query.set('q', q);
+      if (filters.location && filters.location !== 'all') query.set('location', filters.location);
+      if (filters.type && filters.type !== 'all') query.set('source', filters.type);
 
-      // 2. Fetch from Internshala Node.js scraper
-      const internshalaJobs = await fetch(
-        `${import.meta.env.VITE_SCRAPER_API_URL || 'http://localhost:8081/api/jobs'}/internshala?skills=${userSkills.join(',')}`
-      ).then(r => r.json()).catch(() => []);
+      let fetchedJobs: any[] = [];
+      const response = await fetch(`${SCRAPER_BASE}?${query.toString()}`);
+      if (response.ok) {
+        const data = await response.json();
+        fetchedJobs = Array.isArray(data.jobs) ? data.jobs : [];
+        setLastUpdated(data.lastUpdated || null);
+      } else if (response.status === 404) {
+        // Backward compatibility with legacy scraper endpoint.
+        const legacyRes = await fetch(`http://localhost:8081/api/jobs/internshala?skills=${encodeURIComponent(q || 'software developer')}`);
+        if (!legacyRes.ok) throw new Error('Failed to load scraper jobs');
+        fetchedJobs = await legacyRes.json();
+        setLastUpdated(null);
+      } else {
+        throw new Error('Failed to load scraper jobs');
+      }
 
-      // 3. Merge and process
-      const allJobs = [...jsearchJobs, ...internshalaJobs]
+      const allJobs = fetchedJobs
         .map(job => ({
           ...job,
           matchScore: calculateMatchScore(job, userSkills),
@@ -148,27 +162,6 @@ const JobBoard = () => {
       console.error('Job loading error:', err);
     }
     setLoading(false);
-  };
-
-  const fetchJSearchJobs = async (skills: string[], type: string) => {
-    const query = (skills.length > 0 ? skills.slice(0, 3).join(' ') : 'software') + ' developer India';
-    const response = await fetch(
-      `${import.meta.env.VITE_RAPIDAPI_URL}/search?query=${encodeURIComponent(query)}&page=1&num_pages=1&country=in&date_posted=week`,
-      {
-        headers: {
-          'X-RapidAPI-Key': import.meta.env.VITE_RAPIDAPI_KEY,
-          'X-RapidAPI-Host': 'jsearch.p.rapidapi.com'
-        }
-      }
-    );
-    const data = await response.json();
-    return (data.data || []).map((j: any) => ({
-      ...j,
-      title: j.job_title,
-      company: j.employer_name,
-      location: j.job_city || j.job_state || 'India',
-      source: 'JSearch'
-    }));
   };
 
   const calculateMatchScore = (job: any, userSkills: string[]) => {
@@ -185,6 +178,32 @@ const JobBoard = () => {
   useEffect(() => {
     loadJobs();
   }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      loadJobs(searchQuery);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [searchQuery, filters.location, filters.type]);
+
+  const timeAgo = (iso: string) => {
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
+  };
+
+  const refreshJobs = async () => {
+    try {
+      await fetch(`${SCRAPER_BASE}/refresh`, { method: 'POST' });
+    } catch (e) {
+      // Ignore refresh failures when running against legacy scraper backend.
+    }
+    await loadJobs();
+  };
 
   const filteredJobs = jobs.filter(job => {
     const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -222,13 +241,22 @@ const JobBoard = () => {
           <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--student-text-muted)' }}>
             Live job opportunities curated for your profile
           </p>
+          <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--student-text-dim)' }}>
+            Last updated: {lastUpdated ? timeAgo(lastUpdated) : 'Loading...'}
+          </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <button onClick={loadJobs} style={{
+          <button onClick={refreshJobs} style={{
             background: 'transparent', border: '1px solid #21262d', color: 'var(--student-text)',
             borderRadius: '6px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer'
           }}>
             Refresh
+          </button>
+          <button onClick={() => { setSearchQuery(''); setFilters({ location: 'all', type: 'all', matchOnly: false }); }} style={{
+            background: 'transparent', border: '1px solid #21262d', color: 'var(--student-text)',
+            borderRadius: '6px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer'
+          }}>
+            Show all jobs
           </button>
           <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#a78bfa22', color: '#a78bfa', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600 }}>
             {firstName[0].toUpperCase()}
@@ -291,8 +319,8 @@ const JobBoard = () => {
             style={{ background: 'var(--student-bg)', border: '1px solid #21262d', color: 'var(--student-text)', borderRadius: '6px', padding: '6px 12px', fontSize: '13px' }}
           >
             <option value="all">All Sources</option>
-            <option value="JSearch">JSearch</option>
             <option value="Internshala">Internshala</option>
+            <option value="Naukri">Naukri</option>
           </select>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: 'var(--student-text)' }}>
             <input 

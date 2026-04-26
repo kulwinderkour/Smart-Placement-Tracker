@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { applicationsApi } from "../../api/applications";
-import { cleanDescription } from "../../utils/text";
 
 interface Job {
   id: string;
@@ -18,103 +17,17 @@ interface Job {
   employmentType?: string;
 }
 
-const JOB_FIELDS = {
-  "💻 Tech": [
-    { value: "software developer", label: "Software Developer" },
-    { value: "frontend developer", label: "Frontend Developer" },
-    { value: "backend developer", label: "Backend Developer" },
-    { value: "full stack developer", label: "Full Stack Developer" },
-    { value: "data scientist", label: "Data Science" },
-    { value: "machine learning engineer", label: "ML / AI Engineer" },
-    { value: "data analyst", label: "Data Analyst" },
-    { value: "devops engineer", label: "DevOps / Cloud" },
-    { value: "android developer", label: "Android Developer" },
-    { value: "ios developer", label: "iOS Developer" },
-    { value: "cybersecurity analyst", label: "Cybersecurity" },
-    { value: "blockchain developer", label: "Blockchain" },
-    { value: "ui ux designer", label: "UI/UX Designer" },
-  ],
-  "📊 Business": [
-    { value: "business analyst", label: "Business Analyst" },
-    { value: "product manager", label: "Product Manager" },
-    { value: "project manager", label: "Project Manager" },
-    { value: "management consultant", label: "Management Consultant" },
-    { value: "operations manager", label: "Operations Manager" },
-    { value: "supply chain analyst", label: "Supply Chain" },
-  ],
-  "📣 Marketing & Sales": [
-    { value: "digital marketing", label: "Digital Marketing" },
-    { value: "sales executive", label: "Sales Executive" },
-    { value: "content marketing", label: "Content Marketing" },
-    { value: "seo specialist", label: "SEO Specialist" },
-    { value: "social media manager", label: "Social Media Manager" },
-    { value: "brand manager", label: "Brand Manager" },
-    { value: "growth hacker", label: "Growth Hacking" },
-    { value: "business development", label: "Business Development" },
-    { value: "account manager", label: "Account Manager" },
-  ],
-  "💰 Finance": [
-    { value: "financial analyst", label: "Financial Analyst" },
-    { value: "investment banking", label: "Investment Banking" },
-    { value: "chartered accountant", label: "CA / Accounting" },
-    { value: "risk analyst", label: "Risk Analyst" },
-    { value: "equity research analyst", label: "Equity Research" },
-    { value: "fintech", label: "Fintech" },
-  ],
-  "🏥 Healthcare": [
-    { value: "healthcare analyst", label: "Healthcare Analyst" },
-    { value: "clinical research", label: "Clinical Research" },
-    { value: "hospital management", label: "Hospital Management" },
-    { value: "pharmacist", label: "Pharmacist" },
-  ],
-  "⚖️ Legal & HR": [
-    { value: "human resources", label: "Human Resources" },
-    { value: "talent acquisition", label: "Talent Acquisition" },
-    { value: "legal analyst", label: "Legal Analyst" },
-    { value: "corporate law", label: "Corporate Law" },
-    { value: "compliance officer", label: "Compliance" },
-  ],
-  "🎨 Creative": [
-    { value: "graphic designer", label: "Graphic Designer" },
-    { value: "video editor", label: "Video Editor" },
-    { value: "content writer", label: "Content Writer" },
-    { value: "copywriter", label: "Copywriter" },
-    { value: "motion graphics", label: "Motion Graphics" },
-    { value: "photography", label: "Photography" },
-  ],
-  "🏗️ Engineering": [
-    { value: "mechanical engineer", label: "Mechanical Engineer" },
-    { value: "civil engineer", label: "Civil Engineer" },
-    { value: "electrical engineer", label: "Electrical Engineer" },
-    { value: "chemical engineer", label: "Chemical Engineer" },
-    { value: "manufacturing engineer", label: "Manufacturing" },
-  ],
-};
-
-const QUICK_FIELDS = [
-  '🔥 Trending', 'Software Developer', 'Data Science',
-  'Digital Marketing', 'Sales Executive', 'Product Manager',
-  'Financial Analyst', 'UI/UX Designer', 'Human Resources'
-];
-
 export default function JobBoard() {
   const { user } = useAuthStore();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [pendingJobs, setPendingJobs] = useState<Job[]>([]);
   const [confirmJob, setConfirmJob] = useState<Job | null>(null);
   const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set());
   const [applyingIds, setApplyingIds] = useState<Set<string>>(new Set());
-  const [dynamicQuickFields] = useState<string[]>(QUICK_FIELDS);
-  const [filters, setFilters] = useState({
-    field: '',        // job field/domain
-    location: '',     // city filter
-    type: '',         // Full-time / Remote
-    experience: '',   // (UI removed)
-    salary: '',       // Any / Paid only
-  });
 
   const navigate = useNavigate();
 
@@ -122,12 +35,10 @@ export default function JobBoard() {
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
-    // Debounce API call by 600ms
+    // Debounce API call by 600ms.
     clearTimeout(searchTimeout.current);
     searchTimeout.current = setTimeout(() => {
-      if (value.length > 2) {
-        fetchJobsByField(value); // search term becomes the query
-      }
+      fetchJobs(value);
     }, 600);
   };
 
@@ -149,117 +60,53 @@ export default function JobBoard() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
-  const fetchArbeitnowJobs = async (search: string) => {
-    try {
-      // Arbeitnow Job Board API does not support a free-text `search` param reliably.
-      // Fetch a page of jobs and filter client-side instead.
-      const res = await fetch(`https://arbeitnow.com/api/job-board-api`);
-      if (!res.ok) return [];
-      const data = await res.json();
-      const raw = (data.data || []).slice(0, 60).map((job: any) => ({
-        id: `arb-${job.slug}`,
-        title: job.title,
-        company: job.company_name,
-        location: job.location || (job.remote ? 'Remote' : 'Not specified'),
-        salary: 'Not listed',
-        applyUrl: job.url,
-        source: 'Arbeitnow',
-        description: job.description?.replace(/<[^>]*>/g, '').substring(0, 200) + '...',
-        employmentType: job.remote ? 'remote' : (job.job_types?.[0]?.toLowerCase() || 'full-time'),
-      }));
-
-      const q = (search || '').trim().toLowerCase();
-      if (!q) return raw;
-
-      // Match loosely across title/company/location/description
-      const terms = q.split(/\s+/).filter(Boolean);
-      return raw.filter((j) => {
-        const hay = `${j.title} ${j.company} ${j.location} ${j.description || ''}`.toLowerCase();
-        return terms.every((t) => hay.includes(t));
-      });
-    } catch {
-      return [];
-    }
-  };
-
-  const fetchJobs = async (fieldOverride?: string) => {
+  const fetchJobs = async (queryOverride?: string) => {
     setLoading(true);
     setError('');
 
-    const key = import.meta.env.VITE_RAPIDAPI_KEY;
-
     try {
-      const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-      const userSkills = profile.skills || [];
-      const city = 'India';
-      const skillQuery = userSkills.length > 0 ? userSkills[0] : 'Software Developer';
-      const baseQuery = fieldOverride || filters.field || skillQuery;
+      const scraperBase = (import.meta.env.VITE_SCRAPER_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}`).replace(/\/$/, '');
+      const params = new URLSearchParams();
+      const q = (queryOverride ?? searchQuery ?? '').trim();
+      if (q) params.set('q', q);
 
-      console.log('Searching all sources for:', baseQuery);
-
-      // 1. Fetch from JSearch (RapidAPI)
-      let jsearchResults: Job[] = [];
-      if (key && key !== 'undefined' && key.length > 5) {
-        try {
-          const res = await fetch(
-            `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(baseQuery + ' jobs in ' + city)}&page=1&num_pages=1&country=in&date_posted=month`,
-            { headers: { 'x-rapidapi-key': key, 'x-rapidapi-host': 'jsearch.p.rapidapi.com' } }
-          );
-          if (res.ok) {
-            const data = await res.json();
-            jsearchResults = (data.data || []).map((job: any) => ({
-              id: job.job_id,
-              title: job.job_title,
-              company: job.employer_name,
-              location: `${job.job_city || ''} ${job.job_country || ''}`.trim(),
-              salary: job.job_min_salary ? `₹${job.job_min_salary} - ₹${job.job_max_salary}` : 'Not listed',
-              applyUrl: job.job_apply_link,
-              source: 'JSearch',
-              description: job.job_description?.substring(0, 200) + '...',
-              postedAt: job.job_posted_at_datetime_utc,
-              employmentType: job.job_employment_type?.toLowerCase(),
-            }));
-          }
-        } catch (e) {
-          console.error('JSearch failed');
-        }
+      let scraperJobs: Job[] = [];
+      const cachedRes = await fetch(`${scraperBase}/scraped-jobs?${params.toString()}`);
+      if (cachedRes.ok) {
+        const data = await cachedRes.json();
+        scraperJobs = (data.jobs || []).map((job: any, idx: number) => ({
+          id: job.id || `scraped-${idx}-${job.applyUrl || job.title}`,
+          title: job.title,
+          company: job.company,
+          location: job.location || 'India',
+          salary: job.salary || 'Not listed',
+          applyUrl: job.applyUrl,
+          source: job.source || 'Scraper',
+          description: job.description || '',
+          employmentType: (job.employmentType || '').toLowerCase(),
+        }));
+        setLastUpdated(data.lastUpdated || null);
+      } else if (cachedRes.status === 404) {
+        // Backward compatibility with legacy scraper server shape.
+        const legacyRes = await fetch(`http://localhost:8081/api/jobs/internshala?skills=${encodeURIComponent(baseQuery)}`);
+        if (!legacyRes.ok) throw new Error('Failed to load scraper jobs');
+        const legacyData = await legacyRes.json();
+        scraperJobs = (legacyData || []).map((job: any, idx: number) => ({
+          id: job.id || `legacy-${idx}-${job.applyUrl || job.title}`,
+          title: job.title,
+          company: job.company,
+          location: job.location || 'India',
+          salary: job.salary || 'Not listed',
+          applyUrl: job.applyUrl,
+          source: job.source || 'Internshala',
+          description: job.description || '',
+          employmentType: (job.employmentType || '').toLowerCase(),
+        }));
+        setLastUpdated(null);
+      } else {
+        throw new Error('Failed to load scraper jobs');
       }
-
-      // 2. Fetch from your Internshala scraper
-      let internshalaResults: Job[] = [];
-      try {
-        const scraperBase = (import.meta.env.VITE_SCRAPER_URL || 'http://localhost:8081/api').replace(/\/$/, '');
-        const res = await fetch(`${scraperBase}/jobs/internshala?skills=${encodeURIComponent(baseQuery)}`);
-        if (res.ok) {
-          const data = await res.json();
-          internshalaResults = data.map((job: any) => ({
-            ...job,
-            id: `is-${Math.random().toString(36).substr(2, 9)}`,
-            employmentType: 'internship'
-          }));
-        }
-      } catch (e) {
-        console.error('Internshala scraper not running on 8081');
-      }
-
-      // 3. Arbeitnow free API (no key, CORS enabled)
-      let remotiveJobs: Job[] = [];
-      try {
-        const arbQuery = fieldOverride || filters.field || (userSkills.length > 0 ? userSkills[0] : 'software developer');
-        // Prefer backend proxy to avoid CORS issues in the browser.
-        const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1').replace(/\/$/, '');
-        const proxyRes = await fetch(`${apiBase}/student/jobs/external?search=${encodeURIComponent(arbQuery)}&limit=30`);
-        if (proxyRes.ok) {
-          const proxyJson = await proxyRes.json();
-          remotiveJobs = (proxyJson.data || []) as Job[];
-        } else {
-          remotiveJobs = await fetchArbeitnowJobs(arbQuery);
-        }
-      } catch (e) {}
-
-      const allJobs = [...jsearchResults, ...internshalaResults, ...remotiveJobs];
-      console.log('Merged Results:', allJobs.length);
-      setJobs(allJobs);
+      setJobs(scraperJobs);
     } catch (err: any) {
       console.error('Fetch error:', err);
       setError(`Search failed. Please try again.`);
@@ -268,34 +115,32 @@ export default function JobBoard() {
     setLoading(false);
   };
 
-  const fetchJobsByField = (field: string) => {
-    fetchJobs(field);
+  const refreshJobs = async () => {
+    const scraperBase = (import.meta.env.VITE_SCRAPER_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}`).replace(/\/$/, '');
+    try {
+      await fetch(`${scraperBase}/scraped-jobs/refresh`, { method: 'POST' });
+    } catch (e) {
+      // Ignore refresh failures when running against legacy scraper backend.
+    }
+    await fetchJobs();
+  };
+
+  const timeAgo = (iso: string) => {
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
   };
 
   const filtered = jobs.filter(job => {
-    const titleDesc = `${job.title} ${job.description}`.toLowerCase();
-    const loc = job.location?.toLowerCase();
-
-    // Search box filter
-    if (searchQuery && !titleDesc.includes(searchQuery.toLowerCase()) &&
-        !job.company?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-
-    // Job type filter
-    if (filters.type) {
-      const type = filters.type.toLowerCase();
-      const empType = job.employmentType?.toLowerCase() || '';
-      if (type === 'full-time' || type === 'Full-time') {
-        if (!empType.includes('fulltime') && !empType.includes('full_time') && !empType.includes('full-time')) return false;
-      }
-      if (type === 'remote' || type === 'Remote') {
-        if (!loc?.includes('remote') && !titleDesc.includes('remote')) return false;
-      }
-    }
-
-    return true;
+    if (!searchQuery.trim()) return true;
+    const hay = `${job.title} ${job.company} ${job.location} ${job.description || ''}`.toLowerCase();
+    return hay.includes(searchQuery.toLowerCase());
   });
 
-  const activeFilterCount = Object.values(filters).filter(Boolean).length;
   const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
   const userSkills = profile.skills || [];
 
@@ -347,36 +192,42 @@ export default function JobBoard() {
         <div>
           <h1 style={{ fontSize: "20px", fontWeight: 600, marginBottom: "2px", display: 'flex', alignItems: 'center', gap: '10px' }}>
             Job Board
-            {activeFilterCount > 0 && (
-              <span style={{
-                background: '#a78bfa18',
-                color: '#a78bfa',
-                border: '1px solid #a78bfa40',
-                borderRadius: '4px',
-                padding: '2px 8px',
-                fontSize: '11px',
-                fontWeight: 600,
-              }}>
-                {activeFilterCount} active
-              </span>
-            )}
           </h1>
           <p style={{ color: "var(--student-text-muted)", fontSize: "12px", margin: 0 }}>Live job opportunities curated for your profile</p>
+          <p style={{ color: "var(--student-text-dim)", fontSize: "12px", margin: "2px 0 0" }}>
+            Last updated: {lastUpdated ? timeAgo(lastUpdated) : 'Loading...'}
+          </p>
         </div>
-        <button
-          onClick={() => fetchJobs()}
-          style={{
-            background: 'var(--student-surface)',
-            border: '1px solid #2d2d2d',
-            borderRadius: '6px',
-            color: 'var(--student-text-muted)',
-            padding: '6px 12px',
-            fontSize: '13px',
-            cursor: 'pointer'
-          }}
-        >
-          ↻ Refresh
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={refreshJobs}
+            style={{
+              background: 'var(--student-surface)',
+              border: '1px solid #2d2d2d',
+              borderRadius: '6px',
+              color: 'var(--student-text-muted)',
+              padding: '6px 12px',
+              fontSize: '13px',
+              cursor: 'pointer'
+            }}
+          >
+            ↻ Refresh
+          </button>
+          <button
+            onClick={() => { setSearchQuery(''); fetchJobs(''); }}
+            style={{
+              background: 'var(--student-surface)',
+              border: '1px solid #2d2d2d',
+              borderRadius: '6px',
+              color: 'var(--student-text-muted)',
+              padding: '6px 12px',
+              fontSize: '13px',
+              cursor: 'pointer'
+            }}
+          >
+            Show all jobs
+          </button>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -397,112 +248,6 @@ export default function JobBoard() {
           outline: "none",
         }}
       />
-
-      {/* Quick Picks */}
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
-        {dynamicQuickFields.map(field => (
-          <button
-            key={field}
-            onClick={() => {
-              const val = field.startsWith('🔥') ? '' : field.toLowerCase();
-              setFilters(f => ({ ...f, field: val }));
-              fetchJobsByField(val);
-            }}
-            style={{
-              background: filters.field === field.toLowerCase() ? '#6b728018' : 'var(--student-surface)',
-              border: `1px solid ${filters.field === field.toLowerCase() ? 'var(--student-text-dim)' : 'var(--student-border)'}`,
-              color: filters.field === field.toLowerCase() ? 'var(--student-text-dim)' : 'var(--student-text-muted)',
-              borderRadius: '20px',
-              padding: '5px 12px',
-              fontSize: '12px',
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {field}
-          </button>
-        ))}
-      </div>
-
-      {/* Filters Row */}
-      <div style={{
-        display: 'flex',
-        gap: '8px',
-        flexWrap: 'wrap',
-        marginBottom: '16px'
-      }}>
-        {/* Field dropdown */}
-        <select
-          value={filters.field}
-          onChange={e => {
-            setFilters(f => ({ ...f, field: e.target.value }));
-            fetchJobsByField(e.target.value);
-          }}
-          aria-label="Job field"
-          style={{
-            background: 'var(--student-surface)',
-            border: `1px solid ${filters.field ? 'var(--student-text-dim)' : 'var(--student-border)'}`,
-            borderRadius: '6px',
-            color: filters.field ? 'var(--student-text)' : 'var(--student-text-muted)',
-            padding: '7px 12px',
-            fontSize: '13px',
-            cursor: 'pointer',
-            minWidth: '160px'
-          }}
-        >
-          <option value="">All Fields</option>
-          {Object.entries(JOB_FIELDS).map(([group, options]) => (
-            <optgroup key={group} label={group}>
-              {options.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
-
-        {/* Job type pills */}
-        {['All', 'Full-time', 'Remote'].map(type => (
-          <button
-            key={type}
-            onClick={() => setFilters(f => ({ ...f, type: type === 'All' ? '' : type }))}
-            style={{
-              background: filters.type === (type === 'All' ? '' : type) ? 'var(--student-text-dim)' : 'var(--student-surface)',
-              color: filters.type === (type === 'All' ? '' : type) ? 'var(--student-bg)' : 'var(--student-text-muted)',
-              border: `1px solid ${filters.type === (type === 'All' ? '' : type) ? 'var(--student-text-dim)' : 'var(--student-border)'}`,
-              borderRadius: '6px',
-              padding: '7px 14px',
-              fontSize: '13px',
-              cursor: 'pointer',
-              fontWeight: filters.type === (type === 'All' ? '' : type) ? 600 : 400,
-              transition: 'all 0.15s'
-            }}
-          >
-            {type}
-          </button>
-        ))}
-
-        {/* Clear all filters */}
-        {(filters.field || filters.type) && (
-          <button
-            onClick={() => {
-              setFilters({ field: '', location: '', type: '', experience: '', salary: '' });
-              fetchJobsByField('');
-            }}
-            style={{
-              background: 'transparent',
-              border: '1px solid #da363333',
-              borderRadius: '6px',
-              color: '#f85149',
-              padding: '7px 12px',
-              fontSize: '13px',
-              cursor: 'pointer'
-            }}
-          >
-            ✕ Clear filters
-          </button>
-        )}
-      </div>
 
       {error && (
         <div style={{
@@ -600,8 +345,8 @@ export default function JobBoard() {
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <p style={{ color: 'var(--student-text-muted)', fontSize: '13px', margin: 0 }}>
-              {filters.field || searchQuery
-                ? `Showing results for "${filters.field || searchQuery}"`
+              {searchQuery
+                ? `Showing results for "${searchQuery}"`
                 : `Skills: ${userSkills.join(', ') || 'Not set — add skills for better matches'}`
               }
               {' · '}{filtered.length} jobs found
@@ -666,7 +411,6 @@ export default function JobBoard() {
                     <div>
                       <h3 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "4px" }}>{job.title}</h3>
                       <p style={{ color: "var(--student-text-secondary)", fontSize: "14px", fontWeight: 500 }}>{job.company} · {job.location}</p>
-                      <p style={{ color: "var(--student-text-muted)", fontSize: "13px", marginTop: "6px", lineHeight: 1.5 }}>{cleanDescription(job.description)}</p>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', marginLeft: '1rem', flexShrink: 0 }}>
                       {appliedIds.has(job.applyUrl) ? (
@@ -694,7 +438,7 @@ export default function JobBoard() {
                               transition: 'all 0.2s ease', fontWeight: 600,
                             }}
                           >
-                            {pendingJobs.some(j => j.applyUrl === job.applyUrl) ? 'Open Again ↗' : 'Apply →'}
+                            {pendingJobs.some(j => j.applyUrl === job.applyUrl) ? 'Open Again ↗' : 'Apply Remote'}
                           </button>
                           {pendingJobs.some(j => j.applyUrl === job.applyUrl) && (
                             <button
@@ -711,17 +455,19 @@ export default function JobBoard() {
                       )}
                     </div>
                   </div>
-                  <div style={{ marginTop: "8px" }}>
-                    <span style={{
-                      background: "var(--student-border)",
-                      color: "var(--student-text-muted)",
-                      fontSize: "11px",
-                      padding: "2px 8px",
-                      borderRadius: "20px",
-                    }}>
-                      {job.salary}
-                    </span>
-                  </div>
+                  {job.salary && job.salary.toLowerCase() !== "not listed" && (
+                    <div style={{ marginTop: "8px" }}>
+                      <span style={{
+                        background: "var(--student-border)",
+                        color: "var(--student-text-muted)",
+                        fontSize: "11px",
+                        padding: "2px 8px",
+                        borderRadius: "20px",
+                      }}>
+                        {job.salary}
+                      </span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

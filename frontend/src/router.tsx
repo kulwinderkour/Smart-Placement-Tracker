@@ -10,8 +10,6 @@ import StudentJobBoard from "./pages/Student/JobBoard";
 import Dashboard from "./pages/Student/Dashboard";
 import Tracker from "./pages/Student/Tracker";
 import ResumeAnalyser from "./pages/Student/ResumeAnalyser";
-import MockInterviewSetup from "./pages/Student/MockInterviewSetup";
-import MockInterviewRoom from "./pages/Student/MockInterviewRoom";
 import Roadmap from "./pages/Student/Roadmap";
 import Questions from "./pages/Student/Questions";
 import Onboarding from "./pages/Student/Onboarding";
@@ -37,6 +35,7 @@ import AdminPlatformJobs from "./pages/Admin/AdminPlatformJobs";
 import StreakTracker from "./pages/Student/StreakTracker";
 import Settings from "./pages/Student/Settings";
 import Freepad from "./pages/Student/Freepad";
+import ApplicationsPage from "./pages/Student/Applications";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -140,6 +139,16 @@ export const router = createBrowserRouter([
     ),
   },
   {
+    path: "/applications",
+    element: (
+      <OnboardingGuard>
+        <DashboardLayout>
+          <ApplicationsPage />
+        </DashboardLayout>
+      </OnboardingGuard>
+    ),
+  },
+  {
     path: "/dashboard",
     element: (
       <OnboardingGuard>
@@ -236,24 +245,6 @@ export const router = createBrowserRouter([
         <DashboardLayout>
           <Settings />
         </DashboardLayout>
-      </OnboardingGuard>
-    ),
-  },
-  {
-    path: "/mock-interview",
-    element: (
-      <OnboardingGuard>
-        <DashboardLayout>
-          <MockInterviewSetup />
-        </DashboardLayout>
-      </OnboardingGuard>
-    ),
-  },
-  {
-    path: "/mock-interview/room",
-    element: (
-      <OnboardingGuard>
-        <MockInterviewRoom />
       </OnboardingGuard>
     ),
   },

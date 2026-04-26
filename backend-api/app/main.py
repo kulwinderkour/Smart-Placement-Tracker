@@ -11,7 +11,9 @@ from app.routers.agent_internal import router as agent_internal_router
 from app.routers.google_auth import router as google_router
 from app.routers.company_jobs import router as company_jobs_router
 from app.routers.student_api import router as student_api_router
+from app.routers.scraped_jobs import router as scraped_jobs_router
 from app.services.realtime import redis_subscriber
+from app.services.scraped_jobs_cache import scheduler_loop
 
 logger = logging.getLogger(__name__)
 
@@ -19,13 +21,19 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     task = asyncio.create_task(redis_subscriber())
+    scraper_task = asyncio.create_task(scheduler_loop(interval_hours=24))
     logger.info("Redis subscriber background task started.")
     yield
     task.cancel()
+    scraper_task.cancel()
     try:
         await task
     except asyncio.CancelledError:
         logger.info("Redis subscriber stopped.")
+    try:
+        await scraper_task
+    except asyncio.CancelledError:
+        logger.info("Scraper scheduler stopped.")
 
 
 app = FastAPI(
@@ -59,6 +67,7 @@ app.include_router(google_router,      prefix="/api/v1")
 app.include_router(company.router,     prefix="/api/v1")
 app.include_router(company_jobs_router,prefix="/api/v1")
 app.include_router(student_api_router, prefix="/api/v1")
+app.include_router(scraped_jobs_router, prefix="/api/v1")
 app.include_router(roadmap.router,     prefix="/api/v1")
 app.include_router(questions.router,   prefix="/api/v1")
 app.include_router(agent_internal_router, prefix="/api/v1")

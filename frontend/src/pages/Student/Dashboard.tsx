@@ -24,21 +24,10 @@ interface UserProfile {
 }
 
 const STATUS_STYLES: Record<string, { bg: string; color: string; border: string }> = {
-  'Applied':         { bg: '#1f2d3d', color: '#58a6ff', border: '1px solid rgba(31,111,235,0.25)' },
-  'Online Test':     { bg: '#2d2208', color: '#f0b429', border: '1px solid rgba(210,153,34,0.3)' },
-  'Technical Round': { bg: '#1a2638', color: '#79c0ff', border: '1px solid rgba(88,166,255,0.25)' },
-  'HR Round':        { bg: '#261d38', color: '#c084fc', border: '1px solid rgba(168,85,247,0.3)' },
-  'Offered':         { bg: '#1a2e22', color: '#3fb950', border: '1px solid rgba(35,134,54,0.25)' },
-  'Rejected':        { bg: '#2d1b1b', color: '#f85149', border: '1px solid rgba(218,54,51,0.25)' },
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  applied:         'Applied',
-  online_test:     'Online Test',
-  technical_round: 'Technical Round',
-  hr_round:        'HR Round',
-  offer:           'Offered',
-  rejected:        'Rejected',
+  Pending: { bg: '#2d2208', color: '#f0b429', border: '1px solid rgba(210,153,34,0.3)' },
+  Approved: { bg: '#1a2e22', color: '#3fb950', border: '1px solid rgba(35,134,54,0.25)' },
+  Rejected: { bg: '#2d1b1b', color: '#f85149', border: '1px solid rgba(218,54,51,0.25)' },
+  Shortlisted: { bg: '#1a2638', color: '#79c0ff', border: '1px solid rgba(88,166,255,0.25)' },
 }
 
 function calcReadiness(profile: UserProfile): number {
@@ -170,30 +159,48 @@ export default function Dashboard() {
   const [refetchTrigger, setRefetchTrigger] = useState(0);
   const [minPackage, setMinPackage] = useState(10);
 
-  const [showApplyModal, setShowApplyModal] = useState(false);
-  const [activeJobForApply, setActiveJobForApply] = useState<any>(null);
-  const [applyNotes, setApplyNotes] = useState('');
-  const [isApplying, setIsApplying] = useState(false);
   const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [isApplyingJobId, setIsApplyingJobId] = useState<string | null>(null);
+  const [applyMessage, setApplyMessage] = useState<string>("");
 
-  const handleManualApply = async () => {
-    if (!activeJobForApply) return;
-    setIsApplying(true);
+  const handleApplyToAdminJob = async (job: any) => {
+    if (!job?.id) return;
+    setIsApplyingJobId(job.id);
     try {
-      await applicationsApi.apply(activeJobForApply.id, applyNotes);
-      alert('Application submitted successfully!');
-      setShowApplyModal(false);
-      setApplyNotes('');
-      // Invalidate applications count
-      applicationsApi.myApplications().then(res => setApplications(res.data as any));
+      await applicationsApi.apply(job.id);
+      setApplyMessage("Application submitted!");
+      const res = await applicationsApi.myApplications();
+      setApplications((res.data.applications || []) as any);
     } catch (err: any) {
-      alert('Failed to apply: ' + (err.response?.data?.detail || err.message));
+      if (err?.response?.status === 409) {
+        setApplyMessage("Already applied");
+      } else {
+        setApplyMessage('Failed to apply');
+      }
     } finally {
-      setIsApplying(false);
+      setIsApplyingJobId(null);
+      setTimeout(() => setApplyMessage(""), 2500);
     }
   };
 
-  const AI_ENGINE_URL = import.meta.env.VITE_AI_ENGINE_URL || 'http://localhost:8002';
+  const AI_ENGINE_URL = (import.meta.env.VITE_AI_ENGINE_URL || import.meta.env.VITE_AI_URL || 'http://localhost:8002').replace(/\/$/, '');
+  const [matcherAvailable, setMatcherAvailable] = useState<boolean | null>(null);
+
+  const checkMatcherHealth = async () => {
+    if (matcherAvailable !== null) return matcherAvailable;
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 4000);
+      const res = await fetch(`${AI_ENGINE_URL}/health`, { signal: ctrl.signal });
+      clearTimeout(timer);
+      const ok = res.ok;
+      setMatcherAvailable(ok);
+      return ok;
+    } catch {
+      setMatcherAvailable(false);
+      return false;
+    }
+  };
 
   const fetchMatchScores = async (jobs: any[], freshProfile?: any) => {
     const activeProfile = freshProfile || profile;
@@ -207,6 +214,17 @@ export default function Dashboard() {
       jobs.forEach(job => { next[job.id] = { loading: true }; });
       return next;
     });
+
+    const isMatcherUp = await checkMatcherHealth();
+    if (!isMatcherUp) {
+      setMatchScores(prev => {
+        const next = { ...prev };
+        jobs.forEach(job => { next[job.id] = { loading: false, score: null }; });
+        return next;
+      });
+      console.warn(`[Match] AI matcher is unavailable at ${AI_ENGINE_URL}. Skipping score fetch.`);
+      return;
+    }
     const studentPayload = {
       fullName: activeProfile.fullName || activeProfile.full_name || '',
       college: activeProfile.college || '',
@@ -256,7 +274,9 @@ export default function Dashboard() {
             },
           }));
         } catch (err) {
-          console.error('[Match] Score fetch error:', err);
+          if (matcherAvailable !== false) {
+            console.error('[Match] Score fetch error:', err);
+          }
           setMatchScores(prev => ({ ...prev, [job.id]: { loading: false, score: null } }));
         }
       })
@@ -266,7 +286,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user?.id) return
     applicationsApi.myApplications()
-      .then(res => setApplications(res.data as unknown as TrackedApplication[]))
+      .then(res => setApplications((res.data.applications || []) as unknown as TrackedApplication[]))
       .catch((err) => {
         console.error("Dashboard: applications fetch failed:", err.response?.data || err.message);
         setApplications([]);
@@ -436,8 +456,8 @@ export default function Dashboard() {
               {appsLoading ? (
                 <p style={{ fontSize: 13, color: 'var(--student-text-muted)', margin: 0 }}>Loading…</p>
               ) : applications.length > 0 ? applications.slice(0, 5).map((app, i) => {
-                const statusKey = STATUS_LABEL[app.status] || 'Applied'
-                const s = STATUS_STYLES[statusKey] || STATUS_STYLES['Applied']
+                const statusKey = app.status || 'Pending'
+                const s = STATUS_STYLES[statusKey] || STATUS_STYLES['Pending']
                 const appliedDate = app.applied_at
                   ? new Date(app.applied_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
                   : '—'
@@ -454,7 +474,7 @@ export default function Dashboard() {
                       }}>{app.company[0]?.toUpperCase() ?? '?'}</div>
                       <div>
                         <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--student-text)' }}>{app.company}</p>
-                        <p style={{ margin: 0, fontSize: 11, color: 'var(--student-text-muted)' }}>{app.role} · {appliedDate}</p>
+                        <p style={{ margin: 0, fontSize: 11, color: 'var(--student-text-muted)' }}>{(app as any).jobTitle || app.role} · {appliedDate}</p>
                       </div>
                     </div>
                     <span style={{
@@ -472,95 +492,8 @@ export default function Dashboard() {
           </div>
 
 
-          {/* ── Apply Modal ── */}
-          {showApplyModal && activeJobForApply && (
-            <div style={{
-              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-              background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              zIndex: 100, backdropFilter: 'blur(4px)'
-            }}>
-              <div style={{
-                background: 'var(--student-surface)', border: '1px solid #2d2d2d', borderRadius: '12px',
-                width: '100%', maxWidth: '450px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
-              }}>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: 'var(--student-text)' }}>
-                  Apply for {activeJobForApply.title}
-                </h3>
-                <p style={{ fontSize: '13px', color: 'var(--student-text-muted)', marginTop: '4px', marginBottom: '16px' }}>
-                  {activeJobForApply.company} · {activeJobForApply.location}
-                </p>
-
-                {/* ── ML Match Score Block ── */}
-                {(() => {
-                  const ms = matchScores[activeJobForApply.id];
-                  if (!ms) return null;
-                  if (ms.loading) return (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#1a1a2e40', border: '1px solid #818cf830', borderRadius: '8px', padding: '10px 12px', marginBottom: '16px' }}>
-                      <div style={{ width: '12px', height: '12px', border: '2px solid #818cf8', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
-                      <span style={{ fontSize: '12px', color: '#818cf8' }}>Computing your profile match…</span>
-                    </div>
-                  );
-                  const score = ms.score ?? 0;
-                  const scoreColor = score >= 70 ? '#3fb950' : score >= 50 ? '#d29922' : '#f85149';
-                  const msg = score >= 80 ? '🎯 Excellent match' : score >= 60 ? '✔ Good match' : score >= 50 ? '⚡ Eligible' : '⚠️ Low match — add skills to improve';
-                  return (
-                    <div style={{ background: `${scoreColor}0d`, border: `1px solid ${scoreColor}40`, borderRadius: '10px', padding: '12px 14px', marginBottom: '16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '13px', color: 'var(--student-text)', fontWeight: 500 }}>{msg} — Your profile match</span>
-                        <span style={{ fontSize: '22px', fontWeight: 800, color: scoreColor }}>{score}%</span>
-                      </div>
-                      <div style={{ height: '6px', background: 'var(--student-border)', borderRadius: '3px', overflow: 'hidden', marginBottom: '10px' }}>
-                        <div style={{ width: `${score}%`, height: '100%', background: scoreColor, borderRadius: '3px', transition: 'width 0.6s ease' }} />
-                      </div>
-                      <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                        {(ms.matched || []).slice(0, 5).map(s => (
-                          <span key={s} style={{ background: '#1a2e2260', color: '#3fb950', border: '1px solid #3fb95040', borderRadius: '3px', padding: '2px 6px', fontSize: '10px' }}>✓ {s}</span>
-                        ))}
-                        {(ms.gaps || []).slice(0, 3).map(s => (
-                          <span key={s} style={{ background: '#2d1b1b60', color: '#f85149', border: '1px solid #f8514940', borderRadius: '3px', padding: '2px 6px', fontSize: '10px' }}>✗ {s}</span>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                <div style={{ marginBottom: '16px' }}>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--student-text-dim)', marginBottom: '8px', textTransform: 'uppercase' }}>
-                    Notes for the Placement Cell / Company
-                  </label>
-                  <textarea 
-                    value={applyNotes}
-                    onChange={(e) => setApplyNotes(e.target.value)}
-                    placeholder="Briefly state your interest or mention any relevant details..."
-                    style={{
-                      width: '100%', height: '120px', background: 'var(--student-bg)', border: '1px solid #2d2d2d',
-                      borderRadius: '8px', padding: '12px', color: 'var(--student-text)', fontSize: '14px',
-                      resize: 'none', outline: 'none'
-                    }}
-                  />
-                </div>
-
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button onClick={() => { setShowApplyModal(false); setApplyNotes(''); }}
-                    style={{
-                      flex: 1, background: 'transparent', border: '1px solid #2d2d2d',
-                      color: 'var(--student-text)', borderRadius: '8px', padding: '10px', fontSize: '14px',
-                      fontWeight: 600, cursor: 'pointer'
-                    }}>
-                    Cancel
-                  </button>
-                  <button onClick={handleManualApply} disabled={isApplying}
-                    style={{
-                      flex: 1, background: 'var(--student-text-dim)', border: 'none',
-                      color: 'var(--student-bg)', borderRadius: '8px', padding: '10px', fontSize: '14px',
-                      fontWeight: 600, cursor: isApplying ? 'not-allowed' : 'pointer',
-                      opacity: isApplying ? 0.7 : 1
-                    }}>
-                    {isApplying ? 'Applying...' : 'Submit Application'}
-                  </button>
-                </div>
-              </div>
-            </div>
+          {applyMessage && (
+            <div style={{ fontSize: 12, color: '#a78bfa', marginTop: -4 }}>{applyMessage}</div>
           )}
 
           {/* ── Admin Posted Opportunities Section ── */}
@@ -633,7 +566,7 @@ export default function Dashboard() {
               isOpen={autoApplyOpen}
               onClose={() => {
                 setAutoApplyOpen(false);
-                applicationsApi.myApplications().then(res => setApplications(res.data as any));
+                applicationsApi.myApplications().then(res => setApplications((res.data.applications || []) as any));
                 setRefetchTrigger(t => t + 1);
               }}
               adminJobs={adminJobs}
@@ -879,7 +812,7 @@ export default function Dashboard() {
 
                       <div style={{ marginTop: '24px' }}>
                         {(() => {
-                          const isApplied = applications.some((a: any) => a.job_id === selectedJob.id);
+                          const isApplied = applications.some((a: any) => (a.jobId || a.job_id) === selectedJob.id);
                           const isExpired = selectedJob.application_deadline && new Date() > new Date(selectedJob.application_deadline);
                           if (isApplied) {
                             return (
@@ -894,24 +827,16 @@ export default function Dashboard() {
                               </button>
                             );
                           } else {
-                            if (selectedJob.apply_link) {
-                                return (
-                                  <a href={selectedJob.apply_link} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-                                    <button style={{ width: '100%', background: '#1f6feb', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '11px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s', boxShadow: '0 0 0 0 #2f81f740' }}
-                                      onMouseEnter={e => (e.currentTarget.style.background = '#388bfd')} onMouseLeave={e => (e.currentTarget.style.background = '#1f6feb')}>
-                                      Apply Externally ↗
-                                    </button>
-                                  </a>
-                                );
-                            } else {
-                                return (
-                                  <button onClick={() => { setActiveJobForApply(selectedJob); setShowApplyModal(true); }}
-                                    style={{ width: '100%', background: '#1f6feb', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '11px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s' }}
-                                    onMouseEnter={e => (e.currentTarget.style.background = '#388bfd')} onMouseLeave={e => (e.currentTarget.style.background = '#1f6feb')}>
-                                    Apply Now
-                                  </button>
-                                );
-                            }
+                            return (
+                              <button
+                                onClick={() => handleApplyToAdminJob(selectedJob)}
+                                disabled={isApplyingJobId === selectedJob.id}
+                                style={{ width: '100%', background: '#1f6feb', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '11px', fontSize: '13px', fontWeight: 700, cursor: isApplyingJobId === selectedJob.id ? 'not-allowed' : 'pointer', transition: 'background 0.2s' }}
+                                onMouseEnter={e => (e.currentTarget.style.background = '#388bfd')} onMouseLeave={e => (e.currentTarget.style.background = '#1f6feb')}
+                              >
+                                {isApplyingJobId === selectedJob.id ? 'Submitting...' : 'Apply'}
+                              </button>
+                            );
                           }
                         })()}
                       </div>
