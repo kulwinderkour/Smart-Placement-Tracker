@@ -362,7 +362,7 @@ export default function Login() {
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>
           </div>
 
-          <h1 className="font-['Sora'] font-bold text-white mb-6 leading-[1.1]" style={{ fontSize: 'clamp(32px, 7vw, 80px)' }}>
+          <h1 className="font-['Montserrat'] font-bold text-white mb-6 leading-[1.1]" style={{ fontSize: 'clamp(24px, 5vw, 400px)' }}>
             Land Your Dream Job
           </h1>
 
