@@ -152,12 +152,10 @@ function MatchBreakdown({ ms }: { ms: MatchData | 'loading' | undefined | null }
 }
 
 const COLUMNS = [
-  { id: 'applied',          label: 'Applied',          color: 'blue'   },
-  { id: 'online_test',      label: 'Online Test',       color: 'yellow' },
-  { id: 'technical_round',  label: 'Technical Round',   color: 'purple' },
-  { id: 'hr_round',         label: 'HR Round',          color: 'purple' },
-  { id: 'offer',            label: 'Offer 🎉',          color: 'green'  },
-  { id: 'rejected',         label: 'Rejected',          color: 'red'    },
+  { id: 'Pending', label: 'Pending', color: 'yellow' },
+  { id: 'Shortlisted', label: 'Shortlisted', color: 'purple' },
+  { id: 'Approved', label: 'Approved', color: 'green' },
+  { id: 'Rejected', label: 'Rejected', color: 'red' },
 ] as const
 
 export default function Tracker() {
@@ -166,16 +164,16 @@ export default function Tracker() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['my-applications'],
-    queryFn: () => applicationsApi.myApplications(),
+    queryFn: async () => (await applicationsApi.myApplications()).data.applications || [],
   })
 
   const updateMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
-      applicationsApi.update(id, { status: status as 'applied' | 'online_test' | 'technical_round' | 'hr_round' | 'offer' | 'rejected' }),
+      applicationsApi.updateStatus(id, status as 'Approved' | 'Rejected' | 'Shortlisted'),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-applications'] }),
   })
 
-  const applications: TrackedApplication[] = (data?.data ?? []) as unknown as TrackedApplication[]
+  const applications: TrackedApplication[] = (data ?? []) as unknown as TrackedApplication[]
 
   const [matchScores, setMatchScores] = useState<Record<string, MatchData | 'loading'>>({})
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -196,7 +194,7 @@ export default function Tracker() {
     }
 
     applications.forEach(async (app) => {
-      if (!app.job_id) return
+      if (!(app.jobId || app.job_id)) return
       const cached = getCached(app.id)
       if (cached) {
         setMatchScores(prev => ({ ...prev, [app.id]: cached }))
@@ -210,8 +208,8 @@ export default function Tracker() {
           body: JSON.stringify({
             student: studentPayload,
             job: {
-              id: app.job_id || '',
-              title: (app as TrackedApplication).role || '',
+              id: app.jobId || app.job_id || '',
+              title: (app as TrackedApplication).jobTitle || (app as TrackedApplication).role || '',
               company: (app as TrackedApplication).company || '',
               location: '',
               package_lpa: 0,
@@ -247,6 +245,7 @@ export default function Tracker() {
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return
     const { draggableId, destination } = result
+    if (destination.droppableId === "Pending") return
     updateMutation.mutate({ id: draggableId, status: destination.droppableId })
   }
 
@@ -331,7 +330,7 @@ export default function Tracker() {
                             {/* Title row + score badge */}
                             <div className="flex justify-between items-start mb-1">
                               <h4 className="font-medium text-sm text-gray-900 flex-1 pr-1 leading-tight">
-                                {(app as TrackedApplication).role || 'Unknown Role'}
+                                {(app as TrackedApplication).jobTitle || (app as TrackedApplication).role || 'Unknown Role'}
                               </h4>
                               <MatchBadge ms={matchScores[app.id]} />
                             </div>

@@ -349,7 +349,7 @@ http://localhost:8001 for collector
 
 http://localhost:8002 for ai-engine
 
-http: //localhost:3000 for frontend
+http://localhost:3000 for frontend
 
 
 

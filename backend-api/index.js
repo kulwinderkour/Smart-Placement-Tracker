@@ -2,8 +2,10 @@ require("dotenv").config({ path: require("path").join(__dirname, "../.env") });
 const express = require("express");
 const cors = require("cors");
 const { scrapeInternshala } = require("./scrapers/internshala");
+const { startScheduler } = require("./scrapers/scheduler");
 const roadmapRouter = require("./routes/roadmap");
 const questionsRouter = require("./routes/questions");
+const jobsRouter = require("./routes/jobs");
 const path = require('path');
 
 const app = express();
@@ -40,6 +42,14 @@ app.use("/api/roadmap", roadmapRouter);
 
 // Questions routes
 app.use("/questions", questionsRouter);
+
+// mount the jobs route
+app.use("/api/jobs", jobsRouter);
+
+// start the scraper scheduler
+startScheduler().catch((err) => {
+  console.error("Scheduler failed to start:", err.message);
+});
 
 app.listen(port, () => {
   console.log(`Scraper & Roadmap server listening at http://localhost:${port}`);

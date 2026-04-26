@@ -264,10 +264,10 @@ export default function ResumeAnalyser() {
             </div>
 
             {/* Tabs */}
-            <div style={{ display: 'flex', gap: 4, background: 'var(--student-bg)', borderRadius: 10, padding: 4, marginBottom: 24 }}>
+            <div style={{ display: 'flex', gap: 4, background: '#ffffff', borderRadius: 10, padding: 4, marginBottom: 24 }}>
               {(['analyze', 'history'] as const).map(tab => (
-                <button key={tab} onClick={() => setActiveTab(tab)} style={{ flex: 1, padding: '8px 0', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: activeTab === tab ? 'var(--student-surface)' : 'transparent', color: activeTab === tab ? 'var(--student-text)' : 'var(--student-text-muted)', transition: 'all 0.15s' }}>
-                  {tab === 'analyze' ? '✨ Analyze' : '🕒 History'}
+                <button key={tab} onClick={() => setActiveTab(tab)} style={{ flex: 1, padding: '8px 0', borderRadius: 8, border: 'none', fontSize: 14, fontWeight: 700, cursor: 'pointer', background: activeTab === tab ? 'var(--student-accent)' : 'transparent', color: '#000000', transition: 'all 0.15s' }}>
+                  {tab === 'analyze' ? 'Analyze' : 'History'}
                 </button>
               ))}
             </div>
@@ -287,9 +287,9 @@ export default function ResumeAnalyser() {
                     <a href={storedResume.signed_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--student-accent)', textDecoration: 'none', fontWeight: 500 }}>View →</a>
                   </div>
                 ) : loadingResume ? (
-                  <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--student-text-muted)', textAlign: 'center' }}>Loading resume…</p>
+                  <p style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 600, color: '#ffffff', textAlign: 'center' }}>Loading resume…</p>
                 ) : (
-                  <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--student-text-muted)', textAlign: 'center' }}>No resume stored yet — upload one below.</p>
+                  <p style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 600, color: '#ffffff', textAlign: 'center' }}>No resume stored yet — upload one below.</p>
                 )}
 
                 {/* Upload new / replace */}
@@ -351,9 +351,6 @@ export default function ResumeAnalyser() {
                   ) : '✨ Analyze Resume'}
                 </button>
 
-                <p style={{ margin: '14px 0 0', textAlign: 'center', fontSize: 11, color: 'var(--student-text-muted)' }}>
-                  Powered by Gemini AI · Stored securely in Google Cloud Storage
-                </p>
               </>
             ) : (
               /* History tab */

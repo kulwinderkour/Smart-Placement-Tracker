@@ -3,10 +3,12 @@ import type { Application } from '../types'
 
 export interface TrackedApplication {
   id: string
-  job_id?: string
+  userId?: string
+  jobId?: string
+  jobTitle?: string
   company: string
-  role: string
-  package_lpa: number | null
+  role?: string
+  package_lpa?: number | null
   status: string
   applied_at: string
   cover_letter?: string
@@ -16,11 +18,14 @@ export interface TrackedApplication {
 }
 
 export const applicationsApi = {
-  apply: (job_id: string, notes?: string) =>
-    apiClient.post<Application>('/applications', { job_id, notes }),
+  apply: (jobId: string) =>
+    apiClient.post<Application>('/applications', { jobId }),
 
-  myApplications: () =>
-    apiClient.get<Application[]>('/applications/my'),
+  myApplications: (status?: string) =>
+    apiClient.get<{ applications: TrackedApplication[]; total: number }>('/applications', { params: status ? { status } : {} }),
+
+  updateStatus: (id: string, status: 'Approved' | 'Rejected' | 'Shortlisted') =>
+    apiClient.patch<Application>(`/applications/${id}/status`, { status }),
 
   update: (id: string, data: Partial<Application>) =>
     apiClient.patch<Application>(`/applications/${id}`, data),

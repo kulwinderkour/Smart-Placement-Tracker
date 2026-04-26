@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import agent, internal, interview, recommend, resume, skill_gap
+from app.routers import agent, internal, recommend, resume, skill_gap
 from app.routes.matcher_routes import router as matcher_router
 from app.routes.agent_routes import router as agent_auto_apply_router
 app = FastAPI(
@@ -22,7 +22,6 @@ app.add_middleware(
 app.include_router(resume.router)
 app.include_router(recommend.router)
 app.include_router(skill_gap.router)
-app.include_router(interview.router)
 app.include_router(internal.router)
 app.include_router(agent.router)
 app.include_router(matcher_router, prefix="/api/matcher", tags=["matcher"])

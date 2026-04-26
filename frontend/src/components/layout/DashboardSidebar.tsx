@@ -31,14 +31,14 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Dashboard', path: '/dashboard', icon: <Icon d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /> },
       { label: 'Job Board', path: '/jobs',      icon: <Icon d="M21 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" /> },
-      { label: 'Prep Roadmap', path: '/roadmap', icon: <Icon d="M9 18l6-6-6-6" /> },
-      { label: 'Question Bank', path: '/questions', icon: <Icon d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 014 17V4a2 2 0 012-2h14v13H6.5A2.5 2.5 0 004 17v2.5" /> },
+      { label: 'Applications', path: '/applications', icon: <Icon d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M9 13h6M9 17h6M9 9h2" /> },
     ],
   },
   {
     title: 'Tools',
     items: [
-      { label: 'Mock Interviews', path: '/mock-interview', icon: <Icon d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.89L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" /> },
+      { label: 'Prep Roadmap', path: '/roadmap', icon: <Icon d="M9 18l6-6-6-6" /> },
+      { label: 'Question Bank', path: '/questions', icon: <Icon d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 014 17V4a2 2 0 012-2h14v13H6.5A2.5 2.5 0 004 17v2.5" /> },
       { label: 'Resume Analyser', path: '/resume', icon: <Icon d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8" /> },
       { label: 'Freepad Notebook', path: '/eligibility', icon: <Icon d="M4 4h16v16H4z M8 4v16 M12 8h6 M12 12h6 M12 16h6" /> },
       { label: 'Resource Bookmarks', path: '/bookmarks', icon: <Icon d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" /> },

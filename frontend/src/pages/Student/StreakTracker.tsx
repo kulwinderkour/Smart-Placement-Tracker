@@ -273,15 +273,14 @@ export default function StreakTracker() {
   const [appStatuses, setAppStatuses] = useState<TrackedApplication[]>([])
   useEffect(() => {
     applicationsApi.myApplications()
-      .then(res => setAppStatuses((res.data as unknown as TrackedApplication[]) || []))
+      .then(res => setAppStatuses((res.data.applications as unknown as TrackedApplication[]) || []))
       .catch(() => {})
   }, [])
 
   const ACTIVE_STAGES: Record<string, { label: string; color: string; bg: string; icon: string }> = {
-    online_test:     { label: 'Online Test',     color: '#f0b429', bg: 'rgba(240,180,41,0.10)',  icon: '📝' },
-    technical_round: { label: 'Technical Round', color: '#79c0ff', bg: 'rgba(121,192,255,0.10)', icon: '💻' },
-    hr_round:        { label: 'HR Round',        color: '#c084fc', bg: 'rgba(192,132,252,0.10)', icon: '🤝' },
-    offer:           { label: 'Offer Received',  color: '#3fb950', bg: 'rgba(63,185,80,0.10)',   icon: '🎉' },
+    Pending: { label: 'Pending', color: '#f0b429', bg: 'rgba(240,180,41,0.10)', icon: '📝' },
+    Shortlisted: { label: 'Shortlisted', color: '#79c0ff', bg: 'rgba(121,192,255,0.10)', icon: '🤝' },
+    Approved: { label: 'Approved', color: '#3fb950', bg: 'rgba(63,185,80,0.10)', icon: '🎉' },
   }
 
   const activeApps = appStatuses.filter(a => ACTIVE_STAGES[a.status])
@@ -344,7 +343,7 @@ export default function StreakTracker() {
                         {(app as any).company || 'Company'}
                       </p>
                       <p style={{ margin: '2px 0 0', fontSize: 11, color: C.muted }}>
-                        {(app as any).role || ''}
+                        {(app as any).jobTitle || (app as any).role || ''}
                       </p>
                     </div>
                     <span style={{
