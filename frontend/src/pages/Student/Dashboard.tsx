@@ -187,7 +187,7 @@ export default function Dashboard() {
   const [matcherAvailable, setMatcherAvailable] = useState<boolean | null>(null);
 
   const checkMatcherHealth = async () => {
-    if (matcherAvailable !== null) return matcherAvailable;
+    if (matcherAvailable === true) return true;
     try {
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 4000);
@@ -219,7 +219,7 @@ export default function Dashboard() {
     if (!isMatcherUp) {
       setMatchScores(prev => {
         const next = { ...prev };
-        jobs.forEach(job => { next[job.id] = { loading: false, score: null }; });
+        jobs.forEach(job => { next[job.id] = { loading: false, score: undefined }; });
         return next;
       });
       console.warn(`[Match] AI matcher is unavailable at ${AI_ENGINE_URL}. Skipping score fetch.`);
@@ -262,22 +262,32 @@ export default function Dashboard() {
           });
           if (!res.ok) throw new Error(`Score fetch failed: ${res.status}`);
           const data = await res.json();
+          const matched = Array.isArray(data.matched_skills) ? data.matched_skills : [];
+          const gaps = Array.isArray(data.gap_skills) ? data.gap_skills : [];
+          const hasRequiredSkills = Array.isArray(job.required_skills) && job.required_skills.length > 0;
+          let safeScore: number | undefined = typeof data.match_score === 'number' ? data.match_score : undefined;
+          // UI guardrails: prevent impossible "perfect match" when skill signals are empty/weak.
+          if (typeof safeScore === 'number') {
+            if (matched.length === 0 && gaps.length > 0) safeScore = Math.min(safeScore, 35);
+            if (matched.length + gaps.length === 0) safeScore = Math.min(safeScore, 35);
+            if (!hasRequiredSkills) safeScore = Math.min(safeScore, 65);
+          }
           console.log(`[Match] job=${job.id} score=${data.match_score} label=${data.match_label}`);
           setMatchScores(prev => ({
             ...prev,
             [job.id]: {
               loading: false,
-              score: typeof data.match_score === 'number' ? data.match_score : null,
+              score: safeScore,
               label: data.match_label ?? null,
-              matched: data.matched_skills ?? [],
-              gaps: data.gap_skills ?? [],
+              matched,
+              gaps,
             },
           }));
         } catch (err) {
           if (matcherAvailable !== false) {
             console.error('[Match] Score fetch error:', err);
           }
-          setMatchScores(prev => ({ ...prev, [job.id]: { loading: false, score: null } }));
+          setMatchScores(prev => ({ ...prev, [job.id]: { loading: false, score: undefined } }));
         }
       })
     );
@@ -792,10 +802,10 @@ export default function Dashboard() {
                         </>
                       )}
 
-                      {matchScores[selectedJob.id] && !matchScores[selectedJob.id].loading && (
+                      {matchScores[selectedJob.id] && !matchScores[selectedJob.id].loading && typeof matchScores[selectedJob.id].score === 'number' && (
                         <div style={{ marginTop: '24px' }}>
                           <JobMatchScoreCard
-                            matchScore={matchScores[selectedJob.id].score ?? 0}
+                            matchScore={matchScores[selectedJob.id].score as number}
                             matchedSkills={
                               matchScores[selectedJob.id].matched?.length
                                 ? matchScores[selectedJob.id].matched
@@ -807,6 +817,19 @@ export default function Dashboard() {
                                 : (selectedJob.required_skills || []).filter((s: string) => !studentHas(s)).map(cleanSkill)
                             }
                           />
+                        </div>
+                      )}
+                      {matchScores[selectedJob.id] && !matchScores[selectedJob.id].loading && matchScores[selectedJob.id].score == null && (
+                        <div style={{ marginTop: '24px', background: 'var(--student-bg)', border: '1px solid var(--student-border)', borderRadius: '10px', padding: '14px' }}>
+                          <p style={{ margin: 0, color: 'var(--student-text-muted)', fontSize: '13px' }}>
+                            Match score unavailable right now.
+                          </p>
+                          <button
+                            onClick={() => fetchMatchScores([selectedJob])}
+                            style={{ marginTop: '10px', background: '#1f6feb', color: '#fff', border: 'none', borderRadius: '6px', padding: '7px 12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                          >
+                            Retry scoring
+                          </button>
                         </div>
                       )}
 
