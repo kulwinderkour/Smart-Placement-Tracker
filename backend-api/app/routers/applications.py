@@ -97,8 +97,9 @@ async def apply(
         job_title=job.role_title,
         company=job.company_name,
         status=ApplicationStatus.applied,  # Pending in API mapping
-        agent_applied=False,
+        agent_applied=data.agent_applied,
         resume_url=data.resume_url or student.resume_url,
+        cover_letter=data.cover_letter,
     )
     db.add(app)
     try:
