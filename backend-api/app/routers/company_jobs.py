@@ -368,6 +368,8 @@ async def get_job_applicants(
             "notes": app.notes,
             "cover_letter": app.cover_letter,
             "agent_applied": app.agent_applied,
+            "dob": student.dob,
+            "gender": student.gender,
         }
         for app, student in rows
     ]
@@ -468,6 +470,8 @@ async def list_all_company_applicants(
             "notes": app.notes,
             "cover_letter": app.cover_letter,
             "agent_applied": app.agent_applied,
+            "dob": student.dob,
+            "gender": student.gender,
         }
         for app, student, role_title, company_name in rows
     ]

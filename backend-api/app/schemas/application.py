@@ -8,7 +8,15 @@ from app.models.application import ApplicationStatus
 
 
 class ApplicationCreate(BaseModel):
-    jobId: UUID
+    job_id: UUID
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
+    college: Optional[str] = None
+    branch: Optional[str] = None
+    cgpa: Optional[float] = None
+    dob: Optional[str] = None
+    gender: Optional[str] = None
+    resume_url: Optional[str] = None
 
 
 class ApplicationUpdate(BaseModel):

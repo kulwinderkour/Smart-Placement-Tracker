@@ -24,6 +24,8 @@ class Student(Base):
     ats_score: Mapped[int | None] = mapped_column(SmallInteger)
     linkedin_url: Mapped[str | None] = mapped_column()
     github_url: Mapped[str | None] = mapped_column()
+    dob: Mapped[str | None] = mapped_column(String(20))
+    gender: Mapped[str | None] = mapped_column(String(20))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
