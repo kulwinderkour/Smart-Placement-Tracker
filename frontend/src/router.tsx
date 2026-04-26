@@ -14,6 +14,7 @@ import Roadmap from "./pages/Student/Roadmap";
 import Questions from "./pages/Student/Questions";
 import Onboarding from "./pages/Student/Onboarding";
 import Profile from "./pages/Student/Profile";
+import ApplyJob from "./pages/Student/ApplyJob";
 import ManageStudents from "./pages/Admin/ManageStudents";
 import ManageCompanies from "./pages/Admin/ManageCompanies";
 import CompanyProfileView from "./pages/Admin/CompanyProfileView";
@@ -155,6 +156,14 @@ export const router = createBrowserRouter([
         <DashboardLayout>
           <Dashboard />
         </DashboardLayout>
+      </OnboardingGuard>
+    ),
+  },
+  {
+    path: "/student/apply/:jobId",
+    element: (
+      <OnboardingGuard>
+        <ApplyJob />
       </OnboardingGuard>
     ),
   },

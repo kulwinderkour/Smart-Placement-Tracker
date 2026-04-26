@@ -18,6 +18,8 @@ class StudentCreate(BaseModel):
     resume_name: Optional[str] = None
     linkedin_url: Optional[str] = None
     github_url: Optional[str] = None
+    dob: Optional[str] = None
+    gender: Optional[str] = None
 
 
 class StudentUpdate(BaseModel):
@@ -34,6 +36,8 @@ class StudentUpdate(BaseModel):
     ats_score: Optional[int] = None
     linkedin_url: Optional[str] = None
     github_url: Optional[str] = None
+    dob: Optional[str] = None
+    gender: Optional[str] = None
 
 
 class StudentResponse(BaseModel):
@@ -51,6 +55,8 @@ class StudentResponse(BaseModel):
     ats_score: Optional[int]
     linkedin_url: Optional[str]
     github_url: Optional[str]
+    dob: Optional[str] = None
+    gender: Optional[str] = None
     created_at: datetime
     skills: list[str] = []
 

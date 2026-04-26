@@ -144,6 +144,8 @@ function StudentModal({
               [
                 ["CGPA", app.cgpa ? `${app.cgpa}/10` : "—"],
                 ["Applied", new Date(app.applied_at).toLocaleDateString()],
+                ["DOB", app.dob || "—"],
+                ["Gender", app.gender || "—"],
               ] as [string, string][]
             ).map(([label, val]) => (
               <div

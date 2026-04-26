@@ -66,28 +66,39 @@ async def apply(
     if not student:
         raise HTTPException(status_code=404, detail="Student profile not found")
 
-    job = await db.get(Job, data.jobId)
+    job = await db.get(Job, data.job_id)
     if not job or not job.is_active:
         raise HTTPException(status_code=404, detail="Job not found")
-
+    
     existing = await db.execute(
         select(Application).where(
             Application.student_id == student.id,
-            Application.job_id == data.jobId,
+            Application.job_id == data.job_id,
         )
     )
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=409, detail="Already applied")
-
+    
+    # Update student profile with provided details if any
+    if data.full_name: student.full_name = data.full_name
+    if data.phone: student.phone = data.phone
+    if data.college: student.college = data.college
+    if data.branch: student.branch = data.branch
+    if data.cgpa is not None: student.cgpa = data.cgpa
+    if data.dob: student.dob = data.dob
+    if data.gender: student.gender = data.gender
+    if data.resume_url: student.resume_url = data.resume_url
+    
     app = Application(
         id=uuid.uuid4(),
         user_id=current_user.id,
         student_id=student.id,
-        job_id=data.jobId,
+        job_id=data.job_id,
         job_title=job.role_title,
         company=job.company_name,
         status=ApplicationStatus.applied,  # Pending in API mapping
         agent_applied=False,
+        resume_url=data.resume_url or student.resume_url,
     )
     db.add(app)
     try:

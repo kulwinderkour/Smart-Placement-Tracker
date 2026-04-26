@@ -18,8 +18,18 @@ export interface TrackedApplication {
 }
 
 export const applicationsApi = {
-  apply: (jobId: string) =>
-    apiClient.post<Application>('/applications', { jobId }),
+  apply: (data: { 
+    job_id: string; 
+    full_name?: string; 
+    phone?: string; 
+    college?: string; 
+    branch?: string; 
+    cgpa?: number; 
+    dob?: string; 
+    gender?: string; 
+    resume_url?: string;
+  }) =>
+    apiClient.post<Application>('/applications', data),
 
   myApplications: (status?: string) =>
     apiClient.get<{ applications: TrackedApplication[]; total: number }>('/applications', { params: status ? { status } : {} }),

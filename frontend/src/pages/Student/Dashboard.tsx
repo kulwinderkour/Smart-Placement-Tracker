@@ -163,24 +163,9 @@ export default function Dashboard() {
   const [isApplyingJobId, setIsApplyingJobId] = useState<string | null>(null);
   const [applyMessage, setApplyMessage] = useState<string>("");
 
-  const handleApplyToAdminJob = async (job: any) => {
+  const handleApplyToAdminJob = (job: any) => {
     if (!job?.id) return;
-    setIsApplyingJobId(job.id);
-    try {
-      await applicationsApi.apply(job.id);
-      setApplyMessage("Application submitted!");
-      const res = await applicationsApi.myApplications();
-      setApplications((res.data.applications || []) as any);
-    } catch (err: any) {
-      if (err?.response?.status === 409) {
-        setApplyMessage("Already applied");
-      } else {
-        setApplyMessage('Failed to apply');
-      }
-    } finally {
-      setIsApplyingJobId(null);
-      setTimeout(() => setApplyMessage(""), 2500);
-    }
+    navigate(`/student/apply/${job.id}`);
   };
 
   const AI_ENGINE_URL = (import.meta.env.VITE_AI_ENGINE_URL || import.meta.env.VITE_AI_URL || 'http://localhost:8002').replace(/\/$/, '');
