@@ -14,17 +14,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const marginLeft = sidebarOpen ? EXPANDED_W : COLLAPSED_W
 
   return (
-    <div 
+    <div
       className="student-shell"
-      style={{ 
-        display: 'flex', 
-        height: '100vh', 
-        overflow: 'hidden', 
+      style={{
+        display: 'flex',
+        height: '100vh',
+        overflow: 'hidden',
         position: 'relative'
       }}
     >
       <DashboardSidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(prev => !prev)} />
-      
+
       <main
         style={{
           flex: 1,

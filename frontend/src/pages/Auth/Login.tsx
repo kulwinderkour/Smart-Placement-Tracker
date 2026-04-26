@@ -49,6 +49,106 @@ const fadeUp = {
   transition: { duration: 0.8 }
 }
 
+const faqItems = [
+  {
+    q: 'Is the Smart Placement Tracker free for students?',
+    a: 'Yes. The core features of the Smart Placement Tracker are completely free for students, including application tracking, deadline alerts, and basic analytics. Advanced insights and AI recommendations may be part of future premium features.'
+  },
+  {
+    q: 'How does the Smart Placement Tracker work?',
+    a: 'The platform allows you to log, monitor, and manage all your job and internship applications in one place. It tracks statuses like Applied, Shortlisted, Interview, Rejected, and Offer Received, while providing insights to improve your placement strategy.'
+  },
+  {
+    q: 'Can I track applications from multiple companies?',
+    a: 'Absolutely. You can add unlimited applications across different companies, roles, and platforms (on-campus, off-campus, referrals, etc.), all organized in a single dashboard.'
+  },
+  {
+    q: 'Does it send reminders for deadlines and interviews?',
+    a: 'Yes. The tracker sends smart reminders for application deadlines, online tests, interview schedules, and follow-ups — so you never miss an important step in the placement process.'
+  },
+  {
+    q: 'How does the AI recommendation system help me?',
+    a: 'Our AI analyzes your application history, skills, and outcomes to suggest better job roles, highlight weak areas (e.g., low shortlist rate), and recommend improvements in your resume or application strategy.'
+  },
+  {
+    q: 'Can I analyze my placement performance?',
+    a: 'Yes. You get detailed analytics such as application-to-shortlist ratio, interview success rate, and offer conversion rate — helping you make data-driven decisions throughout your placement journey.'
+  },
+]
+
+function FAQAccordion() {
+  const [open, setOpen] = useState<number | null>(0)
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+      {faqItems.map((item, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: i * 0.07, duration: 0.5 }}
+          style={{
+            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            overflow: 'hidden'
+          }}
+        >
+          <button
+            onClick={() => setOpen(open === i ? null : i)}
+            style={{
+              width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '24px 0', gap: 16, textAlign: 'left'
+            }}
+          >
+            <span style={{
+              fontFamily: 'Sora, sans-serif',
+              fontSize: 15,
+              fontWeight: 700,
+              color: open === i ? '#FF9FFC' : '#fff',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              lineHeight: 1.4,
+              transition: 'color 0.3s'
+            }}>
+              {item.q}
+            </span>
+            <span style={{
+              flexShrink: 0,
+              width: 28, height: 28,
+              borderRadius: '50%',
+              border: '1px solid rgba(255,255,255,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: open === i ? '#FF9FFC' : 'rgba(255,255,255,0.5)',
+              fontSize: 18,
+              transition: 'all 0.3s',
+              transform: open === i ? 'rotate(45deg)' : 'rotate(0deg)'
+            }}>
+              +
+            </span>
+          </button>
+          <motion.div
+            initial={false}
+            animate={{ height: open === i ? 'auto' : 0, opacity: open === i ? 1 : 0 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <p style={{
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: 15,
+              color: 'rgba(255,255,255,0.6)',
+              lineHeight: 1.75,
+              paddingBottom: 24,
+              margin: 0
+            }}>
+              {item.a}
+            </p>
+          </motion.div>
+        </motion.div>
+      ))}
+    </div>
+  )
+}
+
 export default function Login() {
   const navigate = useNavigate()
 
@@ -73,7 +173,7 @@ export default function Login() {
     { label: 'About', ref: aboutRef, key: 'about' },
     { label: 'Features', ref: featuresRef, key: 'features' },
     { label: 'How it Works', ref: howItWorksRef, key: 'howitworks' },
-    { label: 'Testimonials', ref: testimonialsRef, key: 'testimonials' },
+    { label: 'FAQ', ref: testimonialsRef, key: 'testimonials' },
     { label: 'Contact', ref: ctaRef, key: 'contact' },
   ]
 
@@ -115,14 +215,8 @@ export default function Login() {
 
 
 
-  const testimonials = [
-    { quote: "SmartPlacement got me into my dream company! The AI resume tips completely transformed how I applied. Absolute lifesaver for passing ATS scans.", name: "Rahul S.", role: "Software Engineer at Google", rating: 5, color: "bg-blue-500" },
-    { quote: "I was struggling to keep track of my 50+ applications. The application tracker simplified my entire final year placement process seamlessly.", name: "Priya M.", role: "Data Scientist at Amazon", rating: 5, color: "bg-purple-500" },
-    { quote: "The interview prep feature was incredibly realistic. I felt 100x more confident walking into my final technical rounds.", name: "Amit K.", role: "Product Manager at Microsoft", rating: 5, color: "bg-teal-500" },
-  ]
-
   return (
-    <div className="flex flex-col w-full font-['DM_Sans',sans-serif] bg-[#070b18] text-white overflow-hidden selection:bg-blue-500/30">
+    <div className="flex flex-col w-full font-['DM_Sans',sans-serif] bg-[#000000] text-white overflow-hidden selection:bg-blue-500/30">
 
       <style dangerouslySetInnerHTML={{
         __html: `
@@ -133,6 +227,8 @@ export default function Login() {
           .curved-loop-wrap { margin-top: 24px !important; }
           .curved-loop-wrap svg text { font-size: 28px !important; }
           .curved-marquee-title { font-size: 20px !important; padding: 8px 20px !important; margin-bottom: -15px !important; }
+          .faq-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+          .faq-heading { position: static !important; }
         }
         @media (max-width: 480px) {
           .curved-loop-wrap { margin-top: 16px !important; }
@@ -232,7 +328,7 @@ export default function Login() {
           gap: 10px;
           padding: 13px 28px;
           border-radius: 9999px;
-          background: #0f111a;
+          background: #000000;
           border: 1px solid rgba(255, 255, 255, 0.04);
           color: rgba(255, 255, 255, 0.7);
           font-size: 14px;
@@ -245,7 +341,7 @@ export default function Login() {
         .dark-neumorph-button:hover {
           color: #fff;
           transform: translateY(-2px);
-          background: #141724;
+          background: #111111;
           box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.7), -4px -4px 16px rgba(255, 255, 255, 0.03);
           border-color: rgba(255, 255, 255, 0.08);
         }
@@ -337,7 +433,7 @@ export default function Login() {
       )}
 
       {/* SECTION 1 — HERO */}
-      <section className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-[#070b18] px-6 py-[120px]">
+      <section className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-[#000000] px-6 py-[120px]">
         {/* Animated GradientBlinds Background */}
         <div className="absolute inset-0 z-0 flex items-center justify-center">
           <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -362,7 +458,16 @@ export default function Login() {
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>
           </div>
 
-          <h1 className="font-['Montserrat'] font-bold text-white mb-6 leading-[1.1]" style={{ fontSize: 'clamp(24px, 5vw, 400px)' }}>
+          <h1 style={{
+            fontFamily: 'Sora, sans-serif',
+            fontSize: 'clamp(48px, 6vw, 80px)',
+            fontWeight: 900,
+            color: '#fff',
+            letterSpacing: '-0.03em',
+            lineHeight: 1.1,
+            textTransform: 'uppercase',
+            margin: '0 0 24px'
+          }}>
             Land Your Dream Job
           </h1>
 
@@ -475,7 +580,7 @@ export default function Login() {
       <section ref={aboutRef} style={{
         minHeight: '100vh',
         width: '100%',
-        background: '#070b18',
+        background: '#000000',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -535,12 +640,13 @@ export default function Login() {
           style={{ textAlign: 'center', marginBottom: 80, position: 'relative', zIndex: 1 }}
         >
           <h2 style={{
-            fontFamily: 'Sora,sans-serif',
-            fontSize: 'clamp(36px,5vw,64px)',
-            fontWeight: 800,
+            fontFamily: 'Sora, sans-serif',
+            fontSize: 'clamp(48px, 6vw, 80px)',
+            fontWeight: 900,
             color: '#fff',
             letterSpacing: '-0.03em',
             lineHeight: 1.1,
+            textTransform: 'uppercase',
             margin: 0
           }}>
             Numbers that<br />
@@ -548,7 +654,7 @@ export default function Login() {
               background: 'linear-gradient(90deg, #FF9FFC 0%, #966485 45%, #FF9FFC 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              textShadow: '0 0 28px rgba(255,159,252,0.22)'
+              fontStyle: 'italic'
             }}>speak for themselves</span>
           </h2>
           <p style={{
@@ -734,7 +840,7 @@ export default function Login() {
       <section ref={aboutRef} style={{
         minHeight: '100vh',
         width: '100%',
-        background: '#0a0f1e',
+        background: '#000000',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'flex-start',
@@ -779,18 +885,17 @@ export default function Login() {
         <div style={{ width: '100%', textAlign: 'center', marginBottom: 44, padding: '0 12px' }}>
           <h2 style={{
             fontFamily: 'Sora, sans-serif',
-            fontSize: 'clamp(38px, 5.5vw, 64px)',
+            fontSize: 'clamp(48px, 6vw, 80px)',
             fontWeight: 900,
             color: '#fff',
             letterSpacing: '-0.03em',
             margin: 0,
-            lineHeight: 1.03
+            lineHeight: 1.0,
+            textTransform: 'uppercase'
           }}>
             Why choose <span style={{
-              color: '#fff',
-              background: 'transparent',
-              WebkitBackgroundClip: 'initial',
-              WebkitTextFillColor: 'initial'
+              color: '#FF9FFC',
+              fontStyle: 'italic'
             }}>Smart</span>
             <br />
             Placement Tracker?
@@ -934,7 +1039,7 @@ export default function Login() {
       <Divider />
 
       {/* SECTION 4 — FEATURES */}
-      <section ref={featuresRef} className="min-h-screen flex flex-col items-center justify-center bg-[#0a0f1e] px-6 py-[120px] relative">
+      <section ref={featuresRef} className="min-h-screen flex flex-col items-center justify-center bg-[#000000] px-6 py-[120px] relative">
         <div className="w-full max-w-[1200px] mx-auto">
           <div style={{
             textAlign: 'center',
@@ -945,20 +1050,18 @@ export default function Login() {
 
             <h2 style={{
               fontFamily: 'Sora, sans-serif',
-              fontSize: 'clamp(28px, 4vw, 48px)',
-              fontWeight: 800,
+              fontSize: 'clamp(48px, 6vw, 80px)',
+              fontWeight: 900,
               color: '#fff',
               letterSpacing: '-0.03em',
-              lineHeight: 1.1,
+              lineHeight: 1.0,
+              textTransform: 'uppercase',
               margin: '0 0 12px'
             }}>
               Everything you need<br />
               <span style={{
-                color: '#fff',
-                background: 'transparent',
-                WebkitBackgroundClip: 'initial',
-                WebkitTextFillColor: 'initial',
-                textShadow: 'none'
+                color: '#FF9FFC',
+                fontStyle: 'italic'
               }}>to get hired</span>
             </h2>
 
@@ -1127,7 +1230,7 @@ export default function Login() {
                   style={{
                     position: activeTab === i ? 'relative' : 'absolute',
                     top: 0, left: 0, width: '100%',
-                    background: '#0d0d1a',
+                    background: '#0a0a0a',
                     border: '1px solid rgba(255,159,252,0.25)',
                     borderRadius: 24,
                     padding: '60px 80px',
@@ -1303,7 +1406,7 @@ export default function Login() {
       <Divider />
 
       {/* SECTION 5 — HOW IT WORKS */}
-      <section ref={howItWorksRef} className="min-h-screen flex flex-col items-center justify-center bg-[#070b18] px-6 py-[120px] relative">
+      <section ref={howItWorksRef} className="min-h-screen flex flex-col items-center justify-center bg-[#000000] px-6 py-[120px] relative">
         <div className="w-full max-w-[1200px] mx-auto">
           <div style={{
             textAlign: 'center',
@@ -1314,11 +1417,12 @@ export default function Login() {
           }}>
             <h2 style={{
               fontFamily: 'Sora, sans-serif',
-              fontSize: 'clamp(44px, 6vw, 76px)',
-              fontWeight: 500,
-              color: '#f8fafc',
-              letterSpacing: '-0.02em',
-              lineHeight: 1.1,
+              fontSize: 'clamp(48px, 6vw, 80px)',
+              fontWeight: 900,
+              color: '#fff',
+              letterSpacing: '-0.03em',
+              lineHeight: 1.0,
+              textTransform: 'uppercase',
               margin: 0
             }}>
               Get hired in <br />
@@ -1326,7 +1430,7 @@ export default function Login() {
                 background: 'linear-gradient(90deg, #FF9FFC 0%, #966485 45%, #FF9FFC 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                textShadow: '0 0 60px rgba(255,159,252,0.35)',
+                fontStyle: 'italic'
               }}>4 simple steps</span>
             </h2>
           </div>
@@ -1415,119 +1519,43 @@ export default function Login() {
 
       <Divider />
 
-      {/* SECTION 6 — TESTIMONIALS */}
-      <section ref={testimonialsRef} className="min-h-screen flex flex-col items-center justify-center bg-[#0a0f1e] px-6 py-[120px] relative">
-        <div className="w-full max-w-[1200px] mx-auto">
-          <div style={{
-            textAlign: 'center',
-            marginBottom: 80,
-            display: 'flex', flexDirection: 'column', alignItems: 'center'
-          }}>
-            {/* Badge */}
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              padding: '6px 16px', borderRadius: 100,
-              background: 'rgba(234,179,8,0.12)',
-              border: '1px solid rgba(234,179,8,0.25)',
-              fontSize: 14, fontWeight: 800, letterSpacing: '0.1em',
-              color: '#fff', textTransform: 'uppercase',
-              fontFamily: 'DM Sans, sans-serif',
-              marginBottom: 20
-            }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff', display: 'inline-block', boxShadow: '0 0 10px #fff' }} />
-              Success Stories
-            </span>
-
-            <h2 style={{
-              fontFamily: 'Sora, sans-serif',
-              fontSize: 'clamp(36px, 5vw, 64px)',
-              fontWeight: 800,
-              color: '#fff',
-              letterSpacing: '-0.03em',
-              lineHeight: 1.1,
-              margin: 0
-            }}>
-              Loved by students <span style={{
-                  color: '#fff',
-                  background: 'transparent',
-                  WebkitBackgroundClip: 'initial',
-                  WebkitTextFillColor: 'initial'
-              }}>across India</span>
-            </h2>
+      {/* SECTION 6 — FAQ */}
+      <section ref={testimonialsRef} style={{ background: '#000', padding: '120px 24px' }}>
+        <div className="faq-grid" style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'flex-start' }}>
+          {/* Left: heading */}
+          <div className="faq-heading" style={{ position: 'sticky', top: 120 }}>
+            <motion.h2
+              initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }}
+              style={{
+                fontFamily: 'Sora, sans-serif',
+                fontSize: 'clamp(48px, 6vw, 80px)',
+                fontWeight: 900,
+                lineHeight: 1.0,
+                letterSpacing: '-0.03em',
+                color: '#fff',
+                textTransform: 'uppercase',
+                margin: 0
+              }}
+            >
+              FREQUENTLY<br />ASKED<br /><span style={{ color: '#FF9FFC', fontStyle: 'italic' }}>QUESTIONS.</span>
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.2 }}
+              style={{
+                fontFamily: 'DM Sans, sans-serif',
+                fontSize: 16,
+                color: 'rgba(255,255,255,0.45)',
+                marginTop: 24,
+                lineHeight: 1.7,
+                maxWidth: 340
+              }}
+            >
+              Everything you need to know about how the Smart Placement Tracker helps you land your dream role.
+            </motion.p>
           </div>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-            gap: 32,
-            width: '100%',
-            maxWidth: 1200,
-            margin: '0 auto'
-          }}>
-            {testimonials.map((test, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.15, duration: 0.8 }}
-                whileHover={{ y: -8, borderColor: 'rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.06)' }}
-                style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: 24,
-                  padding: '48px 40px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  minHeight: 400,
-                  position: 'relative',
-                  overflow: 'hidden',
-                  transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
-                }}
-              >
-                {/* Quote decoration */}
-                <div style={{
-                  position: 'absolute', top: -20, left: 16,
-                  fontSize: 200, color: 'rgba(255,255,255,0.04)',
-                  fontFamily: 'Georgia, serif', lineHeight: 1,
-                  pointerEvents: 'none', zIndex: 0
-                }}>
-                  "
-                </div>
-
-                <div style={{ position: 'relative', zIndex: 10 }}>
-                  <div style={{ display: 'flex', gap: 4, marginBottom: 24, color: '#facc15' }}>
-                    {[...Array(test.rating)].map((_, j) => (
-                      <svg key={j} width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-                    ))}
-                  </div>
-                  <p style={{
-                    fontSize: 18, color: 'rgba(255,255,255,0.85)',
-                    lineHeight: 1.7, marginBottom: 40, fontStyle: 'italic',
-                    fontFamily: 'DM Sans, sans-serif',
-                    margin: 0
-                  }}>
-                    "{test.quote}"
-                  </p>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16, position: 'relative', zIndex: 10, marginTop: 40 }}>
-                  <div className={test.color} style={{
-                    width: 56, height: 56, borderRadius: '50%',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: 'Sora, sans-serif', fontSize: 24, fontWeight: 800, color: '#fff'
-                  }}>
-                    {test.name.charAt(0)}
-                  </div>
-                  <div>
-                    <h4 style={{ fontFamily: 'Sora, sans-serif', fontSize: 18, fontWeight: 700, color: '#fff', margin: 0, marginBottom: 4 }}>{test.name}</h4>
-                    <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', fontFamily: 'DM Sans, sans-serif', margin: 0 }}>{test.role}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          {/* Right: accordion */}
+          <FAQAccordion />
         </div>
       </section>
 
@@ -1536,13 +1564,13 @@ export default function Login() {
       {/* SECTION 7 — CTA */}
       <section ref={ctaRef} style={{
         width: '100%',
-        background: '#070b18',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        background: '#000000',
         padding: '80px 24px',
         position: 'relative',
-        zIndex: 20
+        zIndex: 20,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
       }}>
         <motion.div
           className="cta-inner-card"
@@ -1669,13 +1697,7 @@ export default function Login() {
                 </div>
               </button>
 
-              {/* Watch Demo */}
-              <button
-                className="dark-neumorph-button"
-                style={{ height: 72, padding: '0 40px', fontSize: 16 }}
-              >
-                Watch Demo
-              </button>
+
             </div>
           </div>
         </motion.div>
@@ -1691,7 +1713,7 @@ export default function Login() {
       </section>
 
       {/* FOOTER */}
-      <footer className="w-full border-t border-white/5 py-16 px-6 relative z-20" style={{ background: '#0a0f1e' }}>
+      <footer className="w-full border-t border-white/5 py-16 px-6 relative z-20" style={{ background: '#000000' }}>
         <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row flex-wrap justify-between gap-12 md:gap-8">
           {/* Left Column (Brand & Socials) */}
           <div className="w-full md:max-w-[300px] flex flex-col gap-8">
