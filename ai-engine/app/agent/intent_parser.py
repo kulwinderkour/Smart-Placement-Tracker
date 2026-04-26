@@ -79,6 +79,10 @@ FIELD_KEYWORD_MAP: dict[str, list[str]] = {
     "cloud":                ["cloud", "aws", "gcp", "azure", "devops", "infrastructure"],
     "cybersecurity":        ["cybersecurity", "security", "infosec", "ethical hacking", "soc"],
     "security":             ["security", "cybersecurity", "infosec", "network security"],
+    # Game Development
+    "game designer":        ["game", "unity", "unreal", "graphics", "c#", "c++", "game mechanics", "designer"],
+    "game developer":       ["game", "unity", "unreal", "graphics", "c#", "c++", "game mechanics", "developer"],
+    "game":                 ["game", "unity", "unreal", "graphics", "c#", "c++", "game mechanics"],
 }
 
 # Known Indian cities / regions for location extraction

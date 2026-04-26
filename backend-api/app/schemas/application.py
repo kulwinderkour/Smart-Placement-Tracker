@@ -17,6 +17,8 @@ class ApplicationCreate(BaseModel):
     dob: Optional[str] = None
     gender: Optional[str] = None
     resume_url: Optional[str] = None
+    cover_letter: Optional[str] = None
+    agent_applied: bool = False
 
 
 class ApplicationUpdate(BaseModel):

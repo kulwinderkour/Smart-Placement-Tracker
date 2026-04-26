@@ -321,12 +321,18 @@ def run_auto_apply_agent(instruction, student_token, student_profile, resume_url
             }
             match_score = fallback_score
 
-        if match_score < 35:
+        # Eligibility: match score threshold
+        # We lower the threshold slightly if the user explicitly asked for this field
+        dynamic_threshold = 35
+        if field_keywords and any(kw.lower() in title.lower() for kw in field_keywords):
+            dynamic_threshold = 25
+
+        if match_score < dynamic_threshold:
             skipped_jobs.append({
-                'job_id': job_id,
+                'id': job_id,
                 'title': title,
                 'company': company,
-                'reason': f'Match score {match_score:.1f}% below 35% threshold'
+                'reason': f'Match score {match_score}% below {dynamic_threshold}% threshold'
             })
             continue
 
@@ -369,6 +375,7 @@ def run_auto_apply_agent(instruction, student_token, student_profile, resume_url
                 except Exception:
                     pass
                 app_id = app_body.get("id")
+                logger.info(f"Successfully applied to {job['title']} (App ID: {app_id})")
                 applied_jobs.append({
                     'job_id': job['id'],
                     'application_id': str(app_id) if app_id else '',
@@ -382,6 +389,7 @@ def run_auto_apply_agent(instruction, student_token, student_profile, resume_url
                     ),
                 })
             elif apply_response.status_code == 409:
+                logger.info(f"Already applied to {job['title']}")
                 skipped_jobs.append({
                     'job_id': job['id'],
                     'title': job['title'],
@@ -389,6 +397,7 @@ def run_auto_apply_agent(instruction, student_token, student_profile, resume_url
                     'reason': 'Already applied to this job'
                 })
             else:
+                logger.error(f"Failed to apply to {job['title']}: HTTP {apply_response.status_code} | Response: {apply_response.text}")
                 skipped_jobs.append({
                     'job_id': job['id'],
                     'title': job['title'],
