@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -24,6 +24,41 @@ interface Message {
   totalSkipped?: number
   sessionId?: string
   pipelineUsed?: string
+}
+
+function inputStyle(isRunning: boolean): React.CSSProperties {
+  return {
+    flex: 1,
+    background: isRunning ? 'var(--student-surface)' : '#242424',
+    border: '1px solid ' + (isRunning ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)'),
+    borderRadius: 10,
+    padding: '9px 13px',
+    color: isRunning ? 'var(--student-text-dim)' : 'var(--student-text)',
+    fontSize: 13,
+    outline: 'none',
+    transition: 'border-color 0.15s, color 0.15s',
+    cursor: isRunning ? 'not-allowed' : 'text',
+  }
+}
+
+function sendBtnStyle(isRunning: boolean, isEmpty: boolean): React.CSSProperties {
+  const disabled = isRunning || isEmpty
+  return {
+    background: disabled ? 'var(--student-surface)' : '#a78bfa',
+    border: '1px solid ' + (disabled ? 'var(--student-text-dim)' : '#a78bfa'),
+    borderRadius: 10,
+    padding: '9px 16px',
+    color: disabled ? 'var(--student-text-dim)' : 'var(--student-bg)',
+    fontWeight: 600,
+    fontSize: 13,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    transition: 'all 0.15s',
+    minWidth: 68,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  }
 }
 
 interface AutoApplyPanelProps {
@@ -794,40 +829,14 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
               onKeyDown={handleKeyDown}
               disabled={isRunning}
               placeholder="Try: 'Apply to SDE jobs above 8 LPA' or 'Show jobs above 5 LPA'"
-              style={{
-                flex: 1,
-                background: isRunning ? 'var(--student-surface)' : '#242424',
-                border: `1px solid ${isRunning ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)'}`,
-                borderRadius: 10,
-                padding: '9px 13px',
-                color: isRunning ? 'var(--student-text-dim)' : 'var(--student-text)',
-                fontSize: 13,
-                outline: 'none',
-                transition: 'border-color 0.15s, color 0.15s',
-                cursor: isRunning ? 'not-allowed' : 'text',
-              }}
+              style={inputStyle(isRunning)}
               onFocus={e => { if (!isRunning) e.target.style.borderColor = '#2f81f7' }}
               onBlur={e => { e.target.style.borderColor = isRunning ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)' }}
             />
             <button
               onClick={handleSend}
               disabled={isRunning || !inputText.trim()}
-              style={{
-                background: isRunning || !inputText.trim() ? 'var(--student-surface)' : '#a78bfa',
-                border: `1px solid ${isRunning || !inputText.trim() ? 'var(--student-text-dim)' : '#a78bfa'}`,
-                borderRadius: 10,
-                padding: '9px 16px',
-                color: isRunning || !inputText.trim() ? 'var(--student-text-dim)' : 'var(--student-bg)',
-                fontWeight: 600,
-                fontSize: 13,
-                cursor: isRunning || !inputText.trim() ? 'not-allowed' : 'pointer',
-                transition: 'all 0.15s',
-                minWidth: 68,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-              }}
+              style={sendBtnStyle(isRunning, !inputText.trim())}
             >
               {isRunning ? <Spinner /> : 'Send'}
             </button>

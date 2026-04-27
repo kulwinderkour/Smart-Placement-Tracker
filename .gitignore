@@ -1,7 +1,15 @@
+# Environment files (NEVER commit secrets)
 .env
 .env.*
 **/.env
 **/.env.*
+
+# Service account keys and secrets
+secrets/
+**/*.json.key
+**/*-sa-*.json
+**/*service-account*.json
+
 __pycache__/
 node_modules/
 .pytest_cache/
