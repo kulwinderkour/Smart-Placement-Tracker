@@ -29,6 +29,25 @@ services:
       timeout: 5s
       retries: 5
 
+  cloud-sql-proxy:
+    image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.1
+    restart: unless-stopped
+    command:
+      - "--address=0.0.0.0"
+      - "--port=5433"
+      - "--credentials-file=/sa-key.json"
+      - "smart-placement-prod:asia-south1:smart-placement-db"
+    ports:
+      - "5433:5433"
+    volumes:
+      - ${HOME}/secrets/smart-placement/backend-api-sa-key.json:/sa-key.json:ro
+    healthcheck:
+      test: ['CMD', '/cloud-sql-proxy', '--version']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
   backend-api:
     build: ./backend-api
     ports:
@@ -47,6 +66,8 @@ services:
       retries: 10
     depends_on:
       postgres:
+        condition: service_healthy
+      cloud-sql-proxy:
         condition: service_healthy
     volumes:
       - ./backend-api:/app
@@ -114,16 +135,14 @@ services:
     restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000/api/v1}
+        VITE_AI_URL: ${VITE_AI_URL:-http://localhost:8002}
+        VITE_AI_ENGINE_URL: ${VITE_AI_ENGINE_URL:-http://localhost:8002}
     ports:
       - '3000:3000'
-    env_file:
-      - .env
-    environment:
-      VITE_API_URL: http://localhost:8000/api/v1
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     depends_on:
       - backend-api
 

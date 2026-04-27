@@ -49,3 +49,45 @@ app.include_router(agent_auto_apply_router, prefix="/api/agent", tags=["agent"])
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "ai-engine"}
+
+
+@app.get("/model/health")
+def model_health():
+    from app.services.profile_matcher_service import _load_matcher_artifact
+    a = _load_matcher_artifact()
+    loaded = a.get("model_loaded", False)
+    return {
+        "status": "ok" if loaded else "degraded",
+        "model_loaded": loaded,
+        "version": a.get("version", "unknown"),
+        "training_samples": a.get("training_samples"),
+        "mode": "ml_model" if loaded else "rule_based_fallback",
+    }
+
+
+@app.get("/redis/health")
+async def redis_health():
+    import time
+    from app.core.session_store import _get_redis
+    try:
+        r = await _get_redis()
+        if r:
+            ts = str(time.time())
+            await r.set("health:ping", ts, ex=10)
+            val = await r.get("health:ping")
+            return {"status": "ok", "redis": "connected", "roundtrip": val == ts}
+        return {"status": "degraded", "redis": "unavailable", "using": "in-process-fallback"}
+    except Exception as e:
+        return {"status": "error", "redis": "error", "detail": str(e)}
+
+
+@app.get("/db/health")
+async def db_health():
+    import httpx
+    from app.config import settings
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            r = await client.get(f"{settings.BACKEND_URL}/health")
+            return {"status": "ok" if r.status_code == 200 else "error", "backend_reachable": r.status_code == 200}
+    except Exception as e:
+        return {"status": "error", "backend_reachable": False, "detail": str(e)}
