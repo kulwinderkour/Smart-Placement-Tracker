@@ -338,32 +338,36 @@ Set can_publish=True only if no errors (warnings OK)."""
     def quick_validate(self, job_data: dict) -> tuple[bool, list[str]]:
         """
         Synchronous quick validation - returns (is_valid, error_messages).
-        
-        Use this for simple checks without Gemini overhead.
+
+        Admin jobs (company_profile_id IS NOT NULL) are verified SmartPlacement
+        opportunities — salary, skills, and description are optional there.
+        Only company name + role title are hard-required for all sources.
         """
         errors = []
-        
+
         company = job_data.get("company_name") or job_data.get("company", "")
         role = job_data.get("role_title") or job_data.get("title", "")
-        
+        is_admin_job = bool(job_data.get("company_profile_id"))
+
         if not company:
             errors.append("Company name is required")
-        
+
         if not role:
             errors.append("Role title is required")
-        
-        salary_min = job_data.get("salary_min", 0)
-        if salary_min == 0:
-            errors.append("Salary/package information is required")
-        
-        skills = job_data.get("required_skills", [])
-        if not skills:
-            errors.append("At least one required skill must be specified")
-        
-        description = job_data.get("description", "")
-        if not description or len(description) < 50:
-            errors.append("Job description must be at least 50 characters")
-        
+
+        if not is_admin_job:
+            salary_min = job_data.get("salary_min", 0)
+            if salary_min == 0:
+                errors.append("Salary/package information is required")
+
+            skills = job_data.get("required_skills", [])
+            if not skills:
+                errors.append("At least one required skill must be specified")
+
+            description = job_data.get("description", "")
+            if not description or len(description) < 50:
+                errors.append("Job description must be at least 50 characters")
+
         return len(errors) == 0, errors
 
 

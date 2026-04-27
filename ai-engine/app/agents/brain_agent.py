@@ -152,6 +152,7 @@ ENTITY EXTRACTION (only for job_search and job_apply):
 - salary_min_lpa: number (from "above 5 LPA", "5 se upar", "more than 8")
 - salary_max_lpa: number (from "below 15 LPA", "15 tak")  
 - role: string (SDE, Data Scientist, Product Manager)
+- company: string (company name — from "Amazon jobs", "apply to Google", "TCS roles"). Lowercase only. Null if not mentioned.
 - location: string
 - job_type: full_time | intern | contract
 
@@ -163,6 +164,7 @@ Return a JSON object with EXACTLY these keys:
     "salary_min_lpa": null,
     "salary_max_lpa": null,
     "role": null,
+    "company": null,
     "location": null,
     "job_type": null
   },
@@ -185,6 +187,7 @@ The "reply" field should be in the same language the user wrote in (English/Hind
                     "salary_min_lpa": {"type": ["number", "null"]},
                     "salary_max_lpa": {"type": ["number", "null"]},
                     "role":           {"type": ["string", "null"]},
+                    "company":        {"type": ["string", "null"]},
                     "location":       {"type": ["string", "null"]},
                     "job_type":       {"type": ["string", "null"]},
                 },

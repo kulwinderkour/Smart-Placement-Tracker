@@ -186,6 +186,19 @@ async def auto_apply(request: AutoApplyRequest) -> AutoApplyResponse:
         from app.core.session_store import load_applications, load_traces
         applications = await load_applications(request.student_token, request.student_profile)
         traces = await load_traces(request.student_token, request.student_profile)
+        applied_count  = sum(1 for a in applications if a.get("status") == "applied")
+        failed_count   = sum(1 for a in applications if a.get("status") == "failed")
+        skipped_count  = sum(1 for a in applications if a.get("status") in ("skipped", "duplicate"))
+        logger.info(
+            "[MemoryQuery] memory_query_hit: application_memory_loaded total=%d "
+            "applied=%d failed=%d skipped=%d instruction=%r",
+            len(applications), applied_count, failed_count, skipped_count,
+            request.instruction[:80],
+        )
+        logger.info(
+            "[MemoryQuery] trace_loaded: %d execution trace entries available",
+            len(traces),
+        )
         memory_answer = await brain.answer_from_memory(
             request.instruction, applications, traces
         )
@@ -203,9 +216,38 @@ async def auto_apply(request: AutoApplyRequest) -> AutoApplyResponse:
         )
 
     elif decision.action == Action.FETCH_PROFILE:
+        # Re-fetch live profile from DB so skills reflect the latest resume sync.
+        # The frontend-supplied student_profile is a login-time snapshot and may
+        # be stale after a resume update.
+        import os as _os
+        import httpx as _httpx
+        _api_base = (_os.getenv("BACKEND_URL") or "http://backend-api:8000").rstrip("/")
+        if not _api_base.endswith("/api/v1"):
+            _api_base = f"{_api_base}/api/v1"
+        _live_profile = request.student_profile
+        try:
+            async with _httpx.AsyncClient(timeout=8.0) as _hc:
+                _pr = await _hc.get(
+                    f"{_api_base}/student/profile",
+                    headers={"Authorization": f"Bearer {request.student_token}"},
+                )
+            if _pr.status_code == 200:
+                _live_profile = _pr.json()
+                logger.info(
+                    "[ProfileQuery] resume_sync_verified: live profile fetched from DB — "
+                    "skills=%d instruction=%r",
+                    len(_live_profile.get("skills") or []), request.instruction[:80],
+                )
+            else:
+                logger.warning(
+                    "[ProfileQuery] live profile fetch failed HTTP %s — using snapshot",
+                    _pr.status_code,
+                )
+        except Exception as _pe:
+            logger.warning("[ProfileQuery] live profile fetch error: %s — using snapshot", _pe)
         response = AutoApplyResponse(
             success=True,
-            summary=_build_profile_summary(request.student_profile),
+            summary=_build_profile_summary(_live_profile),
             jobs_applied=[],
             jobs_skipped=[],
             total_applied=0,
@@ -213,7 +255,7 @@ async def auto_apply(request: AutoApplyRequest) -> AutoApplyResponse:
             pipeline_used="profile_query",
             intent=decision.intent.value,
             action=decision.action.value,
-            brain_reply=decision.reply,
+            brain_reply=_build_profile_summary(_live_profile),
         )
 
     elif decision.action == Action.EXTRACT_RESUME:
@@ -261,28 +303,83 @@ async def auto_apply(request: AutoApplyRequest) -> AutoApplyResponse:
 
 # ── Helpers: filter jobs list ────────────────────────────────────────────────
 
-def _filter_jobs(jobs: list, entities: dict) -> list:
-    """Apply salary + role filter to a raw job list. Shared by search and apply."""
+def _filter_jobs(jobs: list, entities: dict, cache_used: bool = False) -> list:
+    """Apply salary + role + company filter to a raw job list. Shared by search and apply.
+
+    Source guard: only admin-verified jobs (company_profile_id IS NOT NULL) are
+    included.  Job-board / scraped jobs are silently dropped here so they never
+    reach the apply pipeline even if they arrive from cache.
+    """
     from app.agents.auto_apply_pipeline import _to_lpa
     min_lpa = float(entities.get("salary_min_lpa") or 0)
     max_lpa = float(entities.get("salary_max_lpa") or 0)
-    role = (entities.get("role") or "").lower()
+    role = (entities.get("role") or "").lower().strip()
+    company_filter = (entities.get("company") or "").lower().strip()
 
     filtered = []
     for job in jobs:
+        job_id = job.get("id", "?")
+        job_title = (job.get("role_title") or job.get("title") or "").lower()
+        job_company = (job.get("company_name") or job.get("company") or "").lower()
+        source = "admin" if job.get("company_profile_id") else "external"
+
+        # ── Source guard: only SmartPlacement admin jobs ──────────────────────
+        if not job.get("company_profile_id"):
+            logger.info(
+                "[Filter] SKIP job_id=%s title=%r source=external company_profile_id=None "
+                "cache_used=%s reason=not_admin_job",
+                job_id, job_title, cache_used,
+            )
+            continue
+
+        # ── Company entity filter ─────────────────────────────────────────────
+        company_match = True
+        if company_filter:
+            company_match = company_filter in job_company
+            if not company_match:
+                logger.info(
+                    "[Filter] SKIP job_id=%s title=%r source=%s company=%r "
+                    "company_filter=%r cache_used=%s reason=company_mismatch",
+                    job_id, job_title, source, job_company, company_filter, cache_used,
+                )
+                continue
+
+        # ── Salary filter ─────────────────────────────────────────────────────
         job_max = _to_lpa(job.get("salary_max") or job.get("package_max"))
         job_min = _to_lpa(job.get("salary_min") or job.get("package_min"))
         if job_max == 0.0 and job_min > 0.0:
             job_max = job_min
+
+        salary_reason = None
         if min_lpa > 0 and job_max > 0 and job_max < min_lpa:
+            salary_reason = f"job_max={job_max}LPA < required_min={min_lpa}LPA"
+        elif max_lpa > 0 and job_min > max_lpa:
+            salary_reason = f"job_min={job_min}LPA > user_max={max_lpa}LPA"
+
+        if salary_reason:
+            logger.info(
+                "[Filter] SKIP job_id=%s title=%r source=%s company_match=%s "
+                "cache_used=%s reason=salary_filter %s",
+                job_id, job_title, source, company_match, cache_used, salary_reason,
+            )
             continue
-        if max_lpa > 0 and job_min > max_lpa:
-            continue
+
+        # ── Role filter ───────────────────────────────────────────────────────
         if role:
-            title = (job.get("role_title") or job.get("title") or "").lower()
             desc = (job.get("description") or "").lower()
-            if role not in title and role not in desc:
+            if role not in job_title and role not in desc:
+                logger.info(
+                    "[Filter] SKIP job_id=%s title=%r source=%s company_match=%s "
+                    "cache_used=%s reason=role_mismatch role_filter=%r",
+                    job_id, job_title, source, company_match, cache_used, role,
+                )
                 continue
+
+        logger.info(
+            "[Filter] PASS job_id=%s title=%r source=%s company_match=%s "
+            "cache_used=%s salary_max=%sLPA",
+            job_id, job_title, source, company_match, cache_used, job_max or "unset",
+        )
         filtered.append(job)
     return filtered
 
@@ -364,7 +461,7 @@ async def _handle_job_search(request: AutoApplyRequest, decision) -> AutoApplyRe
         jobs = await asyncio.wait_for(pipeline._fetch_jobs(), timeout=15.0)
 
         entities = decision.entities or {}
-        filtered = _filter_jobs(jobs, entities)
+        filtered = _filter_jobs(jobs, entities, cache_used=False)
 
         # ── Save to session cache so a follow-up apply can reuse these results
         filters_to_save = {
@@ -463,9 +560,9 @@ async def _handle_apply_confirmation(request: AutoApplyRequest, decision) -> Aut
         entities = decision.entities or {}
 
         if cached_jobs is not None:
-            filtered = cached_jobs
+            filtered = _filter_jobs(cached_jobs, entities, cache_used=True)
             filters_used = cached_filters or entities
-            logger.info("[Confirm] Using %d cached jobs", len(filtered))
+            logger.info("[Confirm] Using %d cached jobs (%d passed source+company filter)", len(cached_jobs), len(filtered))
         else:
             pipeline = AutoApplyPipeline(
                 student_token=request.student_token,
@@ -473,7 +570,7 @@ async def _handle_apply_confirmation(request: AutoApplyRequest, decision) -> Aut
                 resume_url=request.resume_url,
             )
             raw_jobs = await asyncio.wait_for(pipeline._fetch_jobs(), timeout=15.0)
-            filtered = _filter_jobs(raw_jobs, entities)
+            filtered = _filter_jobs(raw_jobs, entities, cache_used=False)
             filters_used = entities
 
         # ── Persist pending state server-side (survives page refresh) ──────────
@@ -629,6 +726,14 @@ async def _handle_confirmed_apply(
             all_records,
             request.student_profile,
         )
+        applied_n  = sum(1 for r in all_records if r.get("status") == "applied")
+        skipped_n  = sum(1 for r in all_records if r.get("status") in ("skipped", "failed"))
+        dup_n      = sum(1 for r in all_records if r.get("status") == "duplicate")
+        logger.info(
+            "[Confirm] application_memory_saved: wrote %d records "
+            "(applied=%d skipped=%d duplicates=%d) to Redis",
+            len(all_records), applied_n, skipped_n, dup_n,
+        )
 
     await clear_search(request.student_token, request.student_profile)
     return resp
@@ -708,26 +813,79 @@ async def _run_new_pipeline(
                     brain_reply=reply,
                 )
 
-    # ── Role-title filter on cached jobs ──
+    # ── Role + company filter on cached jobs ──
     # Skip entirely for pronoun references — user means the cached list as-is
     if from_cache and cached_jobs and decision is not None and not pronoun_ref:
         entities = decision.entities or {}
         role = (entities.get("role") or "").lower().strip()
+        company_filter = (entities.get("company") or "").lower().strip()
+
+        before = len(cached_jobs)
         if role:
-            before = len(cached_jobs)
             cached_jobs = [
                 j for j in cached_jobs
                 if role in (j.get("role_title") or j.get("title") or "").lower()
                 or role in (j.get("description") or "").lower()
             ]
             logger.info("[Apply] Role filter '%s': %d → %d jobs", role, before, len(cached_jobs))
-            if not cached_jobs:
-                from_cache = False
-                cached_jobs = None
-                logger.info("[Apply] No cached jobs match role '%s' — pipeline will fetch fresh", role)
+        if company_filter:
+            before_co = len(cached_jobs)
+            cached_jobs = [
+                j for j in cached_jobs
+                if company_filter in (j.get("company_name") or j.get("company") or "").lower()
+            ]
+            logger.info("[Apply] Company filter '%s': %d → %d jobs", company_filter, before_co, len(cached_jobs))
+
+        if not cached_jobs:
+            from_cache = False
+            cached_jobs = None
+            logger.info("[Apply] No cached jobs after role/company filter — pipeline will fetch fresh")
 
     if from_cache and cached_jobs:
         logger.info("[Apply] apply_target_count=%d source=%s", len(cached_jobs), "cache")
+
+    # ── Dedup: skip jobs already applied to in any previous session ──────────
+    # This guards the direct-apply path (_handle_job_apply) which bypasses the
+    # confirmation gate and therefore never ran filter_unapplied_jobs before.
+    from app.core.session_store import filter_unapplied_jobs, record_applied_jobs
+    jobs_to_apply = cached_jobs  # may be None — pipeline fetches fresh in that case
+    duplicate_records: list[dict] = []
+    if jobs_to_apply is not None:
+        jobs_to_apply, duplicates = await filter_unapplied_jobs(
+            request.student_token, jobs_to_apply, request.student_profile
+        )
+        if duplicates:
+            for dup in duplicates:
+                dup_id = str(dup.get("id") or dup.get("job_id", "?"))
+                dup_title = dup.get("role_title") or dup.get("title") or "?"
+                logger.info(
+                    "[Apply] duplicate_detected job_id=%s title=%r — already applied, skipping",
+                    dup_id, dup_title,
+                )
+                duplicate_records.append({
+                    "job_id": dup_id,
+                    "status": "duplicate",
+                    "reason": "already applied in a previous session",
+                    "job_title": dup_title,
+                    "company": str(dup.get("company_name") or dup.get("company") or ""),
+                })
+        if not jobs_to_apply:
+            await clear_search(request.student_token, request.student_profile)
+            dup_summary = ", ".join(
+                (d.get("job_title") or d.get("job_id", "?")) for d in duplicate_records[:5]
+            )
+            return AutoApplyResponse(
+                success=True,
+                summary=f"All {len(duplicate_records)} job(s) were already applied to in a previous session. Nothing new to submit. (Skipped: {dup_summary})",
+                jobs_applied=[],
+                jobs_skipped=duplicate_records,
+                total_applied=0,
+                total_skipped=len(duplicate_records),
+                pipeline_used="dedup_skip",
+                intent=decision.intent.value if decision else "job_apply",
+                action="apply_jobs",
+                brain_reply=f"You've already applied to all matching jobs ({dup_summary}). Nothing new to submit.",
+            )
 
     try:
         result = await asyncio.wait_for(
@@ -736,7 +894,7 @@ async def _run_new_pipeline(
                 student_token=request.student_token,
                 student_profile=request.student_profile,
                 resume_url=request.resume_url,
-                prefetched_jobs=cached_jobs,
+                prefetched_jobs=jobs_to_apply,
                 skip_salary_filter=from_cache,
             ),
             timeout=120.0,
@@ -744,6 +902,53 @@ async def _run_new_pipeline(
 
         applied_apps = [a for a in result.applications if a.status == "applied"]
         skipped_apps = [a for a in result.applications if a.status in ("skipped", "failed")]
+
+        # ── Persist application memory to Redis ────────────────────────
+        # This is the critical write that was missing for the direct-apply
+        # path. _handle_confirmed_apply has its own write; this covers
+        # _handle_job_apply → _run_new_pipeline (no confirmation gate).
+        from app.core.session_store import record_applied_jobs, append_trace
+        all_memory_records = []
+        for a in result.applications:
+            all_memory_records.append({
+                "job_id":         str(a.job_id),
+                "status":         str(a.status or "unknown"),
+                "application_id": str(a.application_id or ""),
+                "reason":         str(a.filter_reason or a.reason or ""),
+                "match_score":    float(a.match_score or 0.0),
+                "job_title":      str(a.job_title or ""),
+                "company":        str(a.company or ""),
+            })
+        if duplicate_records:
+            all_memory_records.extend(duplicate_records)
+        if all_memory_records:
+            await record_applied_jobs(
+                request.student_token, all_memory_records, request.student_profile
+            )
+            logger.info(
+                "[Apply] application_memory_saved: wrote %d records "
+                "(applied=%d skipped=%d duplicates=%d) to Redis",
+                len(all_memory_records), len(applied_apps),
+                len(skipped_apps), len(duplicate_records),
+            )
+
+        # ── Persist execution traces for every pipeline step ──────────
+        for step in (result.steps_completed or []):
+            await append_trace(
+                request.student_token, str(step), "success",
+                detail=f"session={result.session_id}",
+                student_profile=request.student_profile,
+            )
+        for err in (result.errors or []):
+            await append_trace(
+                request.student_token, "pipeline_error", "failed",
+                detail=str(err)[:200],
+                student_profile=request.student_profile,
+            )
+        logger.info(
+            "[Apply] trace_saved: %d steps %d errors written to Redis",
+            len(result.steps_completed or []), len(result.errors or []),
+        )
 
         # ── Invalidate session cache — run is complete ──────────────────
         await clear_search(request.student_token, request.student_profile)

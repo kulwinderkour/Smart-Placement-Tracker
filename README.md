@@ -306,6 +306,97 @@ placement_tracker=# \q
 
 ---
 
+## 👥 Team Setup (Cloud Database)
+
+The project uses **Google Cloud SQL** as the shared database. Docker containers can't connect to it directly — you need to run `cloud-sql-proxy` first.
+
+### Step 1 — Send Abhishek your IP
+
+```bash
+curl ifconfig.me
+```
+
+Share the output with Abhishek so he can whitelist your IP if needed.
+
+### Step 2 — Get secrets from Abhishek
+
+Ask Abhishek for:
+- `backend-api-sa-key.json` → place it at `~/secrets/smart-placement/backend-api-sa-key.json`
+- The DB password for `.env` (used in Step 4)
+
+### Step 3 — Download cloud-sql-proxy
+
+**Mac (Apple Silicon):**
+```bash
+curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.1/cloud-sql-proxy.darwin.arm64
+chmod +x cloud-sql-proxy
+mv cloud-sql-proxy Smart-Placement-Tracker/
+```
+
+**Mac (Intel):**
+```bash
+curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.1/cloud-sql-proxy.darwin.amd64
+chmod +x cloud-sql-proxy
+mv cloud-sql-proxy Smart-Placement-Tracker/
+```
+
+**Windows (PowerShell):**
+```powershell
+Invoke-WebRequest -Uri "https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.1/cloud-sql-proxy.x64.exe" -OutFile "cloud-sql-proxy.exe"
+```
+
+### Step 4 — Start the proxy (run this before `docker compose up`)
+
+**Mac:**
+```bash
+GOOGLE_APPLICATION_CREDENTIALS=~/secrets/smart-placement/backend-api-sa-key.json \
+./cloud-sql-proxy \
+  --address 0.0.0.0 \
+  --port 5433 \
+  smart-placement-prod:asia-south1:smart-placement-db &
+```
+
+**Windows (PowerShell):**
+```powershell
+$env:GOOGLE_APPLICATION_CREDENTIALS = "$HOME\secrets\smart-placement\backend-api-sa-key.json"
+.\cloud-sql-proxy.exe --address 0.0.0.0 --port 5433 smart-placement-prod:asia-south1:smart-placement-db
+```
+
+> You should see: `The proxy has started successfully and is ready for new connections!`
+> Leave this terminal open (or run it in the background with `&` on Mac).
+
+### Step 5 — Configure your `.env`
+
+```bash
+cp .env.example .env
+```
+
+Set `DATABASE_URL` to route through the proxy:
+```env
+DATABASE_URL=postgresql+asyncpg://placement_user:<ask-abhishek>@192.168.65.254:5433/placement_tracker
+```
+
+> On Mac, `192.168.65.254` is the Docker host gateway (how containers reach the proxy running on your Mac).
+> On Windows/Linux, use `host.docker.internal` instead:
+> ```env
+> DATABASE_URL=postgresql+asyncpg://placement_user:<ask-abhishek>@host.docker.internal:5433/placement_tracker
+> ```
+
+### Step 6 — Start all services
+
+```bash
+docker compose up -d
+```
+
+### Or — use the convenience script (Mac only)
+
+```bash
+./switch-db.sh cloud    # starts proxy + sets correct DATABASE_URL automatically
+docker compose up -d
+```
+
+---
+
 ## ⚠️ Important Notes
 
 - **Your database data is safe** across restarts — Docker volumes persist even after `make down`

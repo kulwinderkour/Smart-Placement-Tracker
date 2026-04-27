@@ -33,6 +33,7 @@ import httpx
 from app.config import settings
 from app.core.agent_logger import AgentLogger, AgentStatus, AgentType, create_session_id
 from app.core.gemini_client import check_gemini_health
+from app.core.session_store import append_trace, append_resume_failure, load_resume_meta, append_resume_version, save_resume_meta
 from app.agents.intent_agent import IntentAgent, ParsedIntent, get_intent_agent
 from app.agents.resume_agent import ResumeAgent, ResumeExtraction, get_resume_agent
 from app.agents.validation_agent import JobValidationAgent, ValidationResult, get_validation_agent
@@ -312,6 +313,9 @@ class AutoApplyPipeline:
             async with self.logger.step(PipelineStep.VALIDATE_JOBS, AgentType.VALIDATION) as step:
                 source_blocked = 0
                 for job in self._jobs:
+                    # ── Safe defaults so logs never reference unbound variables ─
+                    job_id = job.get("id", "unknown")
+                    job_title = job.get("role_title") or job.get("title", "unknown")
                     # ── Hard source guard ─────────────────────────────────────
                     # Only SmartPlacement verified jobs (company_profile_id IS NOT
                     # NULL and is_active=True) may be auto-applied to.
@@ -320,8 +324,6 @@ class AutoApplyPipeline:
                     company_profile_id = job.get("company_profile_id")
                     is_active = job.get("is_active")
                     if not company_profile_id or is_active is False:
-                        job_id = job.get("id", "unknown")
-                        job_title = job.get("role_title") or job.get("title", "unknown")
                         logger.warning(
                             "[Pipeline:%s] BLOCKED job_id=%s title=%r "
                             "reason=external_job_not_allowed "
@@ -339,10 +341,26 @@ class AutoApplyPipeline:
                         source_blocked += 1
                         continue
                     # ── Quick validation (no Gemini overhead) ─────────────────
-                    is_valid, errors = self.validation_agent.quick_validate(job)
-                    
+                    is_valid, val_errors = self.validation_agent.quick_validate(job)
+                    job_title_log = job.get("role_title") or job.get("title", "?")
+                    job_company_log = job.get("company_name") or job.get("company", "?")
+                    cache_flag = prefetched_jobs is not None
+
                     if is_valid:
+                        logger.info(
+                            "[Pipeline:%s] VALIDATE job_id=%s title=%r company=%r "
+                            "source=admin cache_used=%s validation_status=pass",
+                            self.session_id, job_id, job_title_log, job_company_log, cache_flag,
+                        )
                         validated_jobs.append(job)
+                    else:
+                        logger.warning(
+                            "[Pipeline:%s] VALIDATE job_id=%s title=%r company=%r "
+                            "source=admin cache_used=%s validation_status=fail "
+                            "rejection_reason=%r",
+                            self.session_id, job_id, job_title_log, job_company_log,
+                            cache_flag, "; ".join(val_errors),
+                        )
                 
                 step.set_output({
                     "jobs_validated": len(validated_jobs),
@@ -500,13 +518,12 @@ class AutoApplyPipeline:
                         if not any(kw.lower() in job_text for kw in field_keywords):
                             filter_reason = f"field: none of {field_keywords} found in role/description"
 
-                    # ── Prediction score gate ─────────────────────────────────
-                    dynamic_threshold = 35
+                    # ── Prediction score gate (informational only — no blocking) ──
+                    # predict() runs and scores are logged, but a low or zero score
+                    # does NOT block the application.  The student should still apply.
+                    dynamic_threshold = 35  # kept for audit log reference only
                     if field_keywords and any(kw.lower() in job.get("role_title", "").lower() for kw in field_keywords):
                         dynamic_threshold = 25
-
-                    if not filter_reason and match_score < dynamic_threshold:
-                        filter_reason = f"score: {match_score:.1f}% < threshold {dynamic_threshold}%"
 
                     # ── Per-job audit log ─────────────────────────────────────
                     filter_log_entries.append({
@@ -601,20 +618,51 @@ class AutoApplyPipeline:
                             app.job_id,
                             app.cover_letter
                         )
-                        
+
                         if result.get("success"):
                             app.status = "applied"
                             app.application_id = result.get("application_id")
                             applied_count += 1
+                            logger.info(
+                                "[Pipeline:%s] APPLY job_id=%s title=%r company=%r "
+                                "apply_status=applied prediction_score=%.1f application_id=%s",
+                                self.session_id, app.job_id, app.job_title, app.company,
+                                app.match_score, app.application_id,
+                            )
+                            await append_trace(
+                                self.student_token, "apply_submit", "success",
+                                detail=f"job_id={app.job_id} title={app.job_title!r} application_id={app.application_id}",
+                                student_profile=self.student_profile,
+                            )
                         else:
                             app.status = "failed"
                             app.reason = result.get("error", "Unknown error")
                             failed_count += 1
-                            
+                            logger.warning(
+                                "[Pipeline:%s] APPLY job_id=%s title=%r company=%r "
+                                "apply_status=failed prediction_score=%.1f rejection_reason=%r",
+                                self.session_id, app.job_id, app.job_title, app.company,
+                                app.match_score, app.reason,
+                            )
+                            await append_trace(
+                                self.student_token, "apply_submit", "failed",
+                                detail=f"job_id={app.job_id} title={app.job_title!r} reason={app.reason!r}",
+                                student_profile=self.student_profile,
+                            )
+
                     except Exception as e:
                         app.status = "failed"
                         app.reason = str(e)
                         failed_count += 1
+                        logger.error(
+                            "[Pipeline:%s] APPLY job_id=%s title=%r apply_status=exception rejection_reason=%r",
+                            self.session_id, app.job_id, app.job_title, str(e),
+                        )
+                        await append_trace(
+                            self.student_token, "apply_submit", "failed",
+                            detail=f"job_id={app.job_id} title={app.job_title!r} exception={str(e)[:120]!r}",
+                            student_profile=self.student_profile,
+                        )
                 
                 step.set_output({
                     "applied": applied_count,
@@ -892,13 +940,13 @@ class AutoApplyPipeline:
 
             if expected_set <= saved_set:
                 logger.info(
-                    "[Pipeline:%s] sync_verified: %d confirmed skills all present in DB",
-                    self.session_id, len(confirmed_skills),
+                    "[Pipeline:%s] resume_sync_verified: %d confirmed skills all present in DB skills=%s",
+                    self.session_id, len(confirmed_skills), sorted(confirmed_skills)[:10],
                 )
             else:
                 missing = expected_set - saved_set
                 logger.warning(
-                    "[Pipeline:%s] sync_mismatch: %d confirmed skills missing from DB: %s",
+                    "[Pipeline:%s] resume_sync_mismatch: %d confirmed skills missing from DB: %s",
                     self.session_id, len(missing), sorted(missing)[:10],
                 )
 
