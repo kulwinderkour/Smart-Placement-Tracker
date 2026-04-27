@@ -29,9 +29,9 @@ services:
     env_file:
     - .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://${DB_USER}:${DB_PASS}@postgres/${DB_NAME}
       REDIS_URL: redis://redis:6379/0
       JWT_SECRET: ${JWT_SECRET}
+      GOOGLE_APPLICATION_CREDENTIALS: /secrets/gcp-sa.json
 
     healthcheck:
       test: ['CMD-SHELL', "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health').read()\"" ]
@@ -43,6 +43,7 @@ services:
         condition: service_healthy
     volumes:
       - ./backend-api:/app
+      - /Users/abhishekswami/secrets/smart-placement/backend-api-sa-key.json:/secrets/gcp-sa.json:ro
 
   ai-engine:
     build: ./ai-engine
@@ -53,14 +54,16 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://${DB_USER}:${DB_PASS}@postgres:5432/${DB_NAME}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
-      BACKEND_URL: ${BACKEND_URL}
-      EXPRESS_BACKEND_URL: ${EXPRESS_BACKEND_URL}
+      BACKEND_URL: ${BACKEND_URL:-http://backend-api:8000}
+      EXPRESS_BACKEND_URL: ${EXPRESS_BACKEND_URL:-http://node-scraper:8081}
+      REDIS_URL: redis://redis:6379/1
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
 
   collector:
     build: ./collector
@@ -69,7 +72,6 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql://postgres:${DB_PASS}@postgres:5432/${DB_NAME}
       AI_ENGINE_URL: http://ai-engine:8002
       SCRAPE_INTERVAL_MINUTES: 60
       MAX_JOBS_PER_RUN: 100
@@ -92,7 +94,6 @@ services:
       - .env
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY}
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@postgres/${DB_NAME}
     depends_on:
       postgres:
         condition: service_healthy

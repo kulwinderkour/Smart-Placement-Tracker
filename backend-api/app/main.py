@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.services.redis_cache import cache_get, cache_set
 from app.routers import auth, jobs, applications, admin, company, roadmap, questions
 from app.routers.agent_internal import router as agent_internal_router
+from app.routers.agent_logs import router as agent_logs_router
 from app.routers.google_auth import router as google_router
 from app.routers.company_jobs import router as company_jobs_router
 from app.routers.student_api import router as student_api_router
@@ -16,6 +17,25 @@ from app.services.realtime import redis_subscriber
 from app.services.scraped_jobs_cache import scheduler_loop
 
 logger = logging.getLogger(__name__)
+
+
+def _build_allowed_origins() -> list[str]:
+    frontend_url = os.environ.get("FRONTEND_URL", "").strip().rstrip("/")
+    frontend_urls = os.environ.get("FRONTEND_URLS", "")
+    configured = [origin.strip().rstrip("/") for origin in frontend_urls.split(",") if origin.strip()]
+
+    local_defaults = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+    ]
+
+    if frontend_url:
+        configured.append(frontend_url)
+
+    # Deduplicate while preserving order.
+    return list(dict.fromkeys(configured + local_defaults))
 
 
 @asynccontextmanager
@@ -42,14 +62,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-_frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000").rstrip("/")
-_allowed_origins = list({
-    _frontend_url,
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:5173",
-})
+_allowed_origins = _build_allowed_origins()
+if not os.environ.get("FRONTEND_URL") and not os.environ.get("FRONTEND_URLS"):
+    logger.warning("FRONTEND_URL/FRONTEND_URLS not set; using localhost-only CORS defaults.")
 
 app.add_middleware(
     CORSMiddleware,
@@ -71,6 +86,7 @@ app.include_router(scraped_jobs_router, prefix="/api/v1")
 app.include_router(roadmap.router,     prefix="/api/v1")
 app.include_router(questions.router,   prefix="/api/v1")
 app.include_router(agent_internal_router, prefix="/api/v1")
+app.include_router(agent_logs_router,    prefix="/api/v1")
 
 @app.get("/health")
 def health():

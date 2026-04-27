@@ -466,7 +466,7 @@ export default function Dashboard() {
                         width: 34, height: 34, borderRadius: 8, background: '#232a33', color: 'var(--student-text-muted)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 500,
                         flexShrink: 0
-                      }}>{app.company[0]?.toUpperCase() ?? '?'}</div>
+                      }}>{app.company?.[0]?.toUpperCase() ?? '?'}</div>
                       <div>
                         <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--student-text)' }}>{app.company}</p>
                         <p style={{ margin: 0, fontSize: 11, color: 'var(--student-text-muted)' }}>{(app as any).jobTitle || app.role} · {appliedDate}</p>

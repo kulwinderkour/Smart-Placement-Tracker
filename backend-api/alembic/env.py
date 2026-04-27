@@ -10,6 +10,7 @@ from app.database import Base
 from app.models import (  # import all models
     User, Student, Job, Application, Skill,
     CompanyProfile, Interview, Roadmap, GeneratedRoadmap,
+    AgentLog,
 )
 
 config = context.config
@@ -18,6 +19,10 @@ if config.config_file_name is not None:
 
 database_url = os.getenv("DATABASE_URL")
 if database_url:
+    # Ensure asyncpg driver is used — swap plain postgresql:// → postgresql+asyncpg://
+    if database_url.startswith("postgresql://") or database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        database_url = database_url.replace("postgres://", "postgresql+asyncpg://", 1)
     config.set_main_option("sqlalchemy.url", database_url)
 
 target_metadata = Base.metadata

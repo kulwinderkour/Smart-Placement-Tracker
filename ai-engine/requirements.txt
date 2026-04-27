@@ -1,3 +1,5 @@
+redis[asyncio]>=5.0.0
+rapidfuzz>=3.9.0
 aiohappyeyeballs==2.6.1
 asyncpg
 aiohttp==3.13.5
