@@ -8,3 +8,4 @@ from .interview import Interview
 from .roadmap import Roadmap
 from .generated_roadmap import GeneratedRoadmap
 from .resume import Resume, ResumeAnalysis
+from .agent_log import AgentLog, AgentType, AgentStatus

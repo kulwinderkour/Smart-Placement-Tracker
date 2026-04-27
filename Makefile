@@ -13,7 +13,7 @@ logs:
 	docker compose logs -f
 
 migrate:
-	docker compose exec backend-api alembic upgrade head
+	docker compose exec backend-api alembic upgrade heads
 
 test:
 	docker compose exec backend-api pytest tests/ -v --cov=app

@@ -13,7 +13,7 @@ interface JobResult {
   description?: string
 }
 
-type MessageRole = 'student' | 'agent' | 'thinking' | 'summary' | 'applied' | 'skipped' | 'error'
+type MessageRole = 'student' | 'agent' | 'thinking' | 'summary' | 'applied' | 'skipped' | 'error' | 'search_result' | 'chat' | 'confirm'
 
 interface Message {
   id: string
@@ -22,6 +22,8 @@ interface Message {
   job?: JobResult
   totalApplied?: number
   totalSkipped?: number
+  sessionId?: string
+  pipelineUsed?: string
 }
 
 interface AutoApplyPanelProps {
@@ -35,13 +37,15 @@ interface AutoApplyPanelProps {
 const AI_BASE =
   (import.meta as any).env?.VITE_AI_URL || 'http://localhost:8002'
 
-const PROGRESS_MESSAGES = [
-  'Fetching jobs posted by admin...',
-  'Scoring your profile against job requirements...',
-  'Checking eligibility for matching jobs...',
-  'Generating personalized descriptions...',
+const PROGRESS_MESSAGES_APPLY = [
+  'Classifying your intent...',
+  'Understanding your instruction...',
+  'Fetching active job listings...',
+  'Validating job postings...',
+  'Scoring your profile against requirements...',
+  'Filtering by your criteria...',
+  'Generating personalized cover letters...',
   'Submitting applications...',
-  'Almost done — finalizing results...'
 ]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -212,7 +216,7 @@ function SkippedCard({ job }: { job: JobResult }) {
   )
 }
 
-function SummaryCard({ applied, skipped }: { applied: number; skipped: number }) {
+function SummaryCard({ applied, skipped, sessionId, pipelineUsed }: { applied: number; skipped: number; sessionId?: string; pipelineUsed?: string }) {
   return (
     <div
       style={{
@@ -223,9 +227,16 @@ function SummaryCard({ applied, skipped }: { applied: number; skipped: number })
         marginTop: 8,
       }}
     >
-      <p style={{ margin: '0 0 10px', color: 'var(--student-text)', fontWeight: 700, fontSize: 14 }}>
-        🏁 Run complete
-      </p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <p style={{ margin: 0, color: 'var(--student-text)', fontWeight: 700, fontSize: 14 }}>
+          🏁 Run complete
+        </p>
+        {pipelineUsed && pipelineUsed !== 'legacy' && (
+          <span style={{ fontSize: 10, color: '#3fb950', background: 'rgba(63,185,80,0.1)', border: '1px solid rgba(63,185,80,0.2)', borderRadius: 20, padding: '2px 7px', fontWeight: 500 }}>
+            Autonomous v2
+          </span>
+        )}
+      </div>
       <div
         style={{
           background: 'rgba(63,185,80,0.1)',
@@ -242,7 +253,12 @@ function SummaryCard({ applied, skipped }: { applied: number; skipped: number })
       </div>
       {skipped > 0 && (
         <p style={{ margin: '10px 0 0', color: '#6e7681', fontSize: 11, lineHeight: 1.45 }}>
-          {skipped} other listing{skipped === 1 ? '' : 's'} did not meet your criteria (not shown).
+          {skipped} other listing{skipped === 1 ? '' : 's'} did not meet your criteria.
+        </p>
+      )}
+      {sessionId && (
+        <p style={{ margin: '8px 0 0', color: '#484f58', fontSize: 10, fontFamily: 'monospace' }}>
+          Session: {sessionId.slice(0, 8)}…
         </p>
       )}
     </div>
@@ -310,6 +326,8 @@ function MessageBubble({ msg, thinkingText }: { msg: Message, thinkingText?: str
         <SummaryCard
           applied={msg.totalApplied ?? 0}
           skipped={msg.totalSkipped ?? 0}
+          sessionId={msg.sessionId}
+          pipelineUsed={msg.pipelineUsed}
         />
       </div>
     )
@@ -329,6 +347,73 @@ function MessageBubble({ msg, thinkingText }: { msg: Message, thinkingText?: str
             fontSize: 13,
             lineHeight: 1.55,
             whiteSpace: 'pre-wrap',
+          }}
+        >
+          {msg.text}
+        </div>
+      </div>
+    )
+  }
+
+  if (msg.role === 'confirm') {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 10 }}>
+        <div
+          style={{
+            maxWidth: '92%',
+            background: 'rgba(210,153,34,0.07)',
+            border: '1px solid rgba(210,153,34,0.35)',
+            borderRadius: '14px 14px 14px 4px',
+            padding: '12px 14px',
+            color: 'var(--student-text)',
+            fontSize: 13,
+            lineHeight: 1.65,
+            whiteSpace: 'pre-wrap',
+          }}
+        >
+          {msg.text}
+        </div>
+      </div>
+    )
+  }
+
+  if (msg.role === 'chat') {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 10 }}>
+        <div
+          style={{
+            maxWidth: '80%',
+            background: 'rgba(167,139,250,0.07)',
+            border: '1px solid rgba(167,139,250,0.22)',
+            borderRadius: '14px 14px 14px 4px',
+            padding: '10px 14px',
+            color: 'var(--student-text)',
+            fontSize: 13,
+            lineHeight: 1.6,
+            whiteSpace: 'pre-wrap',
+          }}
+        >
+          {msg.text}
+        </div>
+      </div>
+    )
+  }
+
+  if (msg.role === 'search_result') {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 10 }}>
+        <div
+          style={{
+            maxWidth: '92%',
+            background: 'rgba(47,129,247,0.06)',
+            border: '1px solid rgba(47,129,247,0.22)',
+            borderRadius: '14px 14px 14px 4px',
+            padding: '10px 14px',
+            color: 'var(--student-text)',
+            fontSize: 13,
+            lineHeight: 1.65,
+            whiteSpace: 'pre-wrap',
+            fontFamily: 'inherit',
           }}
         >
           {msg.text}
@@ -366,12 +451,13 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
     {
       id: uid(),
       role: 'agent',
-      text: "Hi! I'm your Smart Placement Agent. Tell me what kinds of jobs you want to apply to and I'll handle everything — scoring, cover letters, and submissions.\n\nExample: \"Apply to software engineering jobs above 10 LPA in Bangalore\"",
+      text: `Hi! I'm your Smart Placement Agent — powered by Gemini 2.5 Flash.\n\nI understand what you mean before doing anything:\n• Greet me → I'll say hi back\n• "Show SDE jobs above 8 LPA" → I search, no applications\n• "Apply to SDE jobs above 8 LPA" → full auto-apply pipeline\n• "What are my skills?" → I'll show your profile\n\nTry: "Apply to software engineering jobs above 10 LPA"\nHindi/Hinglish: "8 LPA se upar SDE ki job chahiye"`,
     },
   ])
   const [inputText, setInputText]   = useState(defaultInstruction)
   const [isRunning, setIsRunning]   = useState(false)
-  const [thinkingText, setThinkingText] = useState(PROGRESS_MESSAGES[0])
+  const [needsConfirmation, setNeedsConfirmation] = useState(false)
+  const [thinkingText, setThinkingText] = useState(PROGRESS_MESSAGES_APPLY[0])
   const [minPackage, setMinPackage] = useState(0) // reserved for future LPA filter UI
   void minPackage; void setMinPackage // suppress unused warning — required by spec
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -386,14 +472,13 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
 
   useEffect(() => {
     if (!isRunning) return
+    const msgs = PROGRESS_MESSAGES_APPLY
     let index = 0
-    setThinkingText(PROGRESS_MESSAGES[0])
+    setThinkingText(msgs[0])
     const interval = setInterval(() => {
       index++
-      if (index < PROGRESS_MESSAGES.length) {
-        setThinkingText(PROGRESS_MESSAGES[index])
-      }
-    }, 12000)
+      if (index < msgs.length) setThinkingText(msgs[index])
+    }, 10000)
     return () => clearInterval(interval)
   }, [isRunning])
 
@@ -441,7 +526,7 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
       const AI_URL = `${AI_BASE}/api/agent/auto-apply`
 
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 90000)
+      const timeoutId = setTimeout(() => controller.abort(), 130000)
 
       const resp = await fetch(AI_URL, {
         method: 'POST',
@@ -454,6 +539,7 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
           student_token: token,
           student_profile: normalizedProfile,
           resume_url,
+          use_new_pipeline: true,
         }),
         signal: controller.signal
       })
@@ -472,46 +558,81 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
 
       const data = await resp.json()
       const newMessages: Omit<Message, 'id'>[] = []
+      const intent: string = data.intent ?? 'unknown'
+      const pipeline: string = data.pipeline_used ?? 'legacy'
 
       if (data.success === false) {
         const displaySummary = typeof data.summary === 'string'
-          ? data.summary
-          : JSON.stringify(data.summary)
-        newMessages.push({ role: 'error', text: `⚠️ Agent Failed:\n${displaySummary}` })
-      } else {
-        // Agent summary text
+          ? data.summary : JSON.stringify(data.summary)
+        newMessages.push({ role: 'error', text: `⚠️ ${displaySummary}` })
+
+      } else if (pipeline === 'awaiting_confirmation' || data.needs_confirmation === true) {
+        // ── Blanket apply: ask confirmation before running pipeline ──────────────
+        const reply = data.brain_reply || data.summary || ''
+        if (reply) newMessages.push({ role: 'confirm', text: reply })
+        setNeedsConfirmation(true)
+
+      } else if (pipeline === 'brain_reply' || intent === 'greeting' || intent === 'general_query') {
+        // ── Conversational reply — no job cards, no summary ───────────────────
+        const reply = data.brain_reply || data.summary || ''
+        if (reply) newMessages.push({ role: 'chat', text: reply })
+
+      } else if (pipeline === 'profile_query' || intent === 'profile_query') {
+        // ── Profile summary ───────────────────────────────────────────────────
+        const reply = data.brain_reply || ''
+        if (reply) newMessages.push({ role: 'agent', text: reply })
+        if (data.summary) newMessages.push({ role: 'agent', text: data.summary })
+
+      } else if (pipeline === 'job_search' || intent === 'job_search') {
+        // ── Search results — show list, no apply cards ────────────────────────
+        const reply = data.brain_reply || ''
+        if (reply) newMessages.push({ role: 'agent', text: reply })
         if (data.summary) {
-          // Before displaying summary ensure it is a string
           const displaySummary = typeof data.summary === 'string'
-            ? data.summary
-            : JSON.stringify(data.summary)
-            
+            ? data.summary : JSON.stringify(data.summary)
+          newMessages.push({ role: 'search_result', text: displaySummary })
+        }
+
+      } else if (pipeline === 'memory_query' || intent === 'memory_query') {
+        // ── Memory / history query — render as chat bubble ────────────────
+        const reply = data.brain_reply || data.summary || ''
+        if (reply) newMessages.push({ role: 'chat', text: reply })
+
+      } else {
+        setNeedsConfirmation(false)
+        // ── Apply pipeline — full cards + summary ─────────────────────────────
+        const reply = data.brain_reply || ''
+        if (reply) newMessages.push({ role: 'agent', text: reply })
+
+        if (data.summary) {
+          const displaySummary = typeof data.summary === 'string'
+            ? data.summary : JSON.stringify(data.summary)
           newMessages.push({ role: 'agent', text: displaySummary })
         }
 
-      // Applied job cards only (skipped jobs omitted — avoids noise at scale)
-      for (const job of (data.jobs_applied ?? [])) {
-        newMessages.push({
-          role: 'applied',
-          text: '',
-          job: {
-            job_id: job.job_id ?? '',
-            application_id: job.application_id ?? '',
-            title: job.title,
-            company: job.company,
-            match_score: job.match_score,
-            result: job.result,
-            description: job.description,
-          },
-        })
-      }
+        for (const job of (data.jobs_applied ?? [])) {
+          newMessages.push({
+            role: 'applied',
+            text: '',
+            job: {
+              job_id: job.job_id ?? '',
+              application_id: job.application_id ?? '',
+              title: job.title,
+              company: job.company,
+              match_score: job.match_score,
+              result: job.result,
+              description: job.description,
+            },
+          })
+        }
 
-        // Summary card
         newMessages.push({
           role: 'summary',
           text: '',
           totalApplied: data.total_applied ?? 0,
           totalSkipped: data.total_skipped ?? 0,
+          sessionId: data.session_id,
+          pipelineUsed: pipeline,
         })
       }
 
@@ -519,7 +640,7 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
     } catch (err: any) {
       if (err.name === 'AbortError') {
         replaceThinking([
-          { role: 'agent', text: 'Request timed out after 90 seconds. Please try again with a more specific instruction like "Apply to software engineering jobs above 10 LPA".' }
+          { role: 'agent', text: 'Request timed out after 120 seconds. Please try again with a more specific instruction like "Apply to software engineering jobs above 10 LPA".' }
         ])
       } else {
         replaceThinking([
@@ -583,7 +704,7 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
             }}
           />
           <span style={{ color: 'var(--student-text)', fontWeight: 700, fontSize: 14 }}>
-            Auto Apply Agent
+            Smart Placement Agent
           </span>
           {isRunning && (
             <span
@@ -639,50 +760,79 @@ export default function AutoApplyPanel({ isOpen, onClose, defaultInstruction = '
           flexShrink: 0,
         }}
       >
-        <input
-          ref={inputRef}
-          value={inputText}
-          onChange={e => setInputText(e.target.value)}
-          onKeyDown={handleKeyDown}
-          disabled={isRunning}
-          placeholder="e.g. Apply to software engineering jobs above 10 LPA"
-          style={{
-            flex: 1,
-            background: isRunning ? 'var(--student-surface)' : '#242424',
-            border: `1px solid ${isRunning ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)'}`,
-            borderRadius: 10,
-            padding: '9px 13px',
-            color: isRunning ? 'var(--student-text-dim)' : 'var(--student-text)',
-            fontSize: 13,
-            outline: 'none',
-            transition: 'border-color 0.15s, color 0.15s',
-            cursor: isRunning ? 'not-allowed' : 'text',
-          }}
-          onFocus={e => { if (!isRunning) e.target.style.borderColor = '#2f81f7' }}
-          onBlur={e => { e.target.style.borderColor = isRunning ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)' }}
-        />
-        <button
-          onClick={handleSend}
-          disabled={isRunning || !inputText.trim()}
-          style={{
-            background: isRunning || !inputText.trim() ? 'var(--student-surface)' : '#a78bfa',
-            border: `1px solid ${isRunning || !inputText.trim() ? 'var(--student-text-dim)' : '#a78bfa'}`,
-            borderRadius: 10,
-            padding: '9px 16px',
-            color: isRunning || !inputText.trim() ? 'var(--student-text-dim)' : 'var(--student-bg)',
-            fontWeight: 600,
-            fontSize: 13,
-            cursor: isRunning || !inputText.trim() ? 'not-allowed' : 'pointer',
-            transition: 'all 0.15s',
-            minWidth: 68,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 6,
-          }}
-        >
-          {isRunning ? <Spinner /> : 'Send'}
-        </button>
+        {needsConfirmation ? (
+          <>
+            <button
+              onClick={() => { setNeedsConfirmation(false); setInputText('yes apply to these jobs'); setTimeout(handleSend, 50) }}
+              disabled={isRunning}
+              style={{
+                flex: 1, background: '#238636', border: '1px solid #2ea043',
+                borderRadius: 10, padding: '9px 0', color: '#fff',
+                fontWeight: 700, fontSize: 13, cursor: isRunning ? 'not-allowed' : 'pointer',
+              }}
+            >
+              ✅ Yes, apply to all
+            </button>
+            <button
+              onClick={() => { setNeedsConfirmation(false); addMessage({ role: 'agent', text: 'Cancelled. Nothing was applied.' }) }}
+              disabled={isRunning}
+              style={{
+                flex: 1, background: 'rgba(248,81,73,0.1)', border: '1px solid rgba(248,81,73,0.35)',
+                borderRadius: 10, padding: '9px 0', color: '#f85149',
+                fontWeight: 700, fontSize: 13, cursor: isRunning ? 'not-allowed' : 'pointer',
+              }}
+            >
+              ✕ Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            <input
+              ref={inputRef}
+              value={inputText}
+              onChange={e => setInputText(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={isRunning}
+              placeholder="Try: 'Apply to SDE jobs above 8 LPA' or 'Show jobs above 5 LPA'"
+              style={{
+                flex: 1,
+                background: isRunning ? 'var(--student-surface)' : '#242424',
+                border: `1px solid ${isRunning ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)'}`,
+                borderRadius: 10,
+                padding: '9px 13px',
+                color: isRunning ? 'var(--student-text-dim)' : 'var(--student-text)',
+                fontSize: 13,
+                outline: 'none',
+                transition: 'border-color 0.15s, color 0.15s',
+                cursor: isRunning ? 'not-allowed' : 'text',
+              }}
+              onFocus={e => { if (!isRunning) e.target.style.borderColor = '#2f81f7' }}
+              onBlur={e => { e.target.style.borderColor = isRunning ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)' }}
+            />
+            <button
+              onClick={handleSend}
+              disabled={isRunning || !inputText.trim()}
+              style={{
+                background: isRunning || !inputText.trim() ? 'var(--student-surface)' : '#a78bfa',
+                border: `1px solid ${isRunning || !inputText.trim() ? 'var(--student-text-dim)' : '#a78bfa'}`,
+                borderRadius: 10,
+                padding: '9px 16px',
+                color: isRunning || !inputText.trim() ? 'var(--student-text-dim)' : 'var(--student-bg)',
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: isRunning || !inputText.trim() ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s',
+                minWidth: 68,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+              }}
+            >
+              {isRunning ? <Spinner /> : 'Send'}
+            </button>
+          </>
+        )}
       </div>
     </div>
   )
