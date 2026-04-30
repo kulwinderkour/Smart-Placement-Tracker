@@ -306,7 +306,7 @@ placement_tracker=# \q
 
 ---
 
-## 👥 Team Setup (Cloud Database)
+## 👥 Team setup (Cloud database)
 
 The project uses **Google Cloud SQL** as the shared database. Docker containers can't connect to it directly — you need to run `cloud-sql-proxy` first.
 
