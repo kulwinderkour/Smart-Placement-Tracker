@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:changeme@postgres/placement_tracker"
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:Jasbir24@host.docker.internal:5433/placement_tracker"
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o"
     GEMINI_API_KEY: str = ""
