@@ -23,3 +23,7 @@ listmodels.js
 
 ai-engine/app/data/ResumesPDF/*
 !ai-engine/app/data/ResumesPDF/.gitkeep
+
+scripts/deploy_ai_engine.sh
+scripts/deploy_backend.sh
+scripts/deploy_frontend.sh
