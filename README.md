@@ -310,17 +310,17 @@ placement_tracker=# \q
 
 The project uses **Google Cloud SQL** as the shared database. Docker containers can't connect to it directly — you need to run `cloud-sql-proxy` first.
 
-### Step 1 — Send Abhishek your IP
+### Step 1 — Send Your Friend your IP
 
 ```bash
 curl ifconfig.me
 ```
 
-Share the output with Abhishek so he can whitelist your IP if needed.
+Share the output with Your Friend so he can whitelist your IP if needed.
 
-### Step 2 — Get secrets from Abhishek
+### Step 2 — Get secrets from Your Friend
 
-Ask Abhishek for:
+Ask Your Friend for:
 - `backend-api-sa-key.json` → place it at `~/secrets/smart-placement/backend-api-sa-key.json`
 - The DB password for `.env` (used in Step 4)
 
@@ -373,13 +373,13 @@ cp .env.example .env
 
 Set `DATABASE_URL` to route through the proxy:
 ```env
-DATABASE_URL=postgresql+asyncpg://placement_user:<ask-abhishek>@192.168.65.254:5433/placement_tracker
+DATABASE_URL=postgresql+asyncpg://placement_user:<ask-Your_Friend>@192.168.65.254:5433/placement_tracker
 ```
 
 > On Mac, `192.168.65.254` is the Docker host gateway (how containers reach the proxy running on your Mac).
 > On Windows/Linux, use `host.docker.internal` instead:
 > ```env
-> DATABASE_URL=postgresql+asyncpg://placement_user:<ask-abhishek>@host.docker.internal:5433/placement_tracker
+> DATABASE_URL=postgresql+asyncpg://placement_user:<ask-Your_Friend>@host.docker.internal:5433/placement_tracker
 > ```
 
 ### Step 6 — Start all services

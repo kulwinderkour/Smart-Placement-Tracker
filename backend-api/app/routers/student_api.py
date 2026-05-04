@@ -362,6 +362,7 @@ Respond ONLY with valid JSON, no markdown, no backticks:
   "improvements": ["i1", "i2", "i3"],
   "missingKeywords": ["k1", "k2"],
   "suggestedKeywords": ["k1", "k2"],
+  "extractedSkills": ["Python", "FastAPI", "SQL"],
   "summary": "2-3 sentence overall assessment"
 }}""".format(
         jd_context=f"for this job description: {job_description}" if job_description else "for general ATS compatibility"
@@ -408,6 +409,29 @@ Respond ONLY with valid JSON, no markdown, no backticks:
         raise HTTPException(status_code=502, detail=f"Gemini API error: {exc}")
 
     ats_score = int(analysis.get("atsScore", 0))
+
+    # Save extracted skills to student profile
+    extracted_skills = analysis.get("extractedSkills", [])
+    if extracted_skills:
+        from app.models.skill import Skill
+        from sqlalchemy.orm import selectinload as _selectinload
+        student_with_skills = await db.execute(
+            select(Student)
+            .options(_selectinload(Student.skills))
+            .where(Student.id == student.id)
+        )
+        student = student_with_skills.scalar_one()
+        student.skills = []
+        for name in extracted_skills:
+            name = name.strip()
+            if not name:
+                continue
+            sk_res = await db.execute(select(Skill).where(Skill.name == name))
+            sk = sk_res.scalar_one_or_none()
+            if not sk:
+                sk = Skill(id=uuid.uuid4(), name=name)
+                db.add(sk)
+            student.skills.append(sk)
 
     # Persist analysis
     record = ResumeAnalysis(
