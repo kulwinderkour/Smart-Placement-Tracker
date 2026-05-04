@@ -6,6 +6,7 @@ const { startScheduler } = require("./scrapers/scheduler");
 const roadmapRouter = require("./routes/roadmap");
 const questionsRouter = require("./routes/questions");
 const jobsRouter = require("./routes/jobs");
+const skillsRouter = require("./routes/skills");
 const path = require('path');
 
 const app = express();
@@ -36,6 +37,9 @@ app.get("/api/jobs/internshala", async (req, res) => {
     res.status(500).json({ error: "Scraping failed", message: err.message });
   }
 });
+
+// Skills suggestions route
+app.use("/api/skills", skillsRouter);
 
 // Roadmap routes
 app.use("/api/roadmap", roadmapRouter);
