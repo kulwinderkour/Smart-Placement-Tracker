@@ -23,7 +23,7 @@
 
 **Exposed:**
 - JWT_SECRET (compromises all auth tokens)
-- GEMINI_API_KEY (AIzaSyCGaulj0nDfXD2mBNGFbirauLUmClaKYd4)
+- GEMINI_API_KEY
 - GOOGLE_CLIENT_SECRET
 - Database password: Jasbir24
 - Upstash Redis token
