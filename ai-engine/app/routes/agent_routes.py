@@ -844,6 +844,36 @@ async def _run_new_pipeline(
     if from_cache and cached_jobs:
         logger.info("[Apply] apply_target_count=%d source=%s", len(cached_jobs), "cache")
 
+    # ── Fresh fetch + filter when no cache (e.g. "Apply to amazon" with no prior search) ──
+    if not from_cache and decision is not None:
+        entities = decision.entities or {}
+        has_filter = any([
+            entities.get("company"),
+            entities.get("role"),
+            entities.get("salary_min_lpa"),
+            entities.get("salary_max_lpa"),
+        ])
+        if has_filter:
+            try:
+                from app.agents.auto_apply_pipeline import AutoApplyPipeline
+                _tmp_pipeline = AutoApplyPipeline(
+                    student_token=request.student_token,
+                    student_profile=request.student_profile,
+                    resume_url=request.resume_url,
+                )
+                fresh_jobs = await asyncio.wait_for(_tmp_pipeline._fetch_jobs(), timeout=15.0)
+                filtered_fresh = _filter_jobs(fresh_jobs, entities, cache_used=False)
+                logger.info(
+                    "[Apply] fresh_fetch+filter: %d total → %d after entity filter (company=%r role=%r)",
+                    len(fresh_jobs), len(filtered_fresh),
+                    entities.get("company"), entities.get("role"),
+                )
+                if filtered_fresh:
+                    cached_jobs = filtered_fresh
+                    from_cache = True
+            except Exception as _fe:
+                logger.warning("[Apply] fresh fetch/filter failed, letting pipeline fetch: %s", _fe)
+
     # ── Dedup: skip jobs already applied to in any previous session ──────────
     # This guards the direct-apply path (_handle_job_apply) which bypasses the
     # confirmation gate and therefore never ran filter_unapplied_jobs before.
