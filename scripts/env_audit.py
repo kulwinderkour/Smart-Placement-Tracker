@@ -21,7 +21,6 @@ checks = [
 ]
 
 print("\n=== Backend Env Audit ===")
-
 all_ok = True
 for k, v in checks:
     tag = "[OK]     " if v else "[MISSING]"
