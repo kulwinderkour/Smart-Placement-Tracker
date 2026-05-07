@@ -1,6 +1,5 @@
 """
 predict() Parity Test
-=====================
 Verifies that the model running inside the Docker container produces
 IDENTICAL scores to the model loaded directly from disk.
 
