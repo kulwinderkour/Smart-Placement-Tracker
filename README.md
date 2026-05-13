@@ -452,3 +452,4 @@ source venv/bin/activate
 pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 python train_profile_matcher.py
+<!-- Minor update for commit -->
