@@ -14,7 +14,9 @@ const queryClient = new QueryClient({
   },
 });
 
+// AuthProvider handles user session initialization on application load
 function AuthProvider({ children }: { children: React.ReactNode }) {
+
   const { isAuthenticated, user, setUser, logout } = useAuthStore();
   const [loading, setLoading] = useState(isAuthenticated && !user);
 
