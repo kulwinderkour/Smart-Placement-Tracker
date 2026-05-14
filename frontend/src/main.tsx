@@ -21,7 +21,10 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(isAuthenticated && !user);
 
   useEffect(() => {
-    let mounted = true;
+
+
+let mounted = true;
+
     async function initAuth() {
       if (isAuthenticated && !user) {
         try {

@@ -4,7 +4,9 @@ import heroImg from './assets/hero.png'
 import viteLogo from './assets/vite.svg'
 import './App.css'
 
+// Main App component rendering the hero section and navigation links
 function App() {
+
   const [count, setCount] = useState(0)
 
   return (
