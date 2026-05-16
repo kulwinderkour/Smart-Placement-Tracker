@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+// Smart Placement Tracker - Frontend Entry Point
 import ReactDOM from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

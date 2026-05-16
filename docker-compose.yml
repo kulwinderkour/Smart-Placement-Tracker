@@ -39,8 +39,9 @@ services:
       - "smart-placement-prod:asia-south1:smart-placement-db"
     ports:
       - "5433:5433"
+    # Connect to Production Cloud SQL
     volumes:
-      - ${HOME}/secrets/smart-placement/backend-api-sa-key.json:/sa-key.json:ro
+      - ./secrets/cloud-sql-sa.json:/sa-key.json:ro
     healthcheck:
       test: ['CMD', '/cloud-sql-proxy', '--version']
       interval: 15s
