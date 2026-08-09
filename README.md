@@ -25,8 +25,10 @@
 
 **Mac (Terminal):**
 ```bash
-git clone https://github.com/your-username/Smart-Placement-Tracker.git
+git clone https://github.com/kulwinderkour/Smart-Placement-Tracker.git
+
 cd Smart-Placement-Tracker
+# window commands 
 ```
 
 **Windows (PowerShell or Windows Terminal):**
@@ -452,4 +454,4 @@ source venv/bin/activate
 pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 python train_profile_matcher.py
-<!-- Minor update for commit -->
+<!-- Minor update for commit -->
