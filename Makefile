@@ -20,3 +20,5 @@ test:
 
 seed:
 	docker compose exec backend-api python scripts/seed.py
+
+# docker build in commands 
