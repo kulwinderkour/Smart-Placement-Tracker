@@ -1,11 +1,25 @@
 #!/bin/bash
+# ─────────────────────────────────────────────────────────────────────────────
+# Manual deploy script — backend-api to Cloud Run
+# Project: smart-placement-prod | Account: amswami9273@gmail.com
+# For automated deploys, push to main → Cloud Build trigger fires (cloudbuild.yaml)
+# ─────────────────────────────────────────────────────────────────────────────
 set -e
 
-echo "[1/1] Deploying backend-api to Cloud Run..."
+PROJECT="smart-placement-prod"
+REGION="asia-south1"
+IMAGE="asia-south1-docker.pkg.dev/${PROJECT}/services/backend-api:latest"
 
+echo "[1/3] Building backend Docker image..."
+docker build -t "${IMAGE}" -f backend-api/Dockerfile backend-api
+
+echo "[2/3] Pushing image to Artifact Registry..."
+docker push "${IMAGE}"
+
+echo "[3/3] Deploying backend-api to Cloud Run..."
 gcloud run deploy backend-api \
-  --image=asia-south1-docker.pkg.dev/smart-placement-prod/services/backend-api:latest \
-  --region=asia-south1 \
+  --image="${IMAGE}" \
+  --region="${REGION}" \
   --platform=managed \
   --allow-unauthenticated \
   --memory=1Gi \
@@ -13,8 +27,13 @@ gcloud run deploy backend-api \
   --min-instances=0 \
   --max-instances=3 \
   --port=8000 \
-  --set-env-vars="^|^DATABASE_URL=postgresql+asyncpg://placement_user:Jasbir24@35.200.187.154:5432/placement_tracker|REDIS_URL=redis://default:AYljAAIncDJhYjI0NjA3MjVjMWE0N2FkOWQ1NGFlMTc3MTBjYmQwNXAyODIwMjU@helping-serval-82025.upstash.io:6379|UPSTASH_REDIS_REST_URL=https://helping-serval-82025.upstash.io|UPSTASH_REDIS_REST_TOKEN=gQAAAAAAAUBpAAIncDJhYjI0NjA3MjVjMWE0N2FkOWQ1NGFlMTc3MTBjYmQwNXAyODIwMjU|JWT_SECRET=ae6d184f9acc0ac011f79536b50d6be105d69c5cd3db605fc8411470151745e9|GOOGLE_CLIENT_ID=531859780857-7r6lj0bgjiuq42g04rln1idv9gupo1pg.apps.googleusercontent.com|GOOGLE_CLIENT_SECRET=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|GOOGLE_REDIRECT_URI=https://backend-api-385144446825.asia-south1.run.app/api/v1/auth/google/callback|FRONTEND_URL=https://smart-placement-pro.web.app|FRONTEND_URLS=https://smart-placement-pro.web.app,https://smart-placement-pro.firebaseapp.com|GCS_BUCKET_NAME=smart-placement-resumes-prod|GCS_PROJECT_ID=smart-placement-prod|GEMINI_API_KEY=AIzaSyCGaulj0nDfXD2mBNGFbirauLUmClaKYd4" \
+  --project="${PROJECT}" \
+  --set-secrets="DATABASE_URL=backend-database-url:latest,JWT_SECRET=backend-jwt-secret:latest,GEMINI_API_KEY=backend-gemini-key:latest,GOOGLE_CLIENT_ID=backend-google-client-id:latest,GOOGLE_CLIENT_SECRET=backend-google-client-secret:latest,UPSTASH_REDIS_REST_URL=backend-upstash-url:latest,UPSTASH_REDIS_REST_TOKEN=backend-upstash-token:latest" \
+  --update-env-vars="FRONTEND_URL=https://smart-placement-trackerr.web.app,FRONTEND_URLS=https://smart-placement-trackerr.web.app,https://smart-placement-trackerr.firebaseapp.com,https://smart-placement-pro.web.app,https://smart-placement-pro.firebaseapp.com,GOOGLE_REDIRECT_URI=https://backend-api-385144446825.asia-south1.run.app/api/v1/auth/google/callback,GCS_BUCKET_NAME=smart-placement-resumes-prod,GCS_PROJECT_ID=smart-placement-prod" \
+  --add-cloudsql-instances=smart-placement-prod:asia-south1:smart-placement-db \
   --quiet
 
-echo "backend-api deploy done."
-echo "URL: https://backend-api-385144446825.asia-south1.run.app"
+echo ""
+echo "✅ backend-api deployed successfully."
+echo "   URL: https://backend-api-385144446825.asia-south1.run.app"
+echo "   Health: https://backend-api-385144446825.asia-south1.run.app/health"

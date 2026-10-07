@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "smart-placement-pro"
+    "default": "smart-placement-trackerr",
+    "legacy": "smart-placement-pro"
   }
 }
