@@ -1,7 +1,7 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 # Cloud Build — Git-triggered CI/CD for Smart Placement Tracker
 # Trigger: push to main branch (kulwinderkour/Smart-Placement-Tracker)
-# Project: smart-placement-prod (asia-south1)
+# Project: smart-placement-trackerr (asia-south1)
 # Account: amswami9273@gmail.com
 # ═══════════════════════════════════════════════════════════════════════════════
 #
@@ -12,18 +12,18 @@
 #     --repo-owner=kulwinderkour \
 #     --branch-pattern=^main$ \
 #     --build-config=cloudbuild.yaml \
-#     --project=smart-placement-prod \
+#     --project=smart-placement-trackerr \
 #     --region=global
 #
 # REQUIRED SECRETS IN SECRET MANAGER (create once):
-#   backend-database-url      — full asyncpg DATABASE_URL
-#   backend-jwt-secret        — JWT secret
-#   backend-gemini-key        — Gemini API key
-#   backend-google-client-id  — Google OAuth client ID
+#   backend-database-url         — Cloud SQL Unix socket DATABASE_URL
+#   backend-jwt-secret           — JWT secret
+#   backend-gemini-key           — Gemini API key
+#   backend-google-client-id     — Google OAuth client ID
 #   backend-google-client-secret — Google OAuth secret
-#   backend-upstash-url       — Upstash Redis REST URL
-#   backend-upstash-token     — Upstash Redis REST token
-#   firebase-ci-token         — from: firebase login:ci
+#   backend-upstash-url          — Upstash Redis REST URL
+#   backend-upstash-token        — Upstash Redis REST token
+#   firebase-ci-token            — from: firebase login:ci
 #
 steps:
   # ── Step 1: Build backend Docker image ─────────────────────────────────────
@@ -32,9 +32,9 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'asia-south1-docker.pkg.dev/smart-placement-prod/services/backend-api:$COMMIT_SHA'
+      - 'asia-south1-docker.pkg.dev/smart-placement-trackerr/services/backend-api:$COMMIT_SHA'
       - '-t'
-      - 'asia-south1-docker.pkg.dev/smart-placement-prod/services/backend-api:latest'
+      - 'asia-south1-docker.pkg.dev/smart-placement-trackerr/services/backend-api:latest'
       - '-f'
       - 'backend-api/Dockerfile'
       - 'backend-api'
@@ -45,7 +45,7 @@ steps:
     args:
       - 'push'
       - '--all-tags'
-      - 'asia-south1-docker.pkg.dev/smart-placement-prod/services/backend-api'
+      - 'asia-south1-docker.pkg.dev/smart-placement-trackerr/services/backend-api'
     waitFor: ['build-backend']
 
   # ── Step 3: Deploy backend to Cloud Run ────────────────────────────────────
@@ -56,7 +56,7 @@ steps:
       - 'run'
       - 'deploy'
       - 'backend-api'
-      - '--image=asia-south1-docker.pkg.dev/smart-placement-prod/services/backend-api:$COMMIT_SHA'
+      - '--image=asia-south1-docker.pkg.dev/smart-placement-trackerr/services/backend-api:$COMMIT_SHA'
       - '--region=asia-south1'
       - '--platform=managed'
       - '--allow-unauthenticated'
@@ -66,12 +66,8 @@ steps:
       - '--max-instances=3'
       - '--port=8000'
       - '--set-secrets=DATABASE_URL=backend-database-url:latest,JWT_SECRET=backend-jwt-secret:latest,GEMINI_API_KEY=backend-gemini-key:latest,GOOGLE_CLIENT_ID=backend-google-client-id:latest,GOOGLE_CLIENT_SECRET=backend-google-client-secret:latest,UPSTASH_REDIS_REST_URL=backend-upstash-url:latest,UPSTASH_REDIS_REST_TOKEN=backend-upstash-token:latest'
-      - >-
-        --update-env-vars=FRONTEND_URL=https://smart-placement-trackerr.web.app,
-        GOOGLE_REDIRECT_URI=https://backend-api-385144446825.asia-south1.run.app/api/v1/auth/google/callback,
-        GCS_BUCKET_NAME=smart-placement-resumes-prod,
-        GCS_PROJECT_ID=smart-placement-prod
-      - '--add-cloudsql-instances=smart-placement-prod:asia-south1:smart-placement-db'
+      - '--update-env-vars=FRONTEND_URL=https://smart-placement-trackerr.web.app,GOOGLE_REDIRECT_URI=https://backend-api-540820166501.asia-south1.run.app/api/v1/auth/google/callback,GCS_BUCKET_NAME=smart-placement-resumes-prod,GCS_PROJECT_ID=smart-placement-trackerr'
+      - '--add-cloudsql-instances=smart-placement-trackerr:asia-south1:smart-placement-db'
       - '--quiet'
     waitFor: ['push-backend']
 
@@ -109,13 +105,13 @@ steps:
 # ── Secrets available to build steps ──────────────────────────────────────────
 availableSecrets:
   secretManager:
-    - versionName: projects/smart-placement-prod/secrets/firebase-ci-token/versions/latest
+    - versionName: projects/smart-placement-trackerr/secrets/firebase-ci-token/versions/latest
       env: 'FIREBASE_TOKEN'
 
 # ── Images pushed to Artifact Registry ────────────────────────────────────────
 images:
-  - 'asia-south1-docker.pkg.dev/smart-placement-prod/services/backend-api:$COMMIT_SHA'
-  - 'asia-south1-docker.pkg.dev/smart-placement-prod/services/backend-api:latest'
+  - 'asia-south1-docker.pkg.dev/smart-placement-trackerr/services/backend-api:$COMMIT_SHA'
+  - 'asia-south1-docker.pkg.dev/smart-placement-trackerr/services/backend-api:latest'
 
 options:
   logging: CLOUD_LOGGING_ONLY

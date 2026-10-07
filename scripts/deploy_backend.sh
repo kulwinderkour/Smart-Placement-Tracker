@@ -6,7 +6,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 set -e
 
-PROJECT="smart-placement-prod"
+PROJECT="smart-placement-trackerr"
 REGION="asia-south1"
 IMAGE="asia-south1-docker.pkg.dev/${PROJECT}/services/backend-api:latest"
 
@@ -29,8 +29,8 @@ gcloud run deploy backend-api \
   --port=8000 \
   --project="${PROJECT}" \
   --set-secrets="DATABASE_URL=backend-database-url:latest,JWT_SECRET=backend-jwt-secret:latest,GEMINI_API_KEY=backend-gemini-key:latest,GOOGLE_CLIENT_ID=backend-google-client-id:latest,GOOGLE_CLIENT_SECRET=backend-google-client-secret:latest,UPSTASH_REDIS_REST_URL=backend-upstash-url:latest,UPSTASH_REDIS_REST_TOKEN=backend-upstash-token:latest" \
-  --update-env-vars="FRONTEND_URL=https://smart-placement-trackerr.web.app,FRONTEND_URLS=https://smart-placement-trackerr.web.app,https://smart-placement-trackerr.firebaseapp.com,https://smart-placement-pro.web.app,https://smart-placement-pro.firebaseapp.com,GOOGLE_REDIRECT_URI=https://backend-api-385144446825.asia-south1.run.app/api/v1/auth/google/callback,GCS_BUCKET_NAME=smart-placement-resumes-prod,GCS_PROJECT_ID=smart-placement-prod" \
-  --add-cloudsql-instances=smart-placement-prod:asia-south1:smart-placement-db \
+  --update-env-vars="FRONTEND_URL=https://smart-placement-trackerr.web.app,FRONTEND_URLS=https://smart-placement-trackerr.web.app,https://smart-placement-trackerr.firebaseapp.com,GOOGLE_REDIRECT_URI=https://backend-api-540820166501.asia-south1.run.app/api/v1/auth/google/callback,GCS_BUCKET_NAME=smart-placement-resumes-prod,GCS_PROJECT_ID=smart-placement-trackerr" \
+  --add-cloudsql-instances=smart-placement-trackerr:asia-south1:smart-placement-db \
   --quiet
 
 echo ""
