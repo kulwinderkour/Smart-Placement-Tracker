@@ -260,7 +260,7 @@ export default function Questions() {
 
     setEvaluating(true);
     try {
-      const BASE = import.meta.env.VITE_EXPRESS_URL || "http://localhost:8081";
+      const BASE = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
       const response = await fetch(`${BASE}/questions/evaluate`, {
         method: "POST",
         headers: {

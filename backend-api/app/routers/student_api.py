@@ -42,6 +42,7 @@ from app.models.user import User
 from app.models.skill import Skill
 from app.schemas.student import StudentUpdate, StudentResponse
 from app.services import storage_service
+from app.services.realtime import manager
 
 router = APIRouter(prefix="/student", tags=["student-api"])
 

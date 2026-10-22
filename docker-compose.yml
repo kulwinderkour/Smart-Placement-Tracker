@@ -68,8 +68,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      cloud-sql-proxy:
-        condition: service_healthy
+      # cloud-sql-proxy:
+      #   condition: service_healthy
     volumes:
       - ./backend-api:/app
       - ./secrets/gcp-sa.json:/secrets/gcp-sa.json:ro
@@ -143,7 +143,7 @@ services:
         VITE_AI_URL: ${VITE_AI_URL:-http://localhost:8002}
         VITE_AI_ENGINE_URL: ${VITE_AI_ENGINE_URL:-http://localhost:8002}
     ports:
-      - '3000:3000'
+      - '3001:3000'
     depends_on:
       - backend-api
 

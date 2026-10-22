@@ -8,8 +8,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import JSON, DateTime, Enum, ForeignKey, Integer, String, Text
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import JSON, DateTime, Enum, ForeignKey, Integer, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -42,7 +41,7 @@ class AgentLog(Base):
     """
     __tablename__ = "agent_logs"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     
     # Context
     student_id: Mapped[uuid.UUID | None] = mapped_column(
@@ -51,7 +50,7 @@ class AgentLog(Base):
         index=True
     )
     session_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), 
+        Uuid, 
         nullable=False, 
         index=True
     )  # Groups related steps together
@@ -68,11 +67,11 @@ class AgentLog(Base):
     )
     
     # Data
-    input_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
-    output_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    input_data: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    output_data: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     
     # Extra context for querying/filtering
-    extra_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    extra_data: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     # Expected extra_data fields:
     # - job_id: UUID of job being processed
     # - prediction_score: float (match score from model)

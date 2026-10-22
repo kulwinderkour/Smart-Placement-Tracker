@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { authApi } from '../../api/auth'
 import { useAuthStore } from '../../store/authStore'
 import { Loader2 } from 'lucide-react'
+import { auth, googleProvider, signInWithPopup, createUserWithEmailAndPassword } from '../../lib/firebase'
 
 const schema = z.object({
   email: z.string().email('Invalid email address'),
@@ -21,6 +22,7 @@ export default function Register() {
   const googleError = searchParams.get('error')
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -30,6 +32,13 @@ export default function Register() {
   const onSubmit = async (data: FormData) => {
     try {
       setError('')
+      // Register in Firebase Auth in parallel
+      try {
+        await createUserWithEmailAndPassword(auth, data.email, data.password)
+      } catch (fbErr: any) {
+        console.log('Firebase user creation note:', fbErr?.code)
+      }
+
       await authApi.register(data.email, data.password, data.role)
 
       const loginRes = await authApi.login(data.email, data.password)
@@ -47,6 +56,32 @@ export default function Register() {
       } else {
         setError('Registration failed. Email may already be in use.')
       }
+    }
+  }
+
+  const handleGoogleSignUp = async () => {
+    try {
+      setError('')
+      setIsGoogleLoading(true)
+      const result = await signInWithPopup(auth, googleProvider)
+      const idToken = await result.user.getIdToken()
+      const res = await authApi.firebaseAuth(idToken, 'student', result.user.email || undefined)
+      const loginData = res.data
+      localStorage.setItem('access_token', loginData.access_token)
+      localStorage.setItem('refresh_token', loginData.refresh_token)
+
+      const meRes = await authApi.me()
+      setUser({
+        ...meRes.data,
+        is_onboarding_completed: loginData.is_onboarding_completed,
+      })
+
+      navigate(loginData.is_onboarding_completed ? '/dashboard' : '/onboarding')
+    } catch (err: any) {
+      console.error('Google Sign-Up Error:', err)
+      setError(err.message || 'Google sign-up failed. Please try again.')
+    } finally {
+      setIsGoogleLoading(false)
     }
   }
 
@@ -330,6 +365,76 @@ export default function Register() {
               )}
             </button>
           </form>
+
+          {/* Divider */}
+          <div style={{ position: 'relative', margin: '20px 0', display: 'flex', alignItems: 'center' }}>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.1)' }} />
+            <span style={{ 
+              padding: '0 16px', 
+              color: 'rgba(255, 255, 255, 0.4)', 
+              fontSize: '13px', 
+              fontFamily: 'DM Sans, sans-serif' 
+            }}>
+              or continue with
+            </span>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.1)' }} />
+          </div>
+
+          {/* Google Sign-In with Firebase Auth */}
+          <button
+            type="button"
+            onClick={handleGoogleSignUp}
+            disabled={isGoogleLoading || isSubmitting}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px',
+              width: '100%',
+              padding: '12px',
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              borderRadius: '30px',
+              color: '#ffffff',
+              fontSize: '14px',
+              fontFamily: 'DM Sans, sans-serif',
+              fontWeight: 600,
+              textDecoration: 'none',
+              transition: 'all 0.2s',
+              cursor: isGoogleLoading ? 'not-allowed' : 'pointer',
+              boxSizing: 'border-box'
+            }}
+            onMouseEnter={e => {
+              if (!isGoogleLoading) {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                e.currentTarget.style.borderColor = '#7c3aed';
+                e.currentTarget.style.boxShadow = '0 0 16px rgba(124, 58, 237, 0.25)';
+              }
+            }}
+            onMouseLeave={e => {
+              if (!isGoogleLoading) {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                e.currentTarget.style.boxShadow = 'none';
+              }
+            }}
+          >
+            {isGoogleLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+                Signing up with Google...
+              </>
+            ) : (
+              <>
+                <img
+                  src="https://www.google.com/favicon.ico"
+                  alt="Google"
+                  style={{ width: '18px', height: '18px' }}
+                />
+                Continue with Google
+              </>
+            )}
+          </button>
 
           <div style={{ textAlign:'center', fontSize:13, color:'rgba(255,255,255,0.5)', marginTop:20 }}>
             Already have an account? <Link to="/login" style={{ color:'#a78bfa', fontWeight:600, cursor:'pointer', textDecoration: 'none' }}>Sign In</Link>

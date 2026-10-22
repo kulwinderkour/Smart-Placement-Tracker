@@ -40,3 +40,10 @@ class LoginResponse(TokenResponse):
     role: str
     is_onboarding_completed: bool
     is_company_profile_completed: bool = False
+
+
+class FirebaseAuthRequest(BaseModel):
+    id_token: str
+    role: UserRole = UserRole.student
+    email: str | None = None
+

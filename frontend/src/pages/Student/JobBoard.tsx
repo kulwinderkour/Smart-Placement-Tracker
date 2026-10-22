@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { applicationsApi } from "../../api/applications";
+import { useJobsRealtime } from "../../hooks/useJobsRealtime";
 
 interface Job {
   id: string;
@@ -30,6 +31,11 @@ export default function JobBoard() {
   const [applyingIds, setApplyingIds] = useState<Set<string>>(new Set());
 
   const navigate = useNavigate();
+
+  // Real-time synchronization when admin posts/edits jobs
+  useJobsRealtime({
+    onEvent: () => fetchJobs(),
+  });
 
   const searchTimeout = useRef<any>(null);
 
@@ -65,48 +71,57 @@ export default function JobBoard() {
     setError('');
 
     try {
-      const scraperBase = (import.meta.env.VITE_SCRAPER_URL || `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}`).replace(/\/$/, '');
+      const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1').replace(/\/$/, '');
       const params = new URLSearchParams();
       const q = (queryOverride ?? searchQuery ?? '').trim();
       if (q) params.set('q', q);
 
-      let scraperJobs: Job[] = [];
-      const cachedRes = await fetch(`${scraperBase}/scraped-jobs?${params.toString()}`);
-      if (cachedRes.ok) {
-        const data = await cachedRes.json();
-        scraperJobs = (data.jobs || []).map((job: any, idx: number) => ({
-          id: job.id || `scraped-${idx}-${job.applyUrl || job.title}`,
-          title: job.title,
-          company: job.company,
-          location: job.location || 'India',
-          salary: job.salary || 'Not listed',
-          applyUrl: job.applyUrl,
-          source: job.source || 'Scraper',
-          description: job.description || '',
-          employmentType: (job.employmentType || '').toLowerCase(),
-        }));
-        setLastUpdated(data.lastUpdated || null);
-      } else if (cachedRes.status === 404) {
-        // Backward compatibility with legacy scraper server shape.
-        const legacyRes = await fetch(`http://localhost:8081/api/jobs/internshala?skills=${encodeURIComponent(baseQuery)}`);
-        if (!legacyRes.ok) throw new Error('Failed to load scraper jobs');
-        const legacyData = await legacyRes.json();
-        scraperJobs = (legacyData || []).map((job: any, idx: number) => ({
-          id: job.id || `legacy-${idx}-${job.applyUrl || job.title}`,
-          title: job.title,
-          company: job.company,
-          location: job.location || 'India',
-          salary: job.salary || 'Not listed',
-          applyUrl: job.applyUrl,
-          source: job.source || 'Internshala',
-          description: job.description || '',
-          employmentType: (job.employmentType || '').toLowerCase(),
-        }));
-        setLastUpdated(null);
-      } else {
-        throw new Error('Failed to load scraper jobs');
+      // 1. Fetch direct campus placement jobs posted by company admins
+      let companyJobs: Job[] = [];
+      try {
+        const compRes = await fetch(`${apiBase}/student/jobs?limit=50${q ? `&search=${encodeURIComponent(q)}` : ''}`);
+        if (compRes.ok) {
+          const cData = await compRes.json();
+          companyJobs = (cData.data || []).map((j: any) => ({
+            id: String(j.id),
+            title: j.role_title || j.title,
+            company: j.company_name || j.company,
+            location: j.location || 'Remote',
+            salary: j.salary_min && j.salary_max ? `₹${(j.salary_min / 100000).toFixed(1)}L - ₹${(j.salary_max / 100000).toFixed(1)}L PA` : 'Competitive',
+            applyUrl: `/student/jobs/${j.id}`,
+            source: 'Campus Placement',
+            description: j.description || '',
+            employmentType: (j.job_type || 'full_time').toLowerCase(),
+          }));
+        }
+      } catch (cErr) {
+        console.warn('Company jobs fetch error:', cErr);
       }
-      setJobs(scraperJobs);
+
+      // 2. Fetch aggregated scraped jobs
+      let scraperJobs: Job[] = [];
+      try {
+        const cachedRes = await fetch(`${apiBase}/scraped-jobs?${params.toString()}`);
+        if (cachedRes.ok) {
+          const data = await cachedRes.json();
+          scraperJobs = (data.jobs || []).map((job: any, idx: number) => ({
+            id: job.id || `scraped-${idx}-${job.applyUrl || job.title}`,
+            title: job.title,
+            company: job.company,
+            location: job.location || 'India',
+            salary: job.salary || 'Not listed',
+            applyUrl: job.applyUrl,
+            source: job.source || 'Scraper',
+            description: job.description || '',
+            employmentType: (job.employmentType || '').toLowerCase(),
+          }));
+          setLastUpdated(data.lastUpdated || null);
+        }
+      } catch (sErr) {
+        console.warn('Scraper jobs fetch error:', sErr);
+      }
+
+      setJobs([...companyJobs, ...scraperJobs]);
     } catch (err: any) {
       console.error('Fetch error:', err);
       setError(`Search failed. Please try again.`);

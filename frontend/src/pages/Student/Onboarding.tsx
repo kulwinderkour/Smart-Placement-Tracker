@@ -156,7 +156,8 @@ export default function Onboarding() {
   useEffect(() => {
     if (data.branch) {
       setLoadingSkills(true)
-      fetch(`http://localhost:8081/api/skills/suggestions?field=${data.branch}`)
+      const API = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
+      fetch(`${API}/skills/suggestions?field=${encodeURIComponent(data.branch)}`)
         .then(res => res.json())
         .then(resData => {
           setDynamicSkills(resData.suggestions || [])

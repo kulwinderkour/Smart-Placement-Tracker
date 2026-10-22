@@ -27,3 +27,8 @@ ai-engine/app/data/ResumesPDF/*
 scripts/deploy_ai_engine.sh
 scripts/deploy_backend.sh
 scripts/deploy_frontend.sh
+
+firebase-debug.log
+backend-api/seed_data.py
+backend-api/create_user.py
+frontend/.firebase/

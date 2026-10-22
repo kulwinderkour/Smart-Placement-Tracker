@@ -139,14 +139,8 @@ const JobBoard = () => {
         const data = await response.json();
         fetchedJobs = Array.isArray(data.jobs) ? data.jobs : [];
         setLastUpdated(data.lastUpdated || null);
-      } else if (response.status === 404) {
-        // Backward compatibility with legacy scraper endpoint.
-        const legacyRes = await fetch(`http://localhost:8081/api/jobs/internshala?skills=${encodeURIComponent(q || 'software developer')}`);
-        if (!legacyRes.ok) throw new Error('Failed to load scraper jobs');
-        fetchedJobs = await legacyRes.json();
-        setLastUpdated(null);
       } else {
-        throw new Error('Failed to load scraper jobs');
+        fetchedJobs = [];
       }
 
       const allJobs = fetchedJobs

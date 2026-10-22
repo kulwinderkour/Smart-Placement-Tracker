@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { authApi } from '../../api/auth'
 import { useAuthStore } from '../../store/authStore'
 import { Loader2 } from 'lucide-react'
+import { auth, googleProvider, signInWithPopup } from '../../lib/firebase'
 
 const schema = z.object({
   email: z.string().email('Invalid email address'),
@@ -20,6 +21,7 @@ export default function LoginForm() {
   const googleError = searchParams.get('error')
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema)
@@ -55,6 +57,36 @@ export default function LoginForm() {
       } else {
         setError('Invalid email or password')
       }
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setError('')
+      setIsGoogleLoading(true)
+      const result = await signInWithPopup(auth, googleProvider)
+      const idToken = await result.user.getIdToken()
+      const res = await authApi.firebaseAuth(idToken, 'student', result.user.email || undefined)
+      const loginData = res.data
+      localStorage.setItem('access_token', loginData.access_token)
+      localStorage.setItem('refresh_token', loginData.refresh_token)
+
+      const meRes = await authApi.me()
+      setUser({
+        ...meRes.data,
+        is_onboarding_completed: loginData.is_onboarding_completed,
+      })
+
+      if (loginData.role === 'admin') {
+        navigate(loginData.is_onboarding_completed ? '/admin/dashboard' : '/onboarding')
+      } else {
+        navigate(loginData.is_onboarding_completed ? '/dashboard' : '/onboarding')
+      }
+    } catch (err: any) {
+      console.error('Google Sign-In Error:', err)
+      setError(err.message || 'Google sign-in failed. Please try again.')
+    } finally {
+      setIsGoogleLoading(false)
     }
   }
 
@@ -251,9 +283,11 @@ export default function LoginForm() {
             <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.1)' }} />
           </div>
 
-          {/* Google OAuth Button */}
-          <a
-            href={`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/auth/google`}
+          {/* Google Sign-In with Firebase Auth */}
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={isGoogleLoading || isSubmitting}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -262,7 +296,7 @@ export default function LoginForm() {
               width: '100%',
               padding: '12px',
               background: 'rgba(255, 255, 255, 0.03)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
               borderRadius: '30px',
               color: '#ffffff',
               fontSize: '14px',
@@ -270,27 +304,40 @@ export default function LoginForm() {
               fontWeight: 600,
               textDecoration: 'none',
               transition: 'all 0.2s',
-              cursor: 'pointer',
+              cursor: isGoogleLoading ? 'not-allowed' : 'pointer',
               boxSizing: 'border-box'
             }}
             onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-              e.currentTarget.style.borderColor = '#7c3aed';
-              e.currentTarget.style.boxShadow = '0 0 12px rgba(124, 58, 237, 0.2)';
+              if (!isGoogleLoading) {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                e.currentTarget.style.borderColor = '#7c3aed';
+                e.currentTarget.style.boxShadow = '0 0 16px rgba(124, 58, 237, 0.25)';
+              }
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-              e.currentTarget.style.boxShadow = 'none';
+              if (!isGoogleLoading) {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                e.currentTarget.style.boxShadow = 'none';
+              }
             }}
           >
-            <img
-              src="https://www.google.com/favicon.ico"
-              alt="Google"
-              style={{ width: '18px', height: '18px' }}
-            />
-            Continue with Google
-          </a>
+            {isGoogleLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+                Signing in with Google...
+              </>
+            ) : (
+              <>
+                <img
+                  src="https://www.google.com/favicon.ico"
+                  alt="Google"
+                  style={{ width: '18px', height: '18px' }}
+                />
+                Continue with Google
+              </>
+            )}
+          </button>
 
           <div style={{ textAlign:'center', fontSize:13, color:'rgba(255,255,255,0.5)', marginTop:24 }}>
             Don't have an account? <Link to="/register" style={{ color:'#a78bfa', fontWeight:600, cursor:'pointer', textDecoration: 'none' }}>Sign Up</Link>

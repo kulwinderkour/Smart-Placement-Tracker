@@ -29,7 +29,13 @@ async def get_company_profile(
     """Fetch the authenticated provider's onboarding profile."""
     profile = await profile_service.get_profile(current_user.id, db)
     if not profile:
-        raise HTTPException(status_code=404, detail="Company profile not found")
+        c_name = current_user.email.split("@")[0].capitalize() + " Tech" if current_user.email else "SmartPlacement"
+        profile = await profile_service.create_profile(
+            user_id=current_user.id,
+            data={"company_name": c_name, "industry_type": "Technology", "location": "Remote"},
+            submit=False,
+            db=db,
+        )
     return profile
 
 

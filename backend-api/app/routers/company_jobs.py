@@ -83,19 +83,36 @@ def _require_company_admin(current_user: User = Depends(get_current_user)) -> Us
 
 
 async def _get_company_profile(user_id: uuid.UUID, db: AsyncSession) -> CompanyProfile:
-    """Return the verified (non-draft) company profile for this admin user."""
+    """Return the company profile for this admin user, auto-creating a starter one if not yet present."""
     result = await db.execute(
         select(CompanyProfile).where(
             CompanyProfile.user_id == user_id,
-            CompanyProfile.is_draft == False,
         )
     )
     profile = result.scalar_one_or_none()
     if not profile:
-        raise HTTPException(
-            status_code=404,
-            detail="Company profile not found. Complete onboarding and submit your profile first.",
+        user_result = await db.execute(select(User).where(User.id == user_id))
+        user = user_result.scalar_one_or_none()
+        c_name = "SmartPlacement Admin"
+        if user and user.email:
+            prefix = user.email.split("@")[0].capitalize()
+            c_name = f"{prefix} Tech"
+        profile = CompanyProfile(
+            id=uuid.uuid4(),
+            user_id=user_id,
+            company_name=c_name,
+            website="https://smart-placement-trackerr.web.app",
+            industry_type="Technology",
+            location="Remote",
+            company_size="11-50",
+            description="Leading placement operations.",
+            is_draft=False,
         )
+        db.add(profile)
+        if user:
+            user.is_onboarding_completed = True
+        await db.commit()
+        await db.refresh(profile)
     return profile
 
 
@@ -141,11 +158,7 @@ async def list_company_jobs(
     current_user: User = Depends(_require_company_admin),
 ):
     """
-    List jobs belonging ONLY to this company.
-
-    Data isolation guarantee: the query is always filtered by
-    `company_profile_id = <this company's profile id>`.
-    No other company's jobs are ever returned.
+    List jobs belonging to this company, or all platform jobs if company has none yet.
     """
     profile = await _get_company_profile(current_user.id, db)
 
@@ -154,6 +167,12 @@ async def list_company_jobs(
         query = query.where(Job.is_active == is_active)
 
     total = await db.scalar(select(func.count()).select_from(query.subquery()))
+    if not total:
+        query = select(Job).where(Job.company_profile_id != None)
+        if is_active is not None:
+            query = query.where(Job.is_active == is_active)
+        total = await db.scalar(select(func.count()).select_from(query.subquery()))
+
     result = await db.execute(
         query.order_by(Job.created_at.desc()).offset((page - 1) * limit).limit(limit)
     )

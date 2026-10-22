@@ -1,6 +1,5 @@
 import uuid
-from sqlalchemy import Column, Text, Integer, DateTime, JSON
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, Text, Integer, DateTime, JSON, String
 from sqlalchemy.sql import func
 from app.database import Base
 
@@ -8,7 +7,7 @@ from app.database import Base
 class GeneratedRoadmap(Base):
     __tablename__ = "generated_roadmaps"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     roadmap_key = Column(Text, unique=True, nullable=False, index=True)
     title = Column(Text, nullable=True)
     role = Column(Text, nullable=False)

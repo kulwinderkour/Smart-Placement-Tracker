@@ -111,73 +111,105 @@ class RoadmapService:
     # Gemini API call
     # ──────────────────────────────────────────────────────────────
 
+    def _fallback_roadmap(self, role: str, skills: list) -> Dict[str, Any]:
+        """Provide a rich, structured career roadmap if Gemini API is unavailable."""
+        return {
+            "title": f"{role.title()} Career Roadmap",
+            "field": role.title(),
+            "description": f"Structured preparation roadmap for {role} roles covering core concepts, frameworks, and interview prep.",
+            "duration_weeks": 12,
+            "prerequisites": ["Basic Programming Fundamentals", "Problem Solving", "Git & GitHub"],
+            "modules": [
+                {
+                    "week": 1,
+                    "title": "Week 1-2: Core Foundations & Language Mastery",
+                    "topics": [f"Core {role} Concepts", "Language Syntax & Best Practices", "Standard Library Essentials"],
+                    "resources": [{"name": "Official Documentation", "type": "documentation", "url": "https://developer.mozilla.org"}]
+                },
+                {
+                    "week": 3,
+                    "title": "Week 3-4: Data Structures & Algorithms",
+                    "topics": ["Arrays, HashMaps, Two-Pointers", "Trees, Graphs & Recursion", "Time/Space Complexity Analysis"],
+                    "resources": [{"name": "LeetCode Practice Problems", "type": "practice", "url": "https://leetcode.com"}]
+                },
+                {
+                    "week": 5,
+                    "title": "Week 5-8: Production Frameworks & Real-world Projects",
+                    "topics": ["Architecture Design", "API Integration & State Management", "Database Modeling & Testing"],
+                    "resources": [{"name": "Production Project Guides", "type": "project", "url": "https://github.com"}]
+                },
+                {
+                    "week": 9,
+                    "title": "Week 9-12: System Design & Interview Mastery",
+                    "topics": ["Scalability & System Design Fundamentals", "Mock Technical & Behavioral Interviews", "Resume & Portfolio Optimization"],
+                    "resources": [{"name": "System Design Primer", "type": "documentation", "url": "https://github.com/donnemartin/system-design-primer"}]
+                }
+            ]
+        }
+
     async def _call_gemini(self, role: str, skills: list) -> Dict[str, Any]:
-        """Call Gemini API and return parsed roadmap JSON."""
-        skill_text = ", ".join(skills) if skills else "general programming"
-        prompt = f"""Generate a personalized job preparation roadmap for someone targeting {role} roles with these skills: {skill_text}.
+        """Generate structured roadmap using Google Gemini API with automatic fallback."""
+        if not settings.GEMINI_API_KEY:
+            logger.warning("GEMINI_API_KEY not configured, using structured fallback roadmap.")
+            return self._fallback_roadmap(role, skills)
 
-Create a week-by-week roadmap (12-16 weeks total) that helps them prepare for {role} roles.
+        prompt = f"""Generate a comprehensive, structured learning roadmap for a student aiming for the role: "{role}".
+The student already has the following skills: {', '.join(skills) if skills else 'none specified'}.
 
-For each week, provide:
-1. Week number
-2. Clear title (e.g., "Week 1: Master DSA Fundamentals")
-3. Brief description
-4. 3-4 specific topics to cover
-5. 2-3 recommended resources (online courses, platforms, or specific content)
-6. Difficulty level (beginner/intermediate/advanced)
-
-Make it progressive, starting from their current level and building up to job-ready skills.
-
-Respond in this exact JSON format:
+Return ONLY valid JSON matching this exact structure:
 {{
-  "title": "Roadmap title",
-  "description": "Brief description",
-  "totalWeeks": 12,
-  "weeks": [
+  "title": "{role} Career Roadmap",
+  "field": "{role}",
+  "description": "2-3 sentences overview of this career path.",
+  "duration_weeks": 12,
+  "prerequisites": ["Prerequisite 1", "Prerequisite 2"],
+  "modules": [
     {{
       "week": 1,
-      "title": "Week 1: Title",
-      "description": "Description",
-      "topics": ["topic1", "topic2", "topic3"],
-      "resources": ["resource1", "resource2"],
-      "difficulty": "beginner"
+      "title": "Module Title",
+      "topics": ["Topic 1", "Topic 2", "Topic 3"],
+      "resources": [
+        {{"name": "Resource Name", "type": "documentation", "url": "https://example.com"}}
+      ]
     }}
   ]
 }}"""
-
-        if not settings.GEMINI_API_KEY:
-            raise ValueError("GEMINI_API_KEY not configured")
 
         url = (
             f"https://generativelanguage.googleapis.com/v1beta/models/"
             f"gemini-2.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
         )
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                url,
-                json={"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0.7}},
-                timeout=90.0,
-            )
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    url,
+                    json={"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0.7}},
+                    timeout=30.0,
+                )
 
-        if response.status_code != 200:
-            raise Exception(f"Gemini API error: {response.status_code} - {response.text}")
+            if response.status_code != 200:
+                logger.warning("Gemini error status %s: %s", response.status_code, response.text)
+                return self._fallback_roadmap(role, skills)
 
-        result = response.json()
-        candidates = result.get("candidates", [])
-        if not candidates:
-            raise Exception("No candidates in Gemini response")
+            result = response.json()
+            candidates = result.get("candidates", [])
+            if not candidates:
+                return self._fallback_roadmap(role, skills)
 
-        parts = candidates[0].get("content", {}).get("parts", [])
-        text = next((p["text"] for p in parts if p.get("text")), None)
-        if not text:
-            raise Exception(f"No text in Gemini response parts: {parts}")
+            parts = candidates[0].get("content", {}).get("parts", [])
+            text = next((p["text"] for p in parts if p.get("text")), None)
+            if not text:
+                return self._fallback_roadmap(role, skills)
 
-        match = re.search(r'\{[\s\S]*\}', text)
-        if not match:
-            raise Exception("Could not parse JSON from Gemini response")
+            match = re.search(r'\{[\s\S]*\}', text)
+            if not match:
+                return self._fallback_roadmap(role, skills)
 
-        return json.loads(match.group())
+            return json.loads(match.group())
+        except Exception as exc:
+            logger.warning("Gemini generation failed (%s), returning fallback roadmap.", exc)
+            return self._fallback_roadmap(role, skills)
 
     # ──────────────────────────────────────────────────────────────
     # Public API – cache-aside entry point

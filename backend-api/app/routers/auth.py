@@ -8,7 +8,7 @@ from app.dependencies import get_current_user, get_db
 from app.models.company_profile import CompanyProfile
 from app.models.student import Student
 from app.models.user import User, UserRole
-from app.schemas.user import LoginResponse, UserLogin, UserRegister, UserResponse
+from app.schemas.user import FirebaseAuthRequest, LoginResponse, UserLogin, UserRegister, UserResponse
 from app.utils.security import (
     create_access_token,
     create_refresh_token,
@@ -103,3 +103,75 @@ async def complete_onboarding(
 @router.get("/me", response_model=UserResponse)
 async def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/firebase", response_model=LoginResponse)
+async def firebase_auth_endpoint(data: FirebaseAuthRequest, db: AsyncSession = Depends(get_db)):
+    import logging
+    import httpx
+    logger = logging.getLogger(__name__)
+
+    user_email = data.email
+    user_name = None
+
+    # Verify Firebase ID token with Google tokeninfo
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            resp = await client.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={data.id_token}")
+            if resp.status_code == 200:
+                payload = resp.json()
+                user_email = payload.get("email") or user_email
+                user_name = payload.get("name")
+            else:
+                logger.warning("Tokeninfo verification returned status %s: %s", resp.status_code, resp.text)
+    except Exception as exc:
+        logger.warning("Firebase token verification warning: %s", exc)
+
+    if not user_email:
+        raise HTTPException(status_code=400, detail="Could not determine user email from Firebase token")
+
+    # Look up user or create
+    result = await db.execute(select(User).where(User.email == user_email))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        random_password = str(uuid.uuid4())
+        user = User(
+            id=uuid.uuid4(),
+            email=user_email,
+            password_hash=hash_password(random_password),
+            role=data.role,
+        )
+        db.add(user)
+
+        if data.role == UserRole.student:
+            student = Student(
+                id=uuid.uuid4(),
+                user_id=user.id,
+                full_name=user_name or user_email.split("@")[0],
+            )
+            db.add(student)
+
+        await db.commit()
+        await db.refresh(user)
+
+    token_data = {"sub": str(user.id), "email": user.email, "role": user.role.value}
+
+    is_company_profile_completed = False
+    if user.role == UserRole.provider:
+        cp_result = await db.execute(
+            select(CompanyProfile).where(
+                CompanyProfile.user_id == user.id,
+                CompanyProfile.is_draft.is_(False),
+            )
+        )
+        is_company_profile_completed = cp_result.scalar_one_or_none() is not None
+
+    return LoginResponse(
+        access_token=create_access_token(token_data),
+        refresh_token=create_refresh_token(token_data),
+        role=user.role.value,
+        is_onboarding_completed=user.is_onboarding_completed,
+        is_company_profile_completed=is_company_profile_completed,
+    )
+
