@@ -17,7 +17,15 @@ REGION="asia-south1"
 DB_INSTANCE="smart-placement-db"
 DB_NAME="placement_tracker"
 DB_USER="placement_user"
-DB_PASS="YourJasbir24"
+# Secrets come from .env (git-ignored) — never hardcode them here
+if [ -f .env ]; then
+  set -a
+  source .env
+  set +a
+fi
+: "${DB_PASS:?Set DB_PASS in .env}"
+: "${JWT_SECRET:?Set JWT_SECRET in .env}"
+: "${GEMINI_API_KEY:?Set GEMINI_API_KEY in .env}"
 
 echo "🔧 Project: ${PROJECT} | Account: $(gcloud config get-value account)"
 gcloud config set project "${PROJECT}"
@@ -126,25 +134,25 @@ create_or_update_secret "backend-database-url" \
 
 # JWT
 create_or_update_secret "backend-jwt-secret" \
-  "ae6d184f9acc0ac011f79536b50d6be105d69c5cd3db605fc8411470151745e9"
+  "${JWT_SECRET}"
 
 # Gemini
 create_or_update_secret "backend-gemini-key" \
-  "AIzaSyCGaulj0nDfXD2mBNGFbirauLUmClaKYd4"
+  "${GEMINI_API_KEY}"
 
 # Google OAuth
 create_or_update_secret "backend-google-client-id" \
-  "531859780857-7r6lj0bgjiuq42g04rln1idv9gupo1pg.apps.googleusercontent.com"
+  "${GOOGLE_CLIENT_ID:-}"
 
 create_or_update_secret "backend-google-client-secret" \
-  "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"
+  "${GOOGLE_CLIENT_SECRET:-}"
 
 # Upstash Redis
 create_or_update_secret "backend-upstash-url" \
-  "https://helping-serval-82025.upstash.io"
+  "${UPSTASH_REDIS_REST_URL:-}"
 
 create_or_update_secret "backend-upstash-token" \
-  "ggAAAAAAAUBpAAIgcDJf_gtikN0MtzqStPFyj9N5zIW1zPsj4JO9Uw4Q44zwqg"
+  "${UPSTASH_REDIS_REST_TOKEN:-}"
 
 echo ""
 echo "  ⚠️  Firebase CI token — run this separately:"
