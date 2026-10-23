@@ -1,54 +1,37 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 # Cloud Build — Git-triggered CI/CD for Smart Placement Tracker
 # Trigger: push to main branch (kulwinderkour/Smart-Placement-Tracker)
-# Project: smart-placement-trackerr (asia-south1)
-# Account: amswami9273@gmail.com
+# Backend/AI Project : smart-placement-1792691409  (shubhamreckon@gmail.com)
+# Frontend/Auth      : smart-placement-trackerr    (amswami9273@gmail.com)
+# Region             : asia-south1
 # ═══════════════════════════════════════════════════════════════════════════════
 #
-# HOW TO CREATE THE TRIGGER (run once):
-#   gcloud builds triggers create github \
-#     --name=deploy-on-main \
-#     --repo-name=Smart-Placement-Tracker \
-#     --repo-owner=kulwinderkour \
-#     --branch-pattern=^main$ \
-#     --build-config=cloudbuild.yaml \
-#     --project=smart-placement-trackerr \
-#     --region=global
-#
-# REQUIRED SECRETS IN SECRET MANAGER (create once):
-#   backend-database-url         — Cloud SQL Unix socket DATABASE_URL
-#   backend-jwt-secret           — JWT secret
-#   backend-gemini-key           — Gemini API key
-#   backend-google-client-id     — Google OAuth client ID
-#   backend-google-client-secret — Google OAuth secret
-#   backend-upstash-url          — Upstash Redis REST URL
-#   backend-upstash-token        — Upstash Redis REST token
-#   firebase-ci-token            — from: firebase login:ci
+# COST RULES (₹0 / month target):
+#   - Only push :latest tag — NEVER $COMMIT_SHA (prevents Artifact Registry bloat)
+#   - Cloud Run min-instances=0 always
+#   - No Cloud SQL — using Upstash Redis only
 #
 steps:
-  # ── Step 1: Build backend Docker image ─────────────────────────────────────
+  # ── Step 1: Build backend Docker image (latest tag ONLY) ────────────────────
   - name: 'gcr.io/cloud-builders/docker'
     id: 'build-backend'
     args:
       - 'build'
       - '-t'
-      - 'asia-south1-docker.pkg.dev/smart-placement-trackerr/services/backend-api:$COMMIT_SHA'
-      - '-t'
-      - 'asia-south1-docker.pkg.dev/smart-placement-trackerr/services/backend-api:latest'
+      - 'asia-south1-docker.pkg.dev/smart-placement-1792691409/services/backend-api:latest'
       - '-f'
       - 'backend-api/Dockerfile'
       - 'backend-api'
 
-  # ── Step 2: Push image to Artifact Registry ─────────────────────────────────
+  # ── Step 2: Push latest image to Artifact Registry ──────────────────────────
   - name: 'gcr.io/cloud-builders/docker'
     id: 'push-backend'
     args:
       - 'push'
-      - '--all-tags'
-      - 'asia-south1-docker.pkg.dev/smart-placement-trackerr/services/backend-api'
+      - 'asia-south1-docker.pkg.dev/smart-placement-1792691409/services/backend-api:latest'
     waitFor: ['build-backend']
 
-  # ── Step 3: Deploy backend to Cloud Run ────────────────────────────────────
+  # ── Step 3: Deploy backend to Cloud Run (Upstash Redis, no Cloud SQL) ───────
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: 'deploy-backend'
     entrypoint: gcloud
@@ -56,22 +39,64 @@ steps:
       - 'run'
       - 'deploy'
       - 'backend-api'
-      - '--image=asia-south1-docker.pkg.dev/smart-placement-trackerr/services/backend-api:$COMMIT_SHA'
+      - '--image=asia-south1-docker.pkg.dev/smart-placement-1792691409/services/backend-api:latest'
       - '--region=asia-south1'
       - '--platform=managed'
       - '--allow-unauthenticated'
-      - '--memory=1Gi'
+      - '--memory=512Mi'
       - '--cpu=1'
       - '--min-instances=0'
       - '--max-instances=3'
       - '--port=8000'
-      - '--set-secrets=DATABASE_URL=backend-database-url:latest,JWT_SECRET=backend-jwt-secret:latest,GEMINI_API_KEY=backend-gemini-key:latest,GOOGLE_CLIENT_ID=backend-google-client-id:latest,GOOGLE_CLIENT_SECRET=backend-google-client-secret:latest,UPSTASH_REDIS_REST_URL=backend-upstash-url:latest,UPSTASH_REDIS_REST_TOKEN=backend-upstash-token:latest'
-      - '--update-env-vars=FRONTEND_URL=https://smart-placement-trackerr.web.app,GOOGLE_REDIRECT_URI=https://backend-api-540820166501.asia-south1.run.app/api/v1/auth/google/callback,GCS_BUCKET_NAME=smart-placement-resumes-prod,GCS_PROJECT_ID=smart-placement-trackerr'
-      - '--add-cloudsql-instances=smart-placement-trackerr:asia-south1:smart-placement-db'
+      - '--project=smart-placement-1792691409'
+      - '--set-secrets=DATABASE_URL=backend-database-url:latest,JWT_SECRET=backend-jwt-secret:latest,GEMINI_API_KEY=backend-gemini-key:latest,UPSTASH_REDIS_REST_URL=backend-upstash-url:latest,UPSTASH_REDIS_REST_TOKEN=backend-upstash-token:latest'
+      - '--update-env-vars=FRONTEND_URL=https://smart-placement-trackerr.web.app'
       - '--quiet'
     waitFor: ['push-backend']
 
-  # ── Step 4: Build frontend (runs in parallel with backend build) ────────────
+  # ── Step 4: Build AI engine image (latest tag ONLY) ─────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-ai'
+    args:
+      - 'build'
+      - '-t'
+      - 'asia-south1-docker.pkg.dev/smart-placement-1792691409/services/ai-engine:latest'
+      - '-f'
+      - 'ai-engine/Dockerfile'
+      - 'ai-engine'
+    waitFor: ['-']
+
+  # ── Step 5: Push AI engine image ────────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-ai'
+    args:
+      - 'push'
+      - 'asia-south1-docker.pkg.dev/smart-placement-1792691409/services/ai-engine:latest'
+    waitFor: ['build-ai']
+
+  # ── Step 6: Deploy AI engine to Cloud Run ───────────────────────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-ai'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'ai-engine'
+      - '--image=asia-south1-docker.pkg.dev/smart-placement-1792691409/services/ai-engine:latest'
+      - '--region=asia-south1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--memory=512Mi'
+      - '--cpu=1'
+      - '--min-instances=0'
+      - '--max-instances=3'
+      - '--port=8001'
+      - '--project=smart-placement-1792691409'
+      - '--set-secrets=GEMINI_API_KEY=backend-gemini-key:latest'
+      - '--quiet'
+    waitFor: ['push-ai']
+
+  # ── Step 7: Build frontend ───────────────────────────────────────────────────
   - name: 'node:20-slim'
     id: 'build-frontend'
     entrypoint: bash
@@ -80,13 +105,19 @@ steps:
       - |
         cd frontend
         npm ci
-        VITE_API_URL=https://backend-api-385144446825.asia-south1.run.app/api/v1 \
-        VITE_AI_URL=https://ai-engine-385144446825.asia-south1.run.app \
-        VITE_AI_ENGINE_URL=https://ai-engine-385144446825.asia-south1.run.app \
+        VITE_API_URL=https://backend-api-30481084357.asia-south1.run.app/api/v1 \
+        VITE_AI_URL=https://ai-engine-30481084357.asia-south1.run.app \
+        VITE_AI_ENGINE_URL=https://ai-engine-30481084357.asia-south1.run.app \
+        VITE_FIREBASE_API_KEY=AIzaSyB10BgEe6A8o_Mh8REKfwj8NwRMbWNs3AU \
+        VITE_FIREBASE_AUTH_DOMAIN=smart-placement-trackerr.firebaseapp.com \
+        VITE_FIREBASE_PROJECT_ID=smart-placement-trackerr \
+        VITE_FIREBASE_STORAGE_BUCKET=smart-placement-trackerr.firebasestorage.app \
+        VITE_FIREBASE_MESSAGING_SENDER_ID=540820166501 \
+        VITE_FIREBASE_APP_ID=1:540820166501:web:c731f98bb7a1280414f38c \
         npm run build
     waitFor: ['-']
 
-  # ── Step 5: Deploy frontend to Firebase Hosting ────────────────────────────
+  # ── Step 8: Deploy frontend to Firebase Hosting ─────────────────────────────
   - name: 'node:20-slim'
     id: 'deploy-frontend'
     entrypoint: bash
@@ -105,16 +136,16 @@ steps:
 # ── Secrets available to build steps ──────────────────────────────────────────
 availableSecrets:
   secretManager:
-    - versionName: projects/smart-placement-trackerr/secrets/firebase-ci-token/versions/latest
+    - versionName: projects/smart-placement-1792691409/secrets/firebase-ci-token/versions/latest
       env: 'FIREBASE_TOKEN'
 
-# ── Images pushed to Artifact Registry ────────────────────────────────────────
+# ── Only push :latest — NO $COMMIT_SHA tags (prevents registry bloat) ─────────
 images:
-  - 'asia-south1-docker.pkg.dev/smart-placement-trackerr/services/backend-api:$COMMIT_SHA'
-  - 'asia-south1-docker.pkg.dev/smart-placement-trackerr/services/backend-api:latest'
+  - 'asia-south1-docker.pkg.dev/smart-placement-1792691409/services/backend-api:latest'
+  - 'asia-south1-docker.pkg.dev/smart-placement-1792691409/services/ai-engine:latest'
 
 options:
   logging: CLOUD_LOGGING_ONLY
   machineType: 'E2_MEDIUM'
 
-timeout: '1200s'
+timeout: '1800s'
