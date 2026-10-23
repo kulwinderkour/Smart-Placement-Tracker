@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { authApi } from '../../api/auth'
 import { useAuthStore } from '../../store/authStore'
 import { Loader2 } from 'lucide-react'
-import { auth, googleProvider, signInWithPopup } from '../../lib/firebase'
+import { auth, googleProvider, signInWithPopup, signInWithEmailAndPassword } from '../../lib/firebase'
 
 const schema = z.object({
   email: z.string().email('Invalid email address'),
@@ -30,8 +30,18 @@ export default function LoginForm() {
   const onSubmit = async (data: FormData) => {
     try {
       setError('')
-      const res = await authApi.login(data.email, data.password)
-      const loginData = res.data
+      let loginData;
+      try {
+        const res = await authApi.login(data.email, data.password)
+        loginData = res.data
+      } catch (backendErr: any) {
+        // Fallback: Verify via Firebase Auth if backend user is absent
+        const fbRes = await signInWithEmailAndPassword(auth, data.email, data.password)
+        const idToken = await fbRes.user.getIdToken()
+        const res = await authApi.firebaseAuth(idToken, 'student', fbRes.user.email || undefined)
+        loginData = res.data
+      }
+
       localStorage.setItem('access_token', loginData.access_token)
       localStorage.setItem('refresh_token', loginData.refresh_token)
 
