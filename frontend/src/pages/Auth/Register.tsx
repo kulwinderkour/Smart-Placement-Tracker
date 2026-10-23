@@ -160,9 +160,11 @@ export default function Register() {
             </p>
           )}
 
-          {/* Google OAuth Button */}
-          <a
-            href={`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/auth/google`}
+          {/* Google Sign-Up with Firebase Auth */}
+          <button
+            type="button"
+            onClick={handleGoogleSignUp}
+            disabled={isGoogleLoading || isSubmitting}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -171,7 +173,7 @@ export default function Register() {
               width: '100%',
               padding: '12px',
               background: 'rgba(255, 255, 255, 0.03)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
               borderRadius: '30px',
               color: '#ffffff',
               fontSize: '14px',
@@ -180,27 +182,40 @@ export default function Register() {
               textDecoration: 'none',
               transition: 'all 0.2s',
               marginBottom: '24px',
-              cursor: 'pointer',
+              cursor: isGoogleLoading ? 'not-allowed' : 'pointer',
               boxSizing: 'border-box'
             }}
             onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-              e.currentTarget.style.borderColor = '#7c3aed';
-              e.currentTarget.style.boxShadow = '0 0 12px rgba(124, 58, 237, 0.2)';
+              if (!isGoogleLoading) {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                e.currentTarget.style.borderColor = '#7c3aed';
+                e.currentTarget.style.boxShadow = '0 0 16px rgba(124, 58, 237, 0.25)';
+              }
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-              e.currentTarget.style.boxShadow = 'none';
+              if (!isGoogleLoading) {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                e.currentTarget.style.boxShadow = 'none';
+              }
             }}
           >
-            <img
-              src="https://www.google.com/favicon.ico"
-              alt="Google"
-              style={{ width: '18px', height: '18px' }}
-            />
-            Sign up with Google
-          </a>
+            {isGoogleLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+                Signing up with Google...
+              </>
+            ) : (
+              <>
+                <img
+                  src="https://www.google.com/favicon.ico"
+                  alt="Google"
+                  style={{ width: '18px', height: '18px' }}
+                />
+                Continue with Google
+              </>
+            )}
+          </button>
 
           {/* Divider */}
           <div style={{ position: 'relative', marginBottom: '24px', display: 'flex', alignItems: 'center' }}>
@@ -365,76 +380,6 @@ export default function Register() {
               )}
             </button>
           </form>
-
-          {/* Divider */}
-          <div style={{ position: 'relative', margin: '20px 0', display: 'flex', alignItems: 'center' }}>
-            <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.1)' }} />
-            <span style={{ 
-              padding: '0 16px', 
-              color: 'rgba(255, 255, 255, 0.4)', 
-              fontSize: '13px', 
-              fontFamily: 'DM Sans, sans-serif' 
-            }}>
-              or continue with
-            </span>
-            <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.1)' }} />
-          </div>
-
-          {/* Google Sign-In with Firebase Auth */}
-          <button
-            type="button"
-            onClick={handleGoogleSignUp}
-            disabled={isGoogleLoading || isSubmitting}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '12px',
-              width: '100%',
-              padding: '12px',
-              background: 'rgba(255, 255, 255, 0.03)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              borderRadius: '30px',
-              color: '#ffffff',
-              fontSize: '14px',
-              fontFamily: 'DM Sans, sans-serif',
-              fontWeight: 600,
-              textDecoration: 'none',
-              transition: 'all 0.2s',
-              cursor: isGoogleLoading ? 'not-allowed' : 'pointer',
-              boxSizing: 'border-box'
-            }}
-            onMouseEnter={e => {
-              if (!isGoogleLoading) {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                e.currentTarget.style.borderColor = '#7c3aed';
-                e.currentTarget.style.boxShadow = '0 0 16px rgba(124, 58, 237, 0.25)';
-              }
-            }}
-            onMouseLeave={e => {
-              if (!isGoogleLoading) {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-                e.currentTarget.style.boxShadow = 'none';
-              }
-            }}
-          >
-            {isGoogleLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
-                Signing up with Google...
-              </>
-            ) : (
-              <>
-                <img
-                  src="https://www.google.com/favicon.ico"
-                  alt="Google"
-                  style={{ width: '18px', height: '18px' }}
-                />
-                Continue with Google
-              </>
-            )}
-          </button>
 
           <div style={{ textAlign:'center', fontSize:13, color:'rgba(255,255,255,0.5)', marginTop:20 }}>
             Already have an account? <Link to="/login" style={{ color:'#a78bfa', fontWeight:600, cursor:'pointer', textDecoration: 'none' }}>Sign In</Link>
