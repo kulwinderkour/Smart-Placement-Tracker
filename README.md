@@ -99,25 +99,6 @@ The Backend API base path is `/api/v1` (except where noted). Use `Authorization:
 | GET | `/api/v1/student/resume/analysis/history` | List prior resume analyses. |
 | GET | `/api/v1/student/my-interviews` | List the current student's interviews. |
 
-### Company
-
-| Method | Route | Purpose; request → response |
-|---|---|---|
-| GET | `/api/v1/company/profile` | Get the current company's profile → `CompanyProfileResponse`. |
-| POST | `/api/v1/company/profile` | Create profile fields (company name required; `submit` selects draft or complete) → `CompanyProfileResponse`. |
-| PUT | `/api/v1/company/profile` | Update profile fields; `submit` selects draft or complete → `CompanyProfileResponse`. |
-| GET | `/api/v1/company/jobs?page=&limit=&is_active=` | List the company's postings. |
-| POST | `/api/v1/company/jobs` | Create a posting with `role_title` and optional location, salary, experience, type, description, and deadline → 201. |
-| GET | `/api/v1/company/jobs/{job_id}` | Get a company posting. |
-| PUT | `/api/v1/company/jobs/{job_id}` | Update posting fields → updated posting. |
-| PATCH | `/api/v1/company/jobs/{job_id}/status` | Toggle posting using `{is_active}`. |
-| DELETE | `/api/v1/company/jobs/{job_id}` | Delete/deactivate a company posting. |
-| GET | `/api/v1/company/jobs/{job_id}/applicants?status=&page=&limit=` | List applicants for a posting. |
-| GET | `/api/v1/company/applicants?status=&job_id=&page=&limit=` | List/filter the company's applicants. |
-| PATCH | `/api/v1/company/applicants/{application_id}/status` | Update an applicant's status with `{status}`. |
-| GET | `/api/v1/company/applicants/{application_id}/resume-url` | Get an applicant's resume URL. |
-| GET | `/api/v1/company/stats` | Get company dashboard statistics. |
-
 ### Administration
 
 | Method | Route | Purpose; request → response |
