@@ -1,457 +1,228 @@
-## ✅ Prerequisites — Install Once
+# Smart Placement Tracker
 
-###  Mac
-1. Download and install **[Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/)**
-2. Open Docker Desktop and wait until it shows **"Docker is running"** in the menu bar
-3. That's it — no other installs needed
+Smart Placement Tracker is an AI-assisted placement platform for students, employers, and placement administrators. Students can discover jobs, manage applications, prepare resumes and interviews, and get skill and role recommendations. Employers manage company profiles, job postings, and applicants; administrators oversee platform activity and placement analytics.
 
-### 🪟 Windows
-1. Enable **WSL 2** (Windows Subsystem for Linux):
-   - Open PowerShell as Administrator and run:
-     ```powershell
-     wsl --install
-     ```
-   - Restart your computer
-2. Download and install **[Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/)**
-   - During install, select **"Use WSL 2 instead of Hyper-V"**
-3. Open Docker Desktop and wait until it shows **"Docker is running"** in the system tray
-4. That's it — no Node, Python, or Postgres install needed
+**Main modules**
+- **Frontend:** React and TypeScript app with student, company, admin, and authentication experiences.
+- **Backend API:** FastAPI service for authentication, profiles, jobs, applications, interviews, and platform administration.
+- **AI Engine:** FastAPI service for resume analysis, interview preparation, job matching, skill-gap analysis, and agent workflows.
+- **Job Collector:** Scrapy-based service that collects and processes job listings.
+- **Data services:** PostgreSQL stores application and job data; Redis supports caching, sessions, and agent state.
 
----
+## Application
 
-## 🚀 Fresh Setup (First Time Only)
+The following is a screenshot of the application's public landing page, captured from the running frontend:
 
-### Step 1 — Clone the Repository
+![Smart Placement Tracker landing page](docs/screenshots/landing-page.png)
 
-**Mac (Terminal):**
+## Architecture
+
+```mermaid
+flowchart LR
+    Web[Frontend<br/>React + TypeScript]
+    API[Backend API<br/>FastAPI]
+    AI[AI Engine<br/>FastAPI]
+    Collector[Job Collector<br/>Scrapy]
+    DB[(PostgreSQL)]
+    Redis[(Redis)]
+
+    Web -->|REST API| API
+    Web -->|AI requests| AI
+    API <--> DB
+    API <--> Redis
+    API <--> AI
+    AI <--> DB
+    AI <--> Redis
+    Collector -->|collect and persist listings| DB
+    Collector -->|job processing| AI
+```
+
+## Getting Started
+
+See [SETUP.md](SETUP.md) and [.env.example](.env.example) for environment and service configuration. Some integrations, including Firebase authentication, AI providers, and cloud file storage, require credentials.
+
 ```bash
 git clone https://github.com/kulwinderkour/Smart-Placement-Tracker.git
-
-cd Smart-Placement-Tracker
-# window commands 
-```
-
-**Windows (PowerShell or Windows Terminal):**
-```powershell
-git clone https://github.com/your-username/Smart-Placement-Tracker.git
 cd Smart-Placement-Tracker
 ```
 
----
-
-### Step 2 — Create Your `.env` File
-
-**Mac:**
-```bash
-cp .env.example .env
-```
-
-**Windows (PowerShell):**
-```powershell
-copy .env.example .env
-```
-
-Now open the `.env` file in any text editor and fill in your values:
-
-```env
-# ── Database ──────────────────────────────
-DB_NAME=placement_tracker
-DB_USER=postgres
-DB_PASS=changeme
-
-# ── Auth ──────────────────────────────────
-JWT_SECRET=            ← paste your generated secret here (see below)
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-REFRESH_TOKEN_EXPIRE_DAYS=7
-
-# ── Google OAuth ───────────────────────────
-GOOGLE_CLIENT_ID=      ← from Google Cloud Console
-GOOGLE_CLIENT_SECRET=  ← from Google Cloud Console
-GOOGLE_REDIRECT_URI=http://localhost:8000/api/v1/auth/google/callback
-FRONTEND_URL=http://localhost:3000
-
-# ── AI Engine ─────────────────────────────
-OPENAI_API_KEY=        ← from platform.openai.com
-
-# ── AWS (optional) ────────────────────────
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-AWS_S3_BUCKET=placement-tracker-resumes
-AWS_REGION=ap-south-1
-
-# ── Frontend ──────────────────────────────
-VITE_API_URL=http://localhost:8000/api/v1
-```
-
-**Generate a secure JWT_SECRET:**
-
-Mac:
-```bash
-python3 -c "import secrets; print(secrets.token_urlsafe(48))"
-```
-
-Windows (PowerShell):
-```powershell
-python -c "import secrets; print(secrets.token_urlsafe(48))"
-```
-
-Copy the output and paste it as your `JWT_SECRET` value in `.env`.
-
----
-
-### Step 3 — Build and Start All Services
-
-**Mac:**
-```bash
-make build
-```
-
-**Windows (PowerShell):**
-```powershell
-docker compose up --build -d
-```
-
-
-You will see output like:
-```
-✔ postgres     Built
-✔ redis        Built
-✔ backend-api  Built
-✔ ai-engine    Built
-✔ collector    Built
-✔ frontend     Built
-[+] Running 6/6
-✔ Container ...postgres-1    Started
-✔ Container ...redis-1       Started
-✔ Container ...backend-api-1 Started
-✔ Container ...ai-engine-1   Started
-✔ Container ...collector-1   Started
-✔ Container ...frontend-1    Started
-```
-
----
-
-### Step 4 — Run Database Migrations
-
-This sets up all the database tables. Run this **once** on fresh setup.
-
-**Mac:**
-```bash
-make migrate
-```
-
-**Windows (PowerShell):**
-```powershell
-docker compose exec backend-api alembic upgrade head
-```
-
-Expected output:
-```
-INFO  [alembic.runtime.migration] Running upgrade  -> xxxxxxx, initial_schema
-```
-
----
-
-### Step 5 — Verify All Services Are Running
-
-**Mac / Windows:**
-```bash
-docker compose ps
-```
-
-All services should show `Up` or `Up (healthy)`:
-
-```
-NAME                          STATUS            PORTS
-...postgres-1                 Up (healthy)      0.0.0.0:5432->5432/tcp
-...redis-1                    Up                0.0.0.0:6379->6379/tcp
-...backend-api-1              Up (healthy)      0.0.0.0:8000->8000/tcp
-...ai-engine-1                Up                0.0.0.0:8002->8002/tcp
-...collector-1                Up                0.0.0.0:8001->8001/tcp
-...frontend-1                 Up                0.0.0.0:3000->3000/tcp
-```
-
----
-
-### Step 6 — Open the App
-
-| Service | URL |
-|---|---|
-| 🌐 **Frontend App** | http://localhost:3000 |
-| 📡 **Backend API Docs** | http://localhost:8000/docs |
-| 🤖 **AI Engine Docs** | http://localhost:8002/docs |
-
----
-
-## 🔄 Restarting After Shutdown or Reboot
-
-After you close your laptop, restart your system, or shut down Docker — just do:
-
-**Mac:**
-```bash
-cd Smart-Placement-Tracker
-make up
-```
-
-**Windows (PowerShell):**
-```powershell
-cd Smart-Placement-Tracker
-docker compose up -d
-```
-
-> No builds, no installs, no migrations. Everything is cached. The app is ready in seconds.
-
-**Make sure Docker Desktop is open and running first** (check menu bar on Mac / system tray on Windows).
-
----
-
-## 🗄️ Accessing the Database
-
-The database runs inside a Docker container. You can access it directly using `psql` through Docker — no installation required.
-
-### Connect to the Database
-
-**Mac / Windows:**
-```bash
-docker compose exec postgres psql -U postgres -d placement_tracker
-```
-
-You will enter an interactive SQL prompt:
-```
-psql (15.x)
-Type "help" for help.
-
-placement_tracker=#
-```
-
----
-
-### Explore the Database
-
-**List all tables:**
-```sql
-placement_tracker=# \dt
-```
-
-**See columns of a specific table:**
-```sql
-placement_tracker=# \d users
-```
-
-**View all data in a table:**
-```sql
-placement_tracker=# SELECT * FROM users;
-```
-
-**View with a limit:**
-```sql
-placement_tracker=# SELECT * FROM jobs LIMIT 10;
-```
-
-**Count rows in a table:**
-```sql
-placement_tracker=# SELECT COUNT(*) FROM applications;
-```
-
-**Filter rows:**
-```sql
-placement_tracker=# SELECT * FROM users WHERE email = 'test@example.com';
-```
-
-**Exit the SQL shell:**
-```sql
-placement_tracker=# \q
-```
-
-> ⚠️ Always end every SQL query with a semicolon `;`. If the prompt seems stuck (shows `postgres=#` instead of returning), type `;` and press Enter.
-
----
-
-### Quick Reference — psql Commands
-
-| Command | Description |
-|---|---|
-| `\dt` | List all tables |
-| `\d tablename` | Show table structure / columns |
-| `\l` | List all databases |
-| `\c dbname` | Switch to a different database |
-| `\q` | Quit / exit |
-| `\?` | Show all psql commands |
-
----
-
-## 🛠️ All Commands Reference
-
-### Mac (using Makefile)
-
-| Task | Command |
-|---|---|
-| First-time build and start | `make build` |
-| Start after shutdown | `make up` |
-| Stop all services | `make down` |
-| View live logs | `make logs` |
-| Run migrations | `make migrate` |
-| Seed sample data | `make seed` |
-| Run tests | `make test` |
-
-### Windows (PowerShell)
-
-| Task | Command |
-|---|---|
-| First-time build and start | `docker compose up --build -d` |
-| Start after shutdown | `docker compose up -d` |
-| Stop all services | `docker compose down` |
-| View live logs | `docker compose logs -f` |
-| Run migrations | `docker compose exec backend-api alembic upgrade head` |
-| Seed sample data | `docker compose exec backend-api python scripts/seed.py` |
-| Check service status | `docker compose ps` |
-
----
-
-## 👥 Team setup (Cloud database)
-
-The project uses **Google Cloud SQL** as the shared database. Docker containers can't connect to it directly — you need to run `cloud-sql-proxy` first.
-
-### Step 1 — Send Your Friend your IP
+Configure `.env` and credentials for the services you intend to run, then follow [SETUP.md](SETUP.md) for the matching Docker Compose setup and migrations.
+
+The Compose configuration exposes the frontend on `http://localhost:3001`, the Backend API and its OpenAPI docs on `http://localhost:8000` and `http://localhost:8000/docs`, and the AI Engine and its docs on `http://localhost:8002` and `http://localhost:8002/docs`.
+
+## API Reference
+
+The Backend API base path is `/api/v1` (except where noted). Use `Authorization: Bearer <access_token>` for authenticated routes. Request bodies are JSON unless marked **multipart**. FastAPI validates request models and documents them at `/docs`.
+
+### Backend API — Authentication
+
+| Method | Route | Purpose; request → response |
+|---|---|---|
+| POST | `/api/v1/auth/register` | Register with `{email, password, role}` → `UserResponse` (201). |
+| POST | `/api/v1/auth/login` | `{email, password}` → access/refresh tokens, role, and onboarding flags. |
+| POST | `/api/v1/auth/firebase` | `{id_token, role, email?}` → same token response as login. |
+| GET | `/api/v1/auth/me` | Current authenticated user → `UserResponse`. |
+| PATCH | `/api/v1/auth/complete-onboarding` | Mark current user's onboarding complete → `UserResponse`. |
+| GET | `/api/v1/auth/google` | Begin Google OAuth flow → redirect. |
+| GET | `/api/v1/auth/google/callback?code=...` | Complete OAuth callback → redirect. |
+
+### Jobs and applications
+
+| Method | Route | Purpose; request → response |
+|---|---|---|
+| GET | `/api/v1/jobs?page=&limit=&location=&min_salary_lpa=` | List active jobs; returns `{success, data, meta}`. |
+| GET | `/api/v1/jobs/{job_id}` | Get a job → `JobResponse`. |
+| POST | `/api/v1/jobs` | Admin creates a job using `JobCreate` → `JobResponse` (201). |
+| PATCH | `/api/v1/jobs/{job_id}` | Admin updates supplied job fields → `JobResponse`. |
+| DELETE | `/api/v1/jobs/{job_id}` | Admin deactivates the job → 204. |
+| POST | `/api/v1/applications` | Apply with `{job_id}` and optional profile, resume, cover-letter, and agent fields → `ApplicationResponse` (201). |
+| GET | `/api/v1/applications?status=` | List the current student's applications; optional status filter → `{applications, total}`. |
+| GET | `/api/v1/applications/my` | Legacy alias returning the current student's application list. |
+| PATCH | `/api/v1/applications/{app_id}` | Update application status, notes, resume, cover letter, next-step date, or offer CTC → `ApplicationResponse`. |
+| PATCH | `/api/v1/applications/{app_id}/status` | Admin updates status with `{status}` → `ApplicationResponse`. |
+
+### Student
+
+| Method | Route | Purpose; request → response |
+|---|---|---|
+| GET | `/api/v1/student/profile` | Current student's profile → `StudentResponse`. |
+| PATCH | `/api/v1/student/profile` | Update profile fields (name, contact, education, skills, resume, links) → `StudentResponse`. |
+| GET | `/api/v1/student/jobs?page=&limit=&search=&location=&job_type=&company_name=` | Search/filter jobs → paginated job data. |
+| GET | `/api/v1/student/jobs/external?limit=` | List external job listings. |
+| GET | `/api/v1/student/jobs/{job_id}` | Get job details. |
+| GET | `/api/v1/student/companies?page=&limit=&search=&industry_type=` | Search company profiles. |
+| POST | `/api/v1/student/upload-resume` | **Multipart** `file` upload → saved resume metadata. |
+| GET | `/api/v1/student/resume` | Get current resume metadata. |
+| GET | `/api/v1/student/resume/history` | List prior resumes. |
+| GET | `/api/v1/student/resume/{resume_id}/url` | Get a signed resume URL. |
+| POST | `/api/v1/student/resume/analyze` | `{job_description}` → resume analysis result. |
+| GET | `/api/v1/student/resume/analysis/history` | List prior resume analyses. |
+| GET | `/api/v1/student/my-interviews` | List the current student's interviews. |
+
+### Company
+
+| Method | Route | Purpose; request → response |
+|---|---|---|
+| GET | `/api/v1/company/profile` | Get the current company's profile → `CompanyProfileResponse`. |
+| POST | `/api/v1/company/profile` | Create profile fields (company name required; `submit` selects draft or complete) → `CompanyProfileResponse`. |
+| PUT | `/api/v1/company/profile` | Update profile fields; `submit` selects draft or complete → `CompanyProfileResponse`. |
+| GET | `/api/v1/company/jobs?page=&limit=&is_active=` | List the company's postings. |
+| POST | `/api/v1/company/jobs` | Create a posting with `role_title` and optional location, salary, experience, type, description, and deadline → 201. |
+| GET | `/api/v1/company/jobs/{job_id}` | Get a company posting. |
+| PUT | `/api/v1/company/jobs/{job_id}` | Update posting fields → updated posting. |
+| PATCH | `/api/v1/company/jobs/{job_id}/status` | Toggle posting using `{is_active}`. |
+| DELETE | `/api/v1/company/jobs/{job_id}` | Delete/deactivate a company posting. |
+| GET | `/api/v1/company/jobs/{job_id}/applicants?status=&page=&limit=` | List applicants for a posting. |
+| GET | `/api/v1/company/applicants?status=&job_id=&page=&limit=` | List/filter the company's applicants. |
+| PATCH | `/api/v1/company/applicants/{application_id}/status` | Update an applicant's status with `{status}`. |
+| GET | `/api/v1/company/applicants/{application_id}/resume-url` | Get an applicant's resume URL. |
+| GET | `/api/v1/company/stats` | Get company dashboard statistics. |
+
+### Administration
+
+| Method | Route | Purpose; request → response |
+|---|---|---|
+| GET | `/api/v1/admin/stats` | Platform summary statistics. |
+| GET | `/api/v1/admin/companies?page=&limit=&search=` | Paginated company list. |
+| GET | `/api/v1/admin/companies/{company_id}` | Company detail → `AdminCompanySummary`. |
+| GET | `/api/v1/admin/students?page=&limit=` | Paginated student list. |
+| GET | `/api/v1/admin/jobs?page=&limit=` | Paginated job list. |
+| PATCH | `/api/v1/admin/jobs/{job_id}/status` | Set `{is_active}` → `JobResponse`. |
+| POST | `/api/v1/admin/trigger-scrape` | Trigger a job collection run. |
+| GET | `/api/v1/admin/applicants?job_id=&status=&page=&limit=` | Search/filter applicants. |
+| PATCH | `/api/v1/admin/applicants/{application_id}/status` | Update application status with `{status}`. |
+| GET | `/api/v1/admin/interviews?page=&limit=` | Paginated interview list. |
+| POST | `/api/v1/admin/interviews` | Create an interview with `{student_id, job_id, scheduled_at, mode}` and optional meeting link/notes → 201. |
+| PATCH | `/api/v1/admin/interviews/{interview_id}` | Update interview time, mode, status, link, or feedback. |
+| GET | `/api/v1/admin/analytics` | Detailed placement analytics. |
+| GET | `/api/v1/admin/analytics/summary` | Summary analytics. |
+| GET | `/api/v1/admin/students/{student_id}/resume` | Get a student's resume. |
+| POST | `/api/v1/admin/invite-student` | Invite a student with `{student_id, job_id}` and optional message. |
+
+### Placement, AI support, and internal integrations
+
+| Method | Route | Purpose; request → response |
+|---|---|---|
+| GET | `/api/v1/skills/suggestions?field=` | Suggest skills for a field. Also mounted at `/api/skills/suggestions`. |
+| POST | `/api/v1/roadmap/generate` | `{role, skills}` → `RoadmapResponse`. |
+| GET | `/api/v1/roadmap/my` | List current user's roadmaps. |
+| GET | `/api/v1/roadmap/{roadmap_id}` | Get a roadmap → `RoadmapResponse`. |
+| POST | `/api/v1/questions/generate` | `{topic, difficulty, type, count, userSkills, customQuestion}` → generated questions. |
+| GET | `/api/v1/questions/topics?skills=` | Suggested preparation topics. |
+| POST | `/api/v1/questions/evaluate` | `{question, userAnswer, correctAnswer, topic}` → answer evaluation. |
+| GET | `/api/v1/scraped-jobs?q=&source=&location=&type=` | Search collected jobs. |
+| POST | `/api/v1/scraped-jobs/refresh?q=` | Refresh collected jobs. |
+| POST | `/api/v1/internal/agent/upsert-job` | Internal agent job upsert: `{source_url, company_name, role_title, description}`. |
+| POST | `/api/v1/internal/agent/apply` | Internal agent application: `{job_id, user_id, resume_path}` and optional cover letter. |
+| GET | `/api/v1/internal/agent/applications/{user_id}` | Internal agent retrieves a user's applications. |
+| DELETE | `/api/v1/internal/agent/applications/{user_id}/{application_id}` | Internal agent removes an application. |
+| POST | `/api/v1/agent/logs/batch` | Save a batch of agent events. |
+| GET | `/api/v1/agent/logs/my?limit=&offset=&agent_type=` | List current user's agent logs. |
+| GET | `/api/v1/agent/logs/session/{session_id}` | Get logs for a session. |
+| GET | `/api/v1/agent/admin/logs?limit=&offset=&agent_type=&status=&student_id=&date_from=&date_to=` | Admin log search with pagination, type/status/student and date filters. |
+| GET | `/api/v1/agent/admin/stats?days=` | Agent activity statistics. |
+| GET | `/health` | Backend health status. |
+| GET | `/debug/all-keys`, `/debug/redis-test` | Redis diagnostics; restrict these debug routes to trusted environments. |
+
+### AI Engine (`http://localhost:8002`)
+
+| Method | Route | Purpose; request → response |
+|---|---|---|
+| POST | `/ai/resume/analyse` | **Multipart** `file` (PDF/DOCX) → extracted skills, ATS score, breakdown, suggestions, and word count. |
+| GET | `/ai/recommend/{student_id}` | Recommend active jobs from student skills → `{success, data, student_id}`. |
+| GET | `/ai/skill-gap/{student_id}/{job_id}` | Compare student and job skills → gap result. |
+| POST | `/ai/interview/questions` | `{job_title, job_description?, skills?, difficulty?, num_questions?, question_type?}` → generated questions and source. |
+| POST | `/agent/match-resume` | `{job_role, required_skills?, resume_text?, resume_path?}` → resume match result. |
+| POST | `/api/matcher/score` | `{student, job}` → match score, matched skills, and skill gaps. |
+| POST | `/api/matcher/bulk-score` | `{students, job}` → match results sorted by score. |
+| POST | `/api/matcher/retrain` | Retrain/reload the matcher model. |
+| GET | `/api/matcher/health`, `/model/health` | Matcher/model status and version. |
+| POST | `/api/agent/auto-apply` | `{instruction, student_token, student_profile}` plus optional resume URL and pipeline flag → agent response and application results. |
+| POST | `/api/agent/validate-job` | `{job_data}` → validity, publishability, quality score, issues, and extracted skills. |
+| POST | `/internal/process-job` | `{source_url, company_name, role_title, description?}` → extracted skills linked to the saved job. |
+| GET | `/health`, `/redis/health`, `/db/health`, `/api/agent/health` | Service, dependency, and agent health checks. |
+
+## Personal Contribution
+
+Git history attributes project work to Kulwinder Kour. Representative changes include:
+
+- Added application tracking and the student apply-job page ([`a562796`](https://github.com/kulwinderkour/Smart-Placement-Tracker/commit/a562796), [`9cb9621`](https://github.com/kulwinderkour/Smart-Placement-Tracker/commit/9cb9621)).
+- Built and refined AI-agent and profile/job-matching workflows ([`daa4bf9`](https://github.com/kulwinderkour/Smart-Placement-Tracker/commit/daa4bf9), [`7fc7bb8`](https://github.com/kulwinderkour/Smart-Placement-Tracker/commit/7fc7bb8)).
+- Contributed to the Firebase authentication and Redis/serverless architecture changes ([`6c1b613`](https://github.com/kulwinderkour/Smart-Placement-Tracker/commit/6c1b613), [`c181cfe`](https://github.com/kulwinderkour/Smart-Placement-Tracker/commit/c181cfe)).
+- Updated deployment automation and Cloud Build configuration ([`133a07b`](https://github.com/kulwinderkour/Smart-Placement-Tracker/commit/133a07b)).
+
+## Testing
+
+### Run tests
+
+From the repository root, start the services before running backend tests:
 
 ```bash
-curl ifconfig.me
+make test
 ```
 
-Share the output with Your Friend so he can whitelist your IP if needed.
-
-### Step 2 — Get secrets from Your Friend
-
-Ask Your Friend for:
-- `backend-api-sa-key.json` → place it at `~/secrets/smart-placement/backend-api-sa-key.json`
-- The DB password for `.env` (used in Step 4)
-
-### Step 3 — Download cloud-sql-proxy
-
-**Mac (Apple Silicon):**
-```bash
-curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.1/cloud-sql-proxy.darwin.arm64
-chmod +x cloud-sql-proxy
-mv cloud-sql-proxy Smart-Placement-Tracker/
-```
-
-**Mac (Intel):**
-```bash
-curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.1/cloud-sql-proxy.darwin.amd64
-chmod +x cloud-sql-proxy
-mv cloud-sql-proxy Smart-Placement-Tracker/
-```
-
-**Windows (PowerShell):**
-```powershell
-Invoke-WebRequest -Uri "https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.1/cloud-sql-proxy.x64.exe" -OutFile "cloud-sql-proxy.exe"
-```
-
-### Step 4 — Start the proxy (run this before `docker compose up`)
-
-**Mac:**
-```bash
-GOOGLE_APPLICATION_CREDENTIALS=~/secrets/smart-placement/backend-api-sa-key.json \
-./cloud-sql-proxy \
-  --address 0.0.0.0 \
-  --port 5433 \
-  smart-placement-prod:asia-south1:smart-placement-db &
-```
-
-**Windows (PowerShell):**
-```powershell
-$env:GOOGLE_APPLICATION_CREDENTIALS = "$HOME\secrets\smart-placement\backend-api-sa-key.json"
-.\cloud-sql-proxy.exe --address 0.0.0.0 --port 5433 smart-placement-prod:asia-south1:smart-placement-db
-```
-
-> You should see: `The proxy has started successfully and is ready for new connections!`
-> Leave this terminal open (or run it in the background with `&` on Mac).
-
-### Step 5 — Configure your `.env`
+Run the frontend checks from `frontend/`:
 
 ```bash
-cp .env.example .env
+npm ci
+npm run build
+npm run lint
 ```
 
-Set `DATABASE_URL` to route through the proxy:
-```env
-DATABASE_URL=postgresql+asyncpg://placement_user:<ask-Your_Friend>@192.168.65.254:5433/placement_tracker
-```
-
-> On Mac, `192.168.65.254` is the Docker host gateway (how containers reach the proxy running on your Mac).
-> On Windows/Linux, use `host.docker.internal` instead:
-> ```env
-> DATABASE_URL=postgresql+asyncpg://placement_user:<ask-Your_Friend>@host.docker.internal:5433/placement_tracker
-> ```
-
-### Step 6 — Start all services
+The AI Engine includes pytest tests under `ai-engine/tests/` and a standalone intent-parser check:
 
 ```bash
-docker compose up -d
+cd ai-engine
+python -m pip install -r requirements.txt
+python -m pip install pytest
+python -m pytest -q tests
+python tests/test_auto_apply_agent.py
 ```
 
-### Or — use the convenience script (Mac only)
+### Results from this documentation update
 
-```bash
-./switch-db.sh cloud    # starts proxy + sets correct DATABASE_URL automatically
-docker compose up -d
-```
-
----
-
-## ⚠️ Important Notes
-
-- **Your database data is safe** across restarts — Docker volumes persist even after `make down`
-- Only running `docker compose down -v` will permanently delete database data
-- **OPENAI_API_KEY** is required for AI features. The app works without it, but resume parsing and job matching will return errors
-- Always ensure **Docker Desktop is open and running** before starting the app
-- Migrations only need to be run **once** on first setup, or when a teammate adds new migration files
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# 2) Start all services
-docker compose up -d
-
-# 3) Run DB migrations (first time / after new migrations)
-docker compose exec backend-api alembic upgrade head
-
-# 4) Check everything is running
-docker compose ps
-
-
-
-
-
-http://localhost:8000 for backend-api
-
-http://localhost:8001 for collector
-
-http://localhost:8002 for ai-engine
-
-http://localhost:3000 for frontend
-
-
-
-cd /Users/kkour/Developer/Projects/Smart-Placement-Tracker/ai-engine
-
-python3 -m venv venv
-source venv/bin/activate
-
-pip install -r requirements.txt
-python -m spacy download en_core_web_sm
-python train_profile_matcher.py
-<!-- Minor update for commit -->
+- Backend API: `docker run --rm spt-doc-backend-test python -m pytest -q tests` — **12 passed, 1 failed**. `test_get_profile_not_found` expected HTTP 404 but received 200.
+- Backend API host attempt: `python -m pytest -q tests` — did not start because `pytest` is not installed in the host Python environment.
+- Frontend: `npm run build` — **passed** (Vite reported a large-chunk warning).
+- Frontend: `npm run lint` — **failed: 119 errors and 10 warnings**.
+- AI Engine tests were not run for this update.
