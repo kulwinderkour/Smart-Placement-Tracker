@@ -139,30 +139,6 @@ The Backend API base path is `/api/v1` (except where noted). Use `Authorization:
 | GET | `/api/v1/admin/students/{student_id}/resume` | Get a student's resume. |
 | POST | `/api/v1/admin/invite-student` | Invite a student with `{student_id, job_id}` and optional message. |
 
-### Placement, AI support, and internal integrations
-
-| Method | Route | Purpose; request → response |
-|---|---|---|
-| GET | `/api/v1/skills/suggestions?field=` | Suggest skills for a field. Also mounted at `/api/skills/suggestions`. |
-| POST | `/api/v1/roadmap/generate` | `{role, skills}` → `RoadmapResponse`. |
-| GET | `/api/v1/roadmap/my` | List current user's roadmaps. |
-| GET | `/api/v1/roadmap/{roadmap_id}` | Get a roadmap → `RoadmapResponse`. |
-| POST | `/api/v1/questions/generate` | `{topic, difficulty, type, count, userSkills, customQuestion}` → generated questions. |
-| GET | `/api/v1/questions/topics?skills=` | Suggested preparation topics. |
-| POST | `/api/v1/questions/evaluate` | `{question, userAnswer, correctAnswer, topic}` → answer evaluation. |
-| GET | `/api/v1/scraped-jobs?q=&source=&location=&type=` | Search collected jobs. |
-| POST | `/api/v1/scraped-jobs/refresh?q=` | Refresh collected jobs. |
-| POST | `/api/v1/internal/agent/upsert-job` | Internal agent job upsert: `{source_url, company_name, role_title, description}`. |
-| POST | `/api/v1/internal/agent/apply` | Internal agent application: `{job_id, user_id, resume_path}` and optional cover letter. |
-| GET | `/api/v1/internal/agent/applications/{user_id}` | Internal agent retrieves a user's applications. |
-| DELETE | `/api/v1/internal/agent/applications/{user_id}/{application_id}` | Internal agent removes an application. |
-| POST | `/api/v1/agent/logs/batch` | Save a batch of agent events. |
-| GET | `/api/v1/agent/logs/my?limit=&offset=&agent_type=` | List current user's agent logs. |
-| GET | `/api/v1/agent/logs/session/{session_id}` | Get logs for a session. |
-| GET | `/api/v1/agent/admin/logs?limit=&offset=&agent_type=&status=&student_id=&date_from=&date_to=` | Admin log search with pagination, type/status/student and date filters. |
-| GET | `/api/v1/agent/admin/stats?days=` | Agent activity statistics. |
-| GET | `/health` | Backend health status. |
-| GET | `/debug/all-keys`, `/debug/redis-test` | Redis diagnostics; restrict these debug routes to trusted environments. |
 
 ### AI Engine (`http://localhost:8002`)
 
