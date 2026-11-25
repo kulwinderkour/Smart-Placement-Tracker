@@ -136,8 +136,10 @@ From the repository root, start the services before running backend tests:
 ```bash
 make test
 ```
+```
 git clone https://github.com/kulwinderkour/Smart-Placement-Tracker.git
 cd Smart-Placement-Tracker
+```
 
 Run the frontend checks from `frontend/`:
 
